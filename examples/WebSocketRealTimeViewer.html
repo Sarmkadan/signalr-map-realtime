@@ -1,0 +1,437 @@
+<!--
+  =============================================================================
+  Author: Vladyslav Zaiets | https://sarmkadan.com
+  CTO & Software Architect
+  =============================================================================
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SignalR Map Realtime - Live Tracker</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@microsoft/signalr@latest/signalr.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f5f5;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            height: 100vh;
+            gap: 0;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+            border-right: 1px solid #ddd;
+        }
+
+        .sidebar {
+            background: white;
+            padding: 20px;
+            overflow-y: auto;
+            box-shadow: -2px 0 10px rgba(0,0,0,0.1);
+        }
+
+        .sidebar h2 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .controls {
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            margin-bottom: 10px;
+        }
+
+        label {
+            display: block;
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+
+        input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .status {
+            margin: 15px 0;
+            padding: 10px;
+            background: #f0f0f0;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .status.connected {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status.disconnected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .vehicle-list {
+            margin-top: 20px;
+        }
+
+        .vehicle-item {
+            background: #f9f9f9;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            border-left: 3px solid #007bff;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .vehicle-item:hover {
+            background: #f0f0f0;
+        }
+
+        .vehicle-item.selected {
+            background: #e7f3ff;
+            border-left-color: #0056b3;
+        }
+
+        .vehicle-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .vehicle-info {
+            color: #666;
+            font-size: 11px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: 600;
+            margin-right: 4px;
+        }
+
+        .status-badge.online {
+            background: #28a745;
+            color: white;
+        }
+
+        .status-badge.offline {
+            background: #6c757d;
+            color: white;
+        }
+
+        .messages {
+            margin-top: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+            border-top: 1px solid #ddd;
+            padding-top: 10px;
+        }
+
+        .message {
+            font-size: 11px;
+            color: #666;
+            margin-bottom: 6px;
+            padding: 4px;
+            background: #f9f9f9;
+            border-radius: 3px;
+            border-left: 2px solid #007bff;
+            padding-left: 6px;
+        }
+
+        .message.error {
+            border-left-color: #dc3545;
+            color: #dc3545;
+        }
+
+        .message.success {
+            border-left-color: #28a745;
+            color: #28a745;
+        }
+
+        .marker-icon {
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #007bff;
+            color: white;
+            border-radius: 50%;
+            font-weight: bold;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="map"></div>
+        <div class="sidebar">
+            <h2>🗺 Live Tracker</h2>
+
+            <div class="controls">
+                <div class="input-group">
+                    <label>Hub URL</label>
+                    <input type="text" id="hubUrl" placeholder="https://localhost:5001/locationHub"
+                           value="https://localhost:5001/locationHub">
+                </div>
+
+                <div class="input-group">
+                    <label>Vehicle ID</label>
+                    <input type="text" id="vehicleId" placeholder="Enter vehicle ID or leave empty">
+                </div>
+
+                <button id="connectBtn" onclick="toggleConnection()">Connect</button>
+            </div>
+
+            <div class="status" id="status">Disconnected</div>
+
+            <div class="vehicle-list">
+                <h3 style="font-size: 14px; margin-bottom: 10px;">Vehicles</h3>
+                <div id="vehiclesList"></div>
+            </div>
+
+            <div class="messages">
+                <div id="messagesList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let map;
+        let connection;
+        let markers = {};
+        let vehicles = {};
+        let isConnected = false;
+
+        // Initialize map
+        function initMap() {
+            map = L.map('map').setView([40.7128, -74.0060], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 19
+            }).addTo(map);
+        }
+
+        // Initialize SignalR connection
+        async function initConnection() {
+            const hubUrl = document.getElementById('hubUrl').value;
+
+            connection = new signalR.HubConnectionBuilder()
+                .withUrl(hubUrl)
+                .withAutomaticReconnect([0, 2000, 5000, 10000, 15000, 30000])
+                .configureLogging(signalR.LogLevel.Information)
+                .build();
+
+            connection.on("LocationUpdated", (location) => {
+                updateVehicleLocation(location);
+            });
+
+            connection.on("VehicleStatusChanged", (vehicleId, status) => {
+                updateVehicleStatus(vehicleId, status);
+                addMessage(`Vehicle ${vehicleId} status: ${status}`, 'success');
+            });
+
+            connection.on("Alert", (alert) => {
+                addMessage(`⚠ ${alert.type}: ${alert.message}`, 'error');
+            });
+
+            connection.onreconnecting(() => {
+                updateStatus('Reconnecting...', false);
+            });
+
+            connection.onreconnected(() => {
+                updateStatus('Connected', true);
+                addMessage('Reconnected to server', 'success');
+            });
+
+            connection.onclose(async (error) => {
+                updateStatus('Disconnected', false);
+                addMessage('Connection closed', 'error');
+            });
+
+            try {
+                await connection.start();
+                isConnected = true;
+                updateStatus('Connected', true);
+                addMessage('Connected to SignalR hub', 'success');
+
+                // Subscribe to vehicle if specified
+                const vehicleId = document.getElementById('vehicleId').value;
+                if (vehicleId) {
+                    await connection.invoke("SubscribeToVehicle", vehicleId);
+                    addMessage(`Subscribed to vehicle: ${vehicleId}`, 'success');
+                }
+            } catch (error) {
+                updateStatus('Connection Error', false);
+                addMessage(`Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Toggle connection
+        async function toggleConnection() {
+            const btn = document.getElementById('connectBtn');
+
+            if (isConnected && connection) {
+                await connection.stop();
+                isConnected = false;
+                updateStatus('Disconnected', false);
+                btn.textContent = 'Connect';
+            } else {
+                await initConnection();
+                btn.textContent = 'Disconnect';
+            }
+        }
+
+        // Update vehicle location on map
+        function updateVehicleLocation(location) {
+            const vehicleId = location.vehicleId;
+            const latlng = [location.latitude, location.longitude];
+
+            // Update or create marker
+            if (markers[vehicleId]) {
+                markers[vehicleId].setLatLng(latlng);
+            } else {
+                const marker = L.marker(latlng, {
+                    title: vehicleId
+                }).addTo(map)
+                 .bindPopup(`Vehicle: ${vehicleId}<br/>Lat: ${location.latitude.toFixed(4)}<br/>Lon: ${location.longitude.toFixed(4)}`);
+
+                markers[vehicleId] = marker;
+            }
+
+            // Store vehicle data
+            vehicles[vehicleId] = {
+                id: vehicleId,
+                latitude: location.latitude,
+                longitude: location.longitude,
+                speed: location.speed || 0,
+                heading: location.heading || 0,
+                lastUpdate: new Date().toLocaleTimeString(),
+                status: 'online'
+            };
+
+            updateVehiclesList();
+        }
+
+        // Update vehicle status
+        function updateVehicleStatus(vehicleId, status) {
+            if (vehicles[vehicleId]) {
+                vehicles[vehicleId].status = status;
+                updateVehiclesList();
+            }
+        }
+
+        // Update vehicles list in sidebar
+        function updateVehiclesList() {
+            const list = document.getElementById('vehiclesList');
+            list.innerHTML = '';
+
+            for (const vehicleId in vehicles) {
+                const vehicle = vehicles[vehicleId];
+                const elem = document.createElement('div');
+                elem.className = 'vehicle-item';
+                elem.innerHTML = `
+                    <div class="vehicle-name">${vehicleId.substring(0, 8)}</div>
+                    <div class="vehicle-info">
+                        <span class="status-badge ${vehicle.status}">${vehicle.status}</span>
+                        <br/>Speed: ${vehicle.speed.toFixed(1)} km/h
+                        <br/>Updated: ${vehicle.lastUpdate}
+                    </div>
+                `;
+
+                elem.onclick = () => {
+                    map.setView([vehicle.latitude, vehicle.longitude], 15);
+                    elem.classList.toggle('selected');
+                };
+
+                list.appendChild(elem);
+            }
+        }
+
+        // Update status display
+        function updateStatus(text, connected) {
+            const elem = document.getElementById('status');
+            elem.textContent = text;
+            elem.className = 'status ' + (connected ? 'connected' : 'disconnected');
+        }
+
+        // Add message to log
+        function addMessage(text, type = 'info') {
+            const list = document.getElementById('messagesList');
+            const elem = document.createElement('div');
+            elem.className = `message ${type}`;
+            elem.textContent = `[${new Date().toLocaleTimeString()}] ${text}`;
+            list.insertBefore(elem, list.firstChild);
+
+            // Keep only last 20 messages
+            while (list.children.length > 20) {
+                list.removeChild(list.lastChild);
+            }
+        }
+
+        // Initialize on page load
+        window.addEventListener('load', () => {
+            initMap();
+            updateStatus('Ready to connect', false);
+        });
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', async () => {
+            if (connection) {
+                await connection.stop();
+            }
+        });
+    </script>
+</body>
+</html>
