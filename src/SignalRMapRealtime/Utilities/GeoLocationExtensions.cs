@@ -1,3 +1,4 @@
+#nullable enable
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
@@ -24,8 +25,8 @@ public static class GeoLocationExtensions
     /// </summary>
     public static double DistanceTo(this Location from, Location to)
     {
-        if (from == null || to == null)
-            throw new ArgumentNullException(from == null ? nameof(from) : nameof(to));
+        if (from is null || to is null)
+            throw new ArgumentNullException(from is null ? nameof(from) : nameof(to));
 
         return CalculateDistance(from.Latitude, from.Longitude, to.Latitude, to.Longitude);
     }
@@ -93,8 +94,8 @@ public static class GeoLocationExtensions
     /// </summary>
     public static double BearingTo(this Location from, Location to)
     {
-        if (from == null || to == null)
-            throw new ArgumentNullException(from == null ? nameof(from) : nameof(to));
+        if (from is null || to is null)
+            throw new ArgumentNullException(from is null ? nameof(from) : nameof(to));
 
         return CalculateBearing(from.Latitude, from.Longitude, to.Latitude, to.Longitude);
     }

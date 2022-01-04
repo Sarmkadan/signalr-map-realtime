@@ -1,3 +1,4 @@
+#nullable enable
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
@@ -67,7 +68,7 @@ public class ExternalHttpClientFactory : IHttpClientFactory
         client.DefaultRequestHeaders.Add("User-Agent", "SignalRMapRealtime/1.0");
         client.DefaultRequestHeaders.Add("Accept", "application/json");
 
-        if (defaultHeaders != null)
+        if (defaultHeaders is not null)
         {
             foreach (var header in defaultHeaders)
             {

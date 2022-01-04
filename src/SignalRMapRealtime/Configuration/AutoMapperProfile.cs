@@ -1,3 +1,4 @@
+#nullable enable
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
@@ -23,26 +24,26 @@ public class AutoMapperProfile : Profile
         CreateMap<Location, LocationDto>().ReverseMap();
         CreateMap<CreateLocationDto, Location>();
         CreateMap<UpdateLocationDto, Location>()
-            .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+            .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember is not null));
 
         // Vehicle mappings
         CreateMap<Vehicle, VehicleDto>()
             .ForMember(dest => dest.LastLocation, opt => opt.MapFrom(src => src.LastLocation));
         CreateMap<CreateVehicleDto, Vehicle>();
         CreateMap<UpdateVehicleDto, Vehicle>()
-            .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+            .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember is not null));
 
         // User mappings
         CreateMap<User, UserDto>().ReverseMap();
         CreateMap<CreateUserDto, User>();
         CreateMap<UpdateUserDto, User>()
-            .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+            .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember is not null));
 
         // Asset mappings
         CreateMap<Asset, AssetDto>().ReverseMap();
         CreateMap<CreateAssetDto, Asset>();
         CreateMap<UpdateAssetDto, Asset>()
-            .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+            .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember is not null));
 
         // Route mappings
         CreateMap<Route, RouteDto>()
@@ -51,12 +52,12 @@ public class AutoMapperProfile : Profile
             .ForMember(dest => dest.Waypoints, opt => opt.MapFrom(src => src.Waypoints));
         CreateMap<CreateRouteDto, Route>();
         CreateMap<UpdateRouteDto, Route>()
-            .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+            .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember is not null));
 
         // Waypoint mappings
         CreateMap<Waypoint, WaypointDto>().ReverseMap();
         CreateMap<CreateWaypointDto, Waypoint>();
         CreateMap<UpdateWaypointDto, Waypoint>()
-            .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+            .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember is not null));
     }
 }
