@@ -1,0 +1,1 @@
+This is a migration guide for v2.0 of signalr-map-realtime.
