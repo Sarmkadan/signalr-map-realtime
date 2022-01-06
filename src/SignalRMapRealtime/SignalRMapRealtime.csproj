@@ -1,18 +1,20 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>SignalRMapRealtime</RootNamespace>
     <AssemblyName>SignalRMapRealtime</AssemblyName>
-    <Version>1.0.0</Version>
+    <Version>1.2.0</Version>
     <Authors>Vladyslav Zaiets</Authors>
-    <Description>Real-time location tracking on a map using SignalR and Leaflet</Description>
-    <RepositoryUrl>https://github.com/vladyslavzaiets/signalr-map-realtime</RepositoryUrl>
+    <Description>Real-time location tracking on a map using SignalR and Leaflet - vehicles, couriers, assets</Description>
+    <RepositoryUrl>https://github.com/Sarmkadan/signalr-map-realtime</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
     <PackageProjectUrl>https://sarmkadan.com</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
