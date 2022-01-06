@@ -32,7 +32,7 @@ public static class DependencyInjection
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(connectionString, dbOpts =>
             {
-                dbOpts.EnableRetryOnFailure(maxRetryCount: 3, maxRetryDelaySeconds: 5, errorNumbersToAdd: null);
+                dbOpts.EnableRetryOnFailure(maxRetryCount: 3, maxRetryDelay: TimeSpan.FromSeconds(5), errorNumbersToAdd: null);
             })
         );
 
