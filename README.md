@@ -6,7 +6,7 @@
 
 A production-grade, enterprise-ready real-time location tracking system built with ASP.NET Core 10, SignalR, and modern web technologies. Track vehicles, couriers, assets, and mobile workers in real-time with live GPS updates, intelligent route management, and comprehensive fleet monitoring.
 
-## 📋 Table of Contents
+## Table of Contents
 
 - [Overview](#overview)
 - [Key Features](#key-features)
