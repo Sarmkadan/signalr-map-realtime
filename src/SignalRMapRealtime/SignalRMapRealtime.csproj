@@ -9,7 +9,7 @@
     <Version>1.2.0</Version>
     <Authors>Vladyslav Zaiets</Authors>
     <Description>Real-time location tracking on a map using SignalR and Leaflet - vehicles, couriers, assets</Description>
-    <RepositoryUrl>https://github.com/Sarmkadan/signalr-map-realtime</RepositoryUrl>
+    <RepositoryUrl>https://github.com/sarmkadan/signalr-map-realtime</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageProjectUrl>https://sarmkadan.com</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
