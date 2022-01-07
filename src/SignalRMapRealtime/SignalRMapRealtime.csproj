@@ -6,16 +6,23 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>SignalRMapRealtime</RootNamespace>
     <AssemblyName>SignalRMapRealtime</AssemblyName>
-    <Version>1.2.0</Version>
+    <PackageId>Zaiets.signalr.map.realtime</PackageId>
+    <Version>1.0.0</Version>
     <Authors>Vladyslav Zaiets</Authors>
     <Description>Real-time location tracking on a map using SignalR and Leaflet - vehicles, couriers, assets</Description>
+    <PackageTags>signalr map realtime location tracking leaflet vehicle</PackageTags>
     <RepositoryUrl>https://github.com/sarmkadan/signalr-map-realtime</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <PackageProjectUrl>https://sarmkadan.com</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/sarmkadan/signalr-map-realtime</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <LangVersion>latest</LangVersion>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="../../README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.0" />
