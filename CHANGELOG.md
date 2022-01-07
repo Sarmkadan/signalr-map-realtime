@@ -5,19 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.2.0] - 2024-05-04
+## [1.0.0] - 2025-04-10
 
 ### Added
-- Comprehensive documentation suite (getting-started, architecture, deployment, FAQ)
-- Example clients for vehicle tracking, location simulation, and geofence monitoring
+- Comprehensive documentation suite (getting-started, architecture, deployment, FAQ, troubleshooting)
+- Example clients: VehicleTrackerClient, LocationUpdateSimulator, RouteOptimizationClient, GeofenceAlertsClient, BulkLocationImporter, SessionAnalyticsReporter
 - Real-time HTML5 web viewer with Leaflet map integration
-- Bulk location import from CSV files
-- Session analytics reporter with statistical analysis
+- xUnit test suite covering domain model behavior, geo-distance calculations, and location service logic
 - Docker and Docker Compose support for complete stack deployment
-- CI/CD workflow for automated builds and testing
 - Makefile for common development tasks
 - EditorConfig for consistent code formatting
-- Route optimization example with waypoint management
+- NuGet packaging configuration with README and license
+- Security scanning via CodeQL workflow
+- Dependabot configuration for automated dependency updates
+- CI/CD workflow for automated builds and testing
 
 ### Changed
 - Updated to .NET 10.0
@@ -30,132 +31,103 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Database migration scripts now idempotent
 - CORS configuration more flexible
 
-## [1.1.0] - 2024-04-20
+## [0.4.0] - 2025-03-06
 
 ### Added
 - FluentValidation integration for request validation
 - Rate limiting middleware for API protection
 - Performance monitoring middleware with timing metrics
-- Comprehensive API documentation in Swagger
-- Background job for session cleanup
-- Event bus for domain events
+- Comprehensive Swagger/OpenAPI documentation
+- Background job for session cleanup (`SessionCleanupWorker`)
+- Event bus for domain events (`DomainEvent`, `EventBus`)
 - Webhook handler for third-party integrations
 - Health check endpoint
 - Extended logging with structured JSON output
+- GeoJSON serializer for location data
+- HTTP client factory for integration layer
 
 ### Changed
-- Refactored dependency injection configuration
+- Refactored dependency injection configuration into `DependencyInjection.cs`
 - Improved service layer error handling
-- Enhanced database context configuration
-- Optimized entity mappings with AutoMapper
+- Enhanced database context configuration with full entity mappings
+- Optimized entity mappings with AutoMapper profiles
 
 ### Fixed
 - Fixed N+1 query problems in location retrievals
-- Improved pagination handling
-- Fixed null reference exceptions in edge cases
+- Improved pagination handling in repository base class
+- Fixed null reference exceptions in edge cases across service layer
 
-## [1.0.0] - 2024-03-15
+## [0.3.0] - 2025-02-17
 
 ### Added
-- Core domain models (Vehicle, Location, Route, User, Asset, TrackingSession)
-- Entity Framework Core setup with SQL Server
-- Repository pattern implementation with generic base repository
-- Service layer with LocationService, VehicleService, TrackingService
-- SignalR hub for real-time location updates
-- REST API controllers for vehicles, locations, routes, assets
-- Data Transfer Objects (DTOs) for API contracts
+- REST API controllers: VehicleController, LocationController, RouteController, AssetController
+- SignalR `LocationHub` with client/server method contracts
+- Data Transfer Objects (DTOs) for all API contracts
 - AutoMapper profile for entity-to-DTO mapping
-- Application DbContext with all entity mappings
-- Database migrations for schema creation
-- Custom exception hierarchy
-- Dependency injection container setup
-- CORS middleware configuration
-- Error handling middleware
-- Request/response logging
+- `NotificationService` for real-time alert delivery
+- `CacheService` with in-memory/Redis-compatible interface
+- `GeofenceService` for boundary entry/exit detection
 - API key authentication attribute
-- Swagger/OpenAPI documentation
-- Configuration options (Caching, RateLimiting, Notification)
-- Utilities for extensions and helpers
-- Constants for API and location values
-- Project structure and documentation
+- Error handling middleware with structured JSON responses
+- Request/response logging middleware
+- Rate limiting middleware scaffold
+- CORS configuration
+- Swagger/OpenAPI setup in `Program.cs`
+- Configuration options: `CachingOptions`, `RateLimitingOptions`, `NotificationOptions`
+- Extension methods: `GeoLocationExtensions`, `DateTimeExtensions`, `StringExtensions`, `PaginationExtensions`
+- Constants for API versioning and location validation (`ApiConstants`, `LocationConstants`)
+
+### Fixed
+- Route waypoint ordering during creation
+- Asset type deserialization from JSON
+
+## [0.2.0] - 2025-01-30
+
+### Added
+- Repository pattern with generic `BaseRepository<T>` and `IRepository<T>`
+- Concrete repositories: VehicleRepository, LocationRepository, RouteRepository, AssetRepository, UserRepository, TrackingSessionRepository
+- Service layer: `LocationService`, `VehicleService`, `TrackingService`
+- Service interfaces: `ILocationService`, `IVehicleService`, `ITrackingService`
+- `ApplicationDbContext` with EF Core configuration for all entity types
+- Paginated response models (`PagedRequest`, `PaginatedResponse<T>`)
+- `ApiResponse<T>` and `ErrorResponse` envelope models
+- Custom exception hierarchy (`LocationTrackingException`)
+- `ClaimsExtensions` and `HttpContextExtensions` utilities
+- `CollectionExtensions` and `ValidationExtensions` helpers
+
+### Changed
+- Separated domain models into dedicated `Domain/Models` and `Domain/Enums` folders
+
+## [0.1.0] - 2025-01-08
+
+### Added
+- Initial project setup targeting .NET 10.0
+- Solution file and project structure
+- Core domain models: `Vehicle`, `Location`, `Route`, `User`, `Asset`, `Waypoint`, `TrackingSession`, `Geofence`
+- Domain enums: `VehicleStatus`, `LocationType`, `AssetType`, `SessionStatus`
+- Git repository initialization with `.gitignore`
+- `README.md` with project overview
+- MIT `LICENSE`
+- Basic `Program.cs` application entry point
+- `appsettings.json` and `appsettings.Development.json` configuration files
 
 ### Security
 - API key authentication infrastructure
-- SQL injection prevention via EF Core
+- SQL injection prevention via EF Core parameterized queries
 - Input validation foundation
 - HTTPS support
-
-## [0.1.0] - 2024-02-01
-
-### Added
-- Initial project setup with .NET 8.0
-- Basic project structure and folder organization
-- Git repository initialization
-- README with project overview
-- LICENSE (MIT)
-- .gitignore configuration
-- Entity models skeleton
-- Service interfaces definition
-- Repository interface definition
-
----
-
-## Upcoming Features (Backlog)
-
-### High Priority
-- [ ] Unit test suite with xUnit
-- [ ] Integration tests with TestServer
-- [ ] API endpoint authentication (JWT/OAuth)
-- [ ] Role-based access control (RBAC)
-- [ ] Advanced geofencing with multiple zones
-- [ ] Speed violation detection and alerting
-- [ ] Fuel consumption tracking and reporting
-- [ ] Driver behavior analysis
-
-### Medium Priority
-- [ ] GraphQL API endpoint
-- [ ] Caching layer with Redis
-- [ ] Message queue integration (RabbitMQ)
-- [ ] Push notifications (APNs, Firebase)
-- [ ] Mobile app SDK
-- [ ] Advanced analytics dashboard
-- [ ] Machine learning route optimization
-- [ ] Offline data sync
-
-### Low Priority
-- [ ] Blockchain integration for audit logs
-- [ ] IoT device integration
-- [ ] AR visualization
-- [ ] Advanced reporting engine
-- [ ] Custom dashboard builder
-- [ ] API rate limiting per tenant
 
 ---
 
 ## Version Support
 
-| Version | Status | .NET Target | Release Date | EOL Date |
-|---------|--------|------------|--------------|----------|
-| 1.2.0 | Current | net10.0 | 2024-05-04 | 2025-11-04 |
-| 1.1.0 | Maintenance | net8.0 | 2024-04-20 | 2024-11-20 |
-| 1.0.0 | Legacy | net8.0 | 2024-03-15 | 2024-09-15 |
-| 0.1.0 | End of Life | net8.0 | 2024-02-01 | 2024-05-01 |
-
----
-
-## Migration Guide
-
-### From 1.1.0 to 1.2.0
-1. Update .NET SDK to 10.0
-2. Update all NuGet packages: `dotnet package update`
-3. No database schema changes required
-4. Configuration remains backward compatible
-
-### From 1.0.0 to 1.1.0
-1. No breaking changes
-2. New validation rules applied automatically
-3. Update configuration for RateLimiting if needed
-4. No data migration required
+| Version | Status | .NET Target | Release Date |
+|---------|--------|------------|--------------|
+| 1.0.0 | Current | net10.0 | 2025-04-10 |
+| 0.4.0 | Legacy | net10.0 | 2025-03-06 |
+| 0.3.0 | Legacy | net10.0 | 2025-02-17 |
+| 0.2.0 | End of Life | net10.0 | 2025-01-30 |
+| 0.1.0 | End of Life | net10.0 | 2025-01-08 |
 
 ---
 

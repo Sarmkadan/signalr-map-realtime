@@ -1,8 +1,8 @@
-# SignalR Map Realtime - Real-Time Location Tracking System
-
 [![Build](https://github.com/sarmkadan/signalr-map-realtime/actions/workflows/build.yml/badge.svg)](https://github.com/sarmkadan/signalr-map-realtime/actions/workflows/build.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![.NET](https://img.shields.io/badge/.NET-10.0-purple.svg)](https://dotnet.microsoft.com/)
+
+# SignalR Map Realtime - Real-Time Location Tracking System
 
 A production-grade, enterprise-ready real-time location tracking system built with ASP.NET Core 10, SignalR, and modern web technologies. Track vehicles, couriers, assets, and mobile workers in real-time with live GPS updates, intelligent route management, and comprehensive fleet monitoring.
 
