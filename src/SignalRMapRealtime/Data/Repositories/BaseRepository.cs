@@ -3,6 +3,8 @@
 // CTO & Software Architect
 // =============================================================================
 
+using System; // Added for Guid
+
 namespace SignalRMapRealtime.Data.Repositories;
 
 using Microsoft.EntityFrameworkCore;
@@ -29,7 +31,7 @@ public class BaseRepository<T> : IRepository<T> where T : class
     /// <summary>
     /// Retrieves an entity by its primary key.
     /// </summary>
-    public async Task<T?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
+    public async Task<T?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return await _dbSet.FindAsync(new object[] { id }, cancellationToken: cancellationToken);
     }
@@ -111,7 +113,7 @@ public class BaseRepository<T> : IRepository<T> where T : class
     /// <summary>
     /// Removes an entity by its primary key.
     /// </summary>
-    public async Task RemoveByIdAsync(int id, CancellationToken cancellationToken = default)
+    public async Task RemoveByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var entity = await GetByIdAsync(id, cancellationToken);
         if (entity != null)
@@ -131,7 +133,7 @@ public class BaseRepository<T> : IRepository<T> where T : class
     /// <summary>
     /// Checks if an entity with the specified key exists.
     /// </summary>
-    public async Task<bool> ExistsAsync(int id, CancellationToken cancellationToken = default)
+    public async Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return await _dbSet.FindAsync(new object[] { id }, cancellationToken: cancellationToken) != null;
     }
