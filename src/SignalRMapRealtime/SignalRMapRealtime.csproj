@@ -7,7 +7,7 @@
     <RootNamespace>SignalRMapRealtime</RootNamespace>
     <AssemblyName>SignalRMapRealtime</AssemblyName>
     <PackageId>Zaiets.signalr.map.realtime</PackageId>
-    <Version>1.0.0</Version>
+    <Version>2.0.0</Version>
     <Authors>Vladyslav Zaiets</Authors>
     <Description>Real-time location tracking on a map using SignalR and Leaflet - vehicles, couriers, assets</Description>
     <PackageTags>signalr map realtime location tracking leaflet vehicle</PackageTags>
