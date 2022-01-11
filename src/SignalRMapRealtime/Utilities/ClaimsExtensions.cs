@@ -1,3 +1,4 @@
+#nullable enable
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
@@ -83,7 +84,7 @@ public static class ClaimsExtensions
     /// </summary>
     public static bool HasClaim(this ClaimsPrincipal principal, string claimType)
     {
-        return principal?.FindFirst(claimType) != null;
+        return principal?.FindFirst(claimType) is not null;
     }
 
     /// <summary>

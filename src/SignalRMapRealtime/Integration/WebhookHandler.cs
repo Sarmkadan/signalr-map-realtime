@@ -1,3 +1,4 @@
+#nullable enable
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
@@ -116,7 +117,7 @@ public class WebhookHandler : IWebhookHandler
     private async Task<WebhookProcessingResult> HandleTrackingServiceWebhook(string payload)
     {
         var data = JsonSerializer.Deserialize<TrackingWebhookPayload>(payload);
-        if (data == null)
+        if (data is null)
         {
             return new WebhookProcessingResult { Success = false, ErrorMessage = "Invalid payload" };
         }
@@ -146,7 +147,7 @@ public class WebhookHandler : IWebhookHandler
     private async Task<WebhookProcessingResult> HandleNotificationWebhook(string payload)
     {
         var data = JsonSerializer.Deserialize<NotificationWebhookPayload>(payload);
-        if (data == null)
+        if (data is null)
         {
             return new WebhookProcessingResult { Success = false, ErrorMessage = "Invalid payload" };
         }
@@ -165,7 +166,7 @@ public class WebhookHandler : IWebhookHandler
     private async Task<WebhookProcessingResult> HandleRouteOptimizationWebhook(string payload)
     {
         var data = JsonSerializer.Deserialize<RouteOptimizationWebhookPayload>(payload);
-        if (data == null)
+        if (data is null)
         {
             return new WebhookProcessingResult { Success = false, ErrorMessage = "Invalid payload" };
         }

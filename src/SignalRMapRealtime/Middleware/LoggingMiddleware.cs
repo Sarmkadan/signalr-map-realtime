@@ -1,3 +1,4 @@
+#nullable enable
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
@@ -151,7 +152,7 @@ public class LoggingMiddleware
     /// </summary>
     private async Task<string> ReadRequestBody(HttpRequest request)
     {
-        if (request.ContentLength == 0 || request.Body == null)
+        if (request.ContentLength == 0 || request.Body is null)
             return string.Empty;
 
         request.EnableBuffering();

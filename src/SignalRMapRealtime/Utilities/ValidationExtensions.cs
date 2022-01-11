@@ -1,3 +1,4 @@
+#nullable enable
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
@@ -121,7 +122,7 @@ public static class ValidationExtensions
     /// </summary>
     public static bool IsLengthInRange(this string? value, int minLength, int maxLength)
     {
-        if (value == null) return minLength <= 0;
+        if (value is null) return minLength <= 0;
 
         return value.Length >= minLength && value.Length <= maxLength;
     }
