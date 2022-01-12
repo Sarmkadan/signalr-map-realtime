@@ -30,6 +30,13 @@ builder.Services.Configure<CachingOptions>(builder.Configuration.GetSection(Cach
 builder.Services.Configure<RateLimitingOptions>(builder.Configuration.GetSection(RateLimitingOptions.SectionName));
 builder.Services.Configure<NotificationOptions>(builder.Configuration.GetSection(NotificationOptions.SectionName));
 
+// Hotfix: Add API Key authentication for SignalR hubs and API endpoints.
+// This ensures that unauthorized requests are properly rejected with a 401,
+// preventing clients from entering a reconnection loop due to unhandled authentication failures.
+builder.Services.AddApiKeyAuthentication();
+builder.Services.AddAuthorization();
+
+
 // Services registration
 builder.Services.AddApplicationServices(builder.Configuration);
 builder.Services.AddSignalRServices();
@@ -127,8 +134,8 @@ app.UseRouting();
 app.UseCors("AllowSpecificOrigins");
 
 // Authentication and authorization (placeholder for future implementation)
-// app.UseAuthentication();
-// app.UseAuthorization();
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
 
