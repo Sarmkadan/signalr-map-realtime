@@ -38,7 +38,7 @@ public class TrackingService : ITrackingService
     /// </summary>
     public async Task<int> StartTrackingSessionAsync(int vehicleId, string sessionName = "", int? routeId = null, CancellationToken cancellationToken = default)
     {
-        var vehicle = await _vehicleRepository.GetByIdAsync(vehicleId, cancellationToken);
+        var vehicle = await _vehicleRepository.GetByIdAsync(vehicleId, cancellationToken).ConfigureAwait(false);
         if (vehicle is null)
             throw new VehicleNotFoundException(vehicleId);
 
@@ -60,10 +60,10 @@ public class TrackingService : ITrackingService
         session.StartSession();
         vehicle.UpdateStatus(VehicleStatus.InTransit);
 
-        await _sessionRepository.AddAsync(session, cancellationToken);
-        await _sessionRepository.SaveChangesAsync(cancellationToken);
-        await _vehicleRepository.UpdateAsync(vehicle, cancellationToken);
-        await _vehicleRepository.SaveChangesAsync(cancellationToken);
+        await _sessionRepository.AddAsync(session, cancellationToken).ConfigureAwait(false);
+        await _sessionRepository.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        await _vehicleRepository.UpdateAsync(vehicle, cancellationToken).ConfigureAwait(false);
+        await _vehicleRepository.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         return session.Id;
     }
@@ -73,13 +73,13 @@ public class TrackingService : ITrackingService
     /// </summary>
     public async Task<bool> PauseSessionAsync(int sessionId, CancellationToken cancellationToken = default)
     {
-        var session = await _sessionRepository.GetByIdAsync(sessionId, cancellationToken);
+        var session = await _sessionRepository.GetByIdAsync(sessionId, cancellationToken).ConfigureAwait(false);
         if (session is null || session.Status != SessionStatus.Active)
             return false;
 
         session.PauseSession();
-        await _sessionRepository.UpdateAsync(session, cancellationToken);
-        await _sessionRepository.SaveChangesAsync(cancellationToken);
+        await _sessionRepository.UpdateAsync(session, cancellationToken).ConfigureAwait(false);
+        await _sessionRepository.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         return true;
     }
 
@@ -88,13 +88,13 @@ public class TrackingService : ITrackingService
     /// </summary>
     public async Task<bool> ResumeSessionAsync(int sessionId, CancellationToken cancellationToken = default)
     {
-        var session = await _sessionRepository.GetByIdAsync(sessionId, cancellationToken);
+        var session = await _sessionRepository.GetByIdAsync(sessionId, cancellationToken).ConfigureAwait(false);
         if (session is null || session.Status != SessionStatus.Paused)
             return false;
 
         session.ResumeSession();
-        await _sessionRepository.UpdateAsync(session, cancellationToken);
-        await _sessionRepository.SaveChangesAsync(cancellationToken);
+        await _sessionRepository.UpdateAsync(session, cancellationToken).ConfigureAwait(false);
+        await _sessionRepository.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         return true;
     }
 
@@ -103,21 +103,21 @@ public class TrackingService : ITrackingService
     /// </summary>
     public async Task<bool> CompleteSessionAsync(int sessionId, CancellationToken cancellationToken = default)
     {
-        var session = await _sessionRepository.GetSessionWithDetailsAsync(sessionId);
+        var session = await _sessionRepository.GetSessionWithDetailsAsync(sessionId).ConfigureAwait(false);
         if (session is null || session.Status == SessionStatus.Completed)
             return false;
 
         session.CompleteSession();
-        var vehicle = await _vehicleRepository.GetByIdAsync(session.VehicleId, cancellationToken);
+        var vehicle = await _vehicleRepository.GetByIdAsync(session.VehicleId, cancellationToken).ConfigureAwait(false);
         if (vehicle is not null)
         {
             vehicle.UpdateStatus(VehicleStatus.AtDepot);
-            await _vehicleRepository.UpdateAsync(vehicle, cancellationToken);
-            await _vehicleRepository.SaveChangesAsync(cancellationToken);
+            await _vehicleRepository.UpdateAsync(vehicle, cancellationToken).ConfigureAwait(false);
+            await _vehicleRepository.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
 
-        await _sessionRepository.UpdateAsync(session, cancellationToken);
-        await _sessionRepository.SaveChangesAsync(cancellationToken);
+        await _sessionRepository.UpdateAsync(session, cancellationToken).ConfigureAwait(false);
+        await _sessionRepository.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         return true;
     }
 
@@ -126,21 +126,21 @@ public class TrackingService : ITrackingService
     /// </summary>
     public async Task<bool> CancelSessionAsync(int sessionId, string reason = "", CancellationToken cancellationToken = default)
     {
-        var session = await _sessionRepository.GetByIdAsync(sessionId, cancellationToken);
+        var session = await _sessionRepository.GetByIdAsync(sessionId, cancellationToken).ConfigureAwait(false);
         if (session is null)
             return false;
 
         session.CancelSession(reason);
-        var vehicle = await _vehicleRepository.GetByIdAsync(session.VehicleId, cancellationToken);
+        var vehicle = await _vehicleRepository.GetByIdAsync(session.VehicleId, cancellationToken).ConfigureAwait(false);
         if (vehicle is not null)
         {
             vehicle.UpdateStatus(VehicleStatus.Idle);
-            await _vehicleRepository.UpdateAsync(vehicle, cancellationToken);
-            await _vehicleRepository.SaveChangesAsync(cancellationToken);
+            await _vehicleRepository.UpdateAsync(vehicle, cancellationToken).ConfigureAwait(false);
+            await _vehicleRepository.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
 
-        await _sessionRepository.UpdateAsync(session, cancellationToken);
-        await _sessionRepository.SaveChangesAsync(cancellationToken);
+        await _sessionRepository.UpdateAsync(session, cancellationToken).ConfigureAwait(false);
+        await _sessionRepository.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         return true;
     }
 
@@ -149,7 +149,7 @@ public class TrackingService : ITrackingService
     /// </summary>
     public async Task<object?> GetActiveSessionAsync(int vehicleId, CancellationToken cancellationToken = default)
     {
-        var session = await _sessionRepository.GetActiveSessionByVehicleAsync(vehicleId);
+        var session = await _sessionRepository.GetActiveSessionByVehicleAsync(vehicleId).ConfigureAwait(false);
         return session;
     }
 
@@ -158,7 +158,7 @@ public class TrackingService : ITrackingService
     /// </summary>
     public async Task<IEnumerable<object>> GetSessionHistoryAsync(int vehicleId, CancellationToken cancellationToken = default)
     {
-        var sessions = await _sessionRepository.GetSessionsByVehicleAsync(vehicleId);
+        var sessions = await _sessionRepository.GetSessionsByVehicleAsync(vehicleId).ConfigureAwait(false);
         return sessions.Cast<object>();
     }
 
@@ -167,7 +167,7 @@ public class TrackingService : ITrackingService
     /// </summary>
     public async Task<IEnumerable<object>> GetSessionsByStatusAsync(SessionStatus status, CancellationToken cancellationToken = default)
     {
-        var sessions = await _sessionRepository.GetSessionsByStatusAsync(status);
+        var sessions = await _sessionRepository.GetSessionsByStatusAsync(status).ConfigureAwait(false);
         return sessions.Cast<object>();
     }
 
@@ -176,7 +176,7 @@ public class TrackingService : ITrackingService
     /// </summary>
     public async Task<IEnumerable<object>> GetExpiredSessionsAsync(CancellationToken cancellationToken = default)
     {
-        var sessions = await _sessionRepository.GetExpiredSessionsAsync();
+        var sessions = await _sessionRepository.GetExpiredSessionsAsync().ConfigureAwait(false);
         return sessions.Cast<object>();
     }
 
@@ -185,7 +185,7 @@ public class TrackingService : ITrackingService
     /// </summary>
     public async Task<bool> IsSessionActiveAsync(int sessionId, CancellationToken cancellationToken = default)
     {
-        var session = await _sessionRepository.GetByIdAsync(sessionId, cancellationToken);
+        var session = await _sessionRepository.GetByIdAsync(sessionId, cancellationToken).ConfigureAwait(false);
         return session?.Status == SessionStatus.Active;
     }
 
@@ -194,7 +194,7 @@ public class TrackingService : ITrackingService
     /// </summary>
     public async Task<object?> GetSessionDetailsAsync(int sessionId, CancellationToken cancellationToken = default)
     {
-        return await _sessionRepository.GetSessionWithDetailsAsync(sessionId);
+        return await _sessionRepository.GetSessionWithDetailsAsync(sessionId).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -202,7 +202,7 @@ public class TrackingService : ITrackingService
     /// </summary>
     public async Task<double> GetSessionDistanceAsync(int sessionId, CancellationToken cancellationToken = default)
     {
-        var session = await _sessionRepository.GetSessionWithDetailsAsync(sessionId);
+        var session = await _sessionRepository.GetSessionWithDetailsAsync(sessionId).ConfigureAwait(false);
         return session?.TotalDistance ?? 0;
     }
 
@@ -211,7 +211,7 @@ public class TrackingService : ITrackingService
     /// </summary>
     public async Task<double> GetSessionAverageSpeedAsync(int sessionId, CancellationToken cancellationToken = default)
     {
-        var session = await _sessionRepository.GetSessionWithDetailsAsync(sessionId);
+        var session = await _sessionRepository.GetSessionWithDetailsAsync(sessionId).ConfigureAwait(false);
         return session?.AverageSpeed ?? 0;
     }
 }

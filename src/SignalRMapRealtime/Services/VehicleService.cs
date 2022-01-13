@@ -48,7 +48,7 @@ public class VehicleService : IVehicleService
 
         if (vehicleDto.DriverId.HasValue)
         {
-            var driver = await _userRepository.GetByIdAsync(vehicleDto.DriverId.Value, cancellationToken);
+            var driver = await _userRepository.GetByIdAsync(vehicleDto.DriverId.Value, cancellationToken).ConfigureAwait(false);
             if (driver is null)
                 throw new InvalidOperationException($"Driver with ID {vehicleDto.DriverId} not found.");
         }
@@ -69,8 +69,8 @@ public class VehicleService : IVehicleService
             UpdatedAt = DateTime.UtcNow
         };
 
-        await _vehicleRepository.AddAsync(vehicle, cancellationToken);
-        await _vehicleRepository.SaveChangesAsync(cancellationToken);
+        await _vehicleRepository.AddAsync(vehicle, cancellationToken).ConfigureAwait(false);
+        await _vehicleRepository.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         return _mapper.Map<VehicleDto>(vehicle);
     }
@@ -80,7 +80,7 @@ public class VehicleService : IVehicleService
     /// </summary>
     public async Task<VehicleDto?> GetVehicleAsync(int vehicleId, CancellationToken cancellationToken = default)
     {
-        var vehicle = await _vehicleRepository.GetVehicleWithTrackingDataAsync(vehicleId);
+        var vehicle = await _vehicleRepository.GetVehicleWithTrackingDataAsync(vehicleId).ConfigureAwait(false);
         return vehicle is null ? null : _mapper.Map<VehicleDto>(vehicle);
     }
 
@@ -89,7 +89,7 @@ public class VehicleService : IVehicleService
     /// </summary>
     public async Task<IEnumerable<VehicleDto>> GetAllVehiclesAsync(CancellationToken cancellationToken = default)
     {
-        var vehicles = await _vehicleRepository.GetAllAsync(cancellationToken);
+        var vehicles = await _vehicleRepository.GetAllAsync(cancellationToken).ConfigureAwait(false);
         return _mapper.Map<IEnumerable<VehicleDto>>(vehicles);
     }
 
@@ -98,7 +98,7 @@ public class VehicleService : IVehicleService
     /// </summary>
     public async Task<IEnumerable<VehicleDto>> GetVehiclesByStatusAsync(VehicleStatus status, CancellationToken cancellationToken = default)
     {
-        var vehicles = await _vehicleRepository.GetVehiclesByStatusAsync(status);
+        var vehicles = await _vehicleRepository.GetVehiclesByStatusAsync(status).ConfigureAwait(false);
         return _mapper.Map<IEnumerable<VehicleDto>>(vehicles);
     }
 
@@ -107,7 +107,7 @@ public class VehicleService : IVehicleService
     /// </summary>
     public async Task<IEnumerable<VehicleDto>> GetOnlineVehiclesAsync(CancellationToken cancellationToken = default)
     {
-        var vehicles = await _vehicleRepository.GetOnlineVehiclesAsync();
+        var vehicles = await _vehicleRepository.GetOnlineVehiclesAsync().ConfigureAwait(false);
         return _mapper.Map<IEnumerable<VehicleDto>>(vehicles);
     }
 
@@ -116,7 +116,7 @@ public class VehicleService : IVehicleService
     /// </summary>
     public async Task<IEnumerable<VehicleDto>> GetVehiclesByDriverAsync(int driverId, CancellationToken cancellationToken = default)
     {
-        var vehicles = await _vehicleRepository.GetVehiclesByDriverAsync(driverId);
+        var vehicles = await _vehicleRepository.GetVehiclesByDriverAsync(driverId).ConfigureAwait(false);
         return _mapper.Map<IEnumerable<VehicleDto>>(vehicles);
     }
 
@@ -125,7 +125,7 @@ public class VehicleService : IVehicleService
     /// </summary>
     public async Task<VehicleDto> UpdateVehicleAsync(int vehicleId, UpdateVehicleDto vehicleDto, CancellationToken cancellationToken = default)
     {
-        var vehicle = await _vehicleRepository.GetByIdAsync(vehicleId, cancellationToken);
+        var vehicle = await _vehicleRepository.GetByIdAsync(vehicleId, cancellationToken).ConfigureAwait(false);
         if (vehicle is null)
             throw new VehicleNotFoundException(vehicleId);
 
@@ -141,8 +141,8 @@ public class VehicleService : IVehicleService
             vehicle.MaxSpeed = vehicleDto.MaxSpeed;
 
         vehicle.UpdatedAt = DateTime.UtcNow;
-        await _vehicleRepository.UpdateAsync(vehicle, cancellationToken);
-        await _vehicleRepository.SaveChangesAsync(cancellationToken);
+        await _vehicleRepository.UpdateAsync(vehicle, cancellationToken).ConfigureAwait(false);
+        await _vehicleRepository.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         return _mapper.Map<VehicleDto>(vehicle);
     }
@@ -152,13 +152,13 @@ public class VehicleService : IVehicleService
     /// </summary>
     public async Task<bool> SetVehicleOnlineStatusAsync(int vehicleId, bool isOnline, CancellationToken cancellationToken = default)
     {
-        var vehicle = await _vehicleRepository.GetByIdAsync(vehicleId, cancellationToken);
+        var vehicle = await _vehicleRepository.GetByIdAsync(vehicleId, cancellationToken).ConfigureAwait(false);
         if (vehicle is null)
             return false;
 
         vehicle.SetOnlineStatus(isOnline);
-        await _vehicleRepository.UpdateAsync(vehicle, cancellationToken);
-        await _vehicleRepository.SaveChangesAsync(cancellationToken);
+        await _vehicleRepository.UpdateAsync(vehicle, cancellationToken).ConfigureAwait(false);
+        await _vehicleRepository.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         return true;
     }
 
@@ -167,13 +167,13 @@ public class VehicleService : IVehicleService
     /// </summary>
     public async Task<bool> UpdateVehicleStatusAsync(int vehicleId, VehicleStatus newStatus, CancellationToken cancellationToken = default)
     {
-        var vehicle = await _vehicleRepository.GetByIdAsync(vehicleId, cancellationToken);
+        var vehicle = await _vehicleRepository.GetByIdAsync(vehicleId, cancellationToken).ConfigureAwait(false);
         if (vehicle is null)
             return false;
 
         vehicle.UpdateStatus(newStatus);
-        await _vehicleRepository.UpdateAsync(vehicle, cancellationToken);
-        await _vehicleRepository.SaveChangesAsync(cancellationToken);
+        await _vehicleRepository.UpdateAsync(vehicle, cancellationToken).ConfigureAwait(false);
+        await _vehicleRepository.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         return true;
     }
 
@@ -182,7 +182,7 @@ public class VehicleService : IVehicleService
     /// </summary>
     public async Task<IEnumerable<VehicleDto>> GetLowFuelVehiclesAsync(double fuelThreshold = 20.0, CancellationToken cancellationToken = default)
     {
-        var vehicles = await _vehicleRepository.GetLowFuelVehiclesAsync(fuelThreshold);
+        var vehicles = await _vehicleRepository.GetLowFuelVehiclesAsync(fuelThreshold).ConfigureAwait(false);
         return _mapper.Map<IEnumerable<VehicleDto>>(vehicles);
     }
 
@@ -191,7 +191,7 @@ public class VehicleService : IVehicleService
     /// </summary>
     public async Task<IEnumerable<VehicleDto>> GetSpeedingVehiclesAsync(CancellationToken cancellationToken = default)
     {
-        var vehicles = await _vehicleRepository.GetSpeedingVehiclesAsync();
+        var vehicles = await _vehicleRepository.GetSpeedingVehiclesAsync().ConfigureAwait(false);
         return _mapper.Map<IEnumerable<VehicleDto>>(vehicles);
     }
 
@@ -200,7 +200,7 @@ public class VehicleService : IVehicleService
     /// </summary>
     public async Task<int> GetOnlineVehicleCountAsync(CancellationToken cancellationToken = default)
     {
-        return await _vehicleRepository.GetOnlineVehicleCountAsync();
+        return await _vehicleRepository.GetOnlineVehicleCountAsync().ConfigureAwait(false);
     }
 
     /// <summary>
@@ -208,7 +208,7 @@ public class VehicleService : IVehicleService
     /// </summary>
     public async Task<bool> VehicleExistsAsync(int vehicleId, CancellationToken cancellationToken = default)
     {
-        return await _vehicleRepository.ExistsAsync(vehicleId, cancellationToken);
+        return await _vehicleRepository.ExistsAsync(vehicleId, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -216,12 +216,12 @@ public class VehicleService : IVehicleService
     /// </summary>
     public async Task<bool> DeleteVehicleAsync(int vehicleId, CancellationToken cancellationToken = default)
     {
-        var vehicle = await _vehicleRepository.GetByIdAsync(vehicleId, cancellationToken);
+        var vehicle = await _vehicleRepository.GetByIdAsync(vehicleId, cancellationToken).ConfigureAwait(false);
         if (vehicle is null)
             return false;
 
-        await _vehicleRepository.RemoveAsync(vehicle, cancellationToken);
-        await _vehicleRepository.SaveChangesAsync(cancellationToken);
+        await _vehicleRepository.RemoveAsync(vehicle, cancellationToken).ConfigureAwait(false);
+        await _vehicleRepository.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         return true;
     }
 
@@ -230,7 +230,7 @@ public class VehicleService : IVehicleService
     /// </summary>
     public async Task<IEnumerable<VehicleDto>> GetVehiclesByAssetTypeAsync(AssetType assetType, CancellationToken cancellationToken = default)
     {
-        var vehicles = await _vehicleRepository.GetVehiclesByAssetTypeAsync(assetType);
+        var vehicles = await _vehicleRepository.GetVehiclesByAssetTypeAsync(assetType).ConfigureAwait(false);
         return _mapper.Map<IEnumerable<VehicleDto>>(vehicles);
     }
 }

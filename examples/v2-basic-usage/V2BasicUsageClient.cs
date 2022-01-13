@@ -44,7 +44,7 @@ namespace SignalRMapRealtime.Examples.V2BasicUsage
             );
 
             vehicleResponse.EnsureSuccessStatusCode();
-            var vehicleId = await vehicleResponse.Content.ReadFromJsonAsync<string>();
+            var vehicleId = await vehicleResponse.Content.ReadFromJsonAsync<string>().ConfigureAwait(false);
             Console.WriteLine($"Created vehicle with ID: {vehicleId}");
 
             // 2. Start a tracking session
@@ -62,7 +62,7 @@ namespace SignalRMapRealtime.Examples.V2BasicUsage
             );
 
             sessionResponse.EnsureSuccessStatusCode();
-            var sessionId = await sessionResponse.Content.ReadFromJsonAsync<string>();
+            var sessionId = await sessionResponse.Content.ReadFromJsonAsync<string>().ConfigureAwait(false);
             Console.WriteLine($"Started tracking session: {sessionId}");
 
             // 3. Simulate sending location updates (in a real app, this would come from GPS)
@@ -86,7 +86,7 @@ namespace SignalRMapRealtime.Examples.V2BasicUsage
                 Console.WriteLine($"Sent location update: ({location.Latitude}, {location.Longitude})");
 
                 // Simulate time between updates
-                await Task.Delay(1000);
+                await Task.Delay(1000).ConfigureAwait(false);
             }
 
             // 4. Complete the tracking session

@@ -79,7 +79,7 @@ public class MemoryCacheService : ICacheService
     public async Task<T> GetOrCreateAsync<T>(string key, Func<Task<T>> factory, TimeSpan? expiration = null)
     {
         if (!_options.Enabled)
-            return await factory();
+            return await factory().ConfigureAwait(false);
 
         if (_memoryCache.TryGetValue(key, out T? cachedValue))
         {
@@ -89,7 +89,7 @@ public class MemoryCacheService : ICacheService
 
         _logger.LogDebug("Cache miss for key: {Key}. Creating value...", key);
 
-        var value = await factory();
+        var value = await factory().ConfigureAwait(false);
         var cacheOptions = new MemoryCacheEntryOptions
         {
             AbsoluteExpirationRelativeToNow = expiration ?? TimeSpan.FromSeconds(_options.DefaultDurationSeconds),

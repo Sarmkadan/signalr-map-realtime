@@ -51,8 +51,8 @@ public class LocationUpdateSimulator
 
         try
         {
-            vehicleIds = await CreateVehicles(vehicleCount);
-            await SimulateMovement(vehicleIds, durationSeconds);
+            vehicleIds = await CreateVehicles(vehicleCount).ConfigureAwait(false);
+            await SimulateMovement(vehicleIds, durationSeconds).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -86,11 +86,11 @@ public class LocationUpdateSimulator
             var content = new StringContent(json, Encoding.UTF8, "application/json");
             content.Headers.Add("X-API-Key", _apiKey);
 
-            var response = await _httpClient.PostAsync($"{_baseUrl}/api/v1/vehicles", content);
+            var response = await _httpClient.PostAsync($"{_baseUrl}/api/v1/vehicles", content).ConfigureAwait(false);
 
             if (response.IsSuccessStatusCode)
             {
-                var result = await response.Content.ReadAsStringAsync();
+                var result = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                 var doc = JsonDocument.Parse(result);
                 var vehicleId = doc.RootElement.GetProperty("id").GetString();
 
@@ -120,7 +120,7 @@ public class LocationUpdateSimulator
             foreach (var vehicleId in vehicleIds)
             {
                 var location = GenerateLocation(vehicleId);
-                var success = await SendLocation(location);
+                var success = await SendLocation(location).ConfigureAwait(false);
 
                 if (success)
                 {
@@ -132,7 +132,7 @@ public class LocationUpdateSimulator
             var remaining = Math.Max(0, durationSeconds - elapsed);
             Console.WriteLine($"[{elapsed:F0}s] Sent {locationCount} updates (remaining: {remaining:F0}s)");
 
-            await Task.Delay(2000); // Update every 2 seconds
+            await Task.Delay(2000).ConfigureAwait(false); // Update every 2 seconds
         }
 
         Console.WriteLine($"\n✓ Simulation completed: {locationCount} total location updates sent");
@@ -175,7 +175,7 @@ public class LocationUpdateSimulator
             var content = new StringContent(json, Encoding.UTF8, "application/json");
             content.Headers.Add("X-API-Key", _apiKey);
 
-            var response = await _httpClient.PostAsync($"{_baseUrl}/api/v1/locations", content);
+            var response = await _httpClient.PostAsync($"{_baseUrl}/api/v1/locations", content).ConfigureAwait(false);
             return response.IsSuccessStatusCode;
         }
         catch
@@ -196,6 +196,6 @@ public class LocationUpdateSimulator
         var durationSeconds = args.Length > 3 ? int.Parse(args[3]) : 60;
 
         var simulator = new LocationUpdateSimulator(baseUrl, apiKey);
-        await simulator.RunSimulation(vehicleCount, durationSeconds);
+        await simulator.RunSimulation(vehicleCount, durationSeconds).ConfigureAwait(false);
     }
 }

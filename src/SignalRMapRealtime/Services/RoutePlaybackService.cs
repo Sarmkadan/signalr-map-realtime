@@ -69,7 +69,7 @@ public sealed class RoutePlaybackService : IRoutePlaybackService, IAsyncDisposab
             throw new InvalidOperationException(
                 $"The engine has reached its maximum of {_options.MaxConcurrentPlaybacks} concurrent playback sessions.");
 
-        var locations = await LoadLocationsAsync(request.SessionId, cancellationToken);
+        var locations = await LoadLocationsAsync(request.SessionId, cancellationToken).ConfigureAwait(false);
 
         if (locations.Count == 0)
             throw new ArgumentException(
@@ -129,7 +129,7 @@ public sealed class RoutePlaybackService : IRoutePlaybackService, IAsyncDisposab
 
         state.Status = PlaybackStatus.Idle;
         state.PauseGate.Set();
-        await state.Cts.CancelAsync();
+        await state.Cts.CancelAsync().ConfigureAwait(false);
 
         if (state.PlaybackTask is not null)
             await state.PlaybackTask.ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
@@ -177,7 +177,7 @@ public sealed class RoutePlaybackService : IRoutePlaybackService, IAsyncDisposab
     /// <inheritdoc />
     public async Task<RouteTimelineDto?> BuildTimelineAsync(int sessionId, CancellationToken cancellationToken = default)
     {
-        var locations = await LoadLocationsAsync(sessionId, cancellationToken);
+        var locations = await LoadLocationsAsync(sessionId, cancellationToken).ConfigureAwait(false);
         if (locations.Count == 0) return null;
 
         var entries = BuildTimelineEntries(locations);
@@ -201,7 +201,7 @@ public sealed class RoutePlaybackService : IRoutePlaybackService, IAsyncDisposab
     /// <inheritdoc />
     public async Task<PlaybackFrameDto?> GetSnapshotAtTimestampAsync(int sessionId, DateTime timestamp, CancellationToken cancellationToken = default)
     {
-        var locations = await LoadLocationsAsync(sessionId, cancellationToken);
+        var locations = await LoadLocationsAsync(sessionId, cancellationToken).ConfigureAwait(false);
         if (locations.Count == 0) return null;
 
         var clamped = timestamp < locations[0].RecordedAt ? locations[0].RecordedAt
@@ -216,7 +216,7 @@ public sealed class RoutePlaybackService : IRoutePlaybackService, IAsyncDisposab
     /// <inheritdoc />
     public async Task<PlaybackStatisticsDto?> GetPlaybackStatisticsAsync(int sessionId, CancellationToken cancellationToken = default)
     {
-        var locations = await LoadLocationsAsync(sessionId, cancellationToken);
+        var locations = await LoadLocationsAsync(sessionId, cancellationToken).ConfigureAwait(false);
         if (locations.Count == 0) return null;
 
         var speedSamples = locations.Where(l => l.Speed.HasValue).Select(l => l.Speed!.Value).ToList();
@@ -256,7 +256,7 @@ public sealed class RoutePlaybackService : IRoutePlaybackService, IAsyncDisposab
     {
         using var scope = _scopeFactory.CreateScope();
         var repo = scope.ServiceProvider.GetRequiredService<LocationRepository>();
-        var raw = await repo.GetLocationsBySessionAsync(sessionId);
+        var raw = await repo.GetLocationsBySessionAsync(sessionId).ConfigureAwait(false);
         var ordered = raw.OrderBy(l => l.RecordedAt).ToList();
 
         return ordered.Count > _options.MaxLocationsPerPlayback
@@ -306,7 +306,7 @@ public sealed class RoutePlaybackService : IRoutePlaybackService, IAsyncDisposab
                         _options.MinFrameIntervalMs,
                         _options.MaxFrameIntervalMs);
 
-                    await Task.Delay(delayMs, state.Cts.Token);
+                    await Task.Delay(delayMs, state.Cts.Token).ConfigureAwait(false);
                 }
             }
 
@@ -541,7 +541,7 @@ public sealed class RoutePlaybackService : IRoutePlaybackService, IAsyncDisposab
     public async ValueTask DisposeAsync()
     {
         foreach (var id in _sessions.Keys.ToArray())
-            await StopPlaybackAsync(id);
+            await StopPlaybackAsync(id).ConfigureAwait(false);
     }
 
     // -------------------------------------------------------------------------

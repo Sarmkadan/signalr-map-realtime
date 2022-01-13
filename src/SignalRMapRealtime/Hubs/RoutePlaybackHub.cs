@@ -76,7 +76,7 @@ public class RoutePlaybackHub : Hub
     public override async Task OnConnectedAsync()
     {
         _logger.LogInformation("Playback client {ConnectionId} connected", Context.ConnectionId);
-        await base.OnConnectedAsync();
+        await base.OnConnectedAsync().ConfigureAwait(false);
     }
 
     /// <inheritdoc />
@@ -84,7 +84,7 @@ public class RoutePlaybackHub : Hub
     {
         _logger.LogInformation("Playback client {ConnectionId} disconnected. Reason: {Reason}",
             Context.ConnectionId, exception?.Message ?? "clean disconnect");
-        await base.OnDisconnectedAsync(exception);
+        await base.OnDisconnectedAsync(exception).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -97,8 +97,8 @@ public class RoutePlaybackHub : Hub
     {
         try
         {
-            var playbackId = await _playbackService.StartPlaybackAsync(request);
-            await Groups.AddToGroupAsync(Context.ConnectionId, PlaybackGroup(playbackId));
+            var playbackId = await _playbackService.StartPlaybackAsync(request).ConfigureAwait(false);
+            await Groups.AddToGroupAsync(Context.ConnectionId, PlaybackGroup(playbackId)).ConfigureAwait(false);
 
             await Clients.Caller.SendAsync("PlaybackStarted", new
             {
@@ -117,7 +117,7 @@ public class RoutePlaybackHub : Hub
         {
             _logger.LogError(ex, "Client {ConnectionId} failed to start playback for session {SessionId}",
                 Context.ConnectionId, request.SessionId);
-            await Clients.Caller.SendAsync("PlaybackError", new { Error = ex.Message });
+            await Clients.Caller.SendAsync("PlaybackError", new { Error = ex.Message }).ConfigureAwait(false);
         }
     }
 
@@ -130,14 +130,14 @@ public class RoutePlaybackHub : Hub
     {
         try
         {
-            await _playbackService.PausePlaybackAsync(playbackId);
-            var state = await _playbackService.GetPlaybackStateAsync(playbackId);
-            await Clients.Group(PlaybackGroup(playbackId)).SendAsync("PlaybackPaused", state);
+            await _playbackService.PausePlaybackAsync(playbackId).ConfigureAwait(false);
+            var state = await _playbackService.GetPlaybackStateAsync(playbackId).ConfigureAwait(false);
+            await Clients.Group(PlaybackGroup(playbackId)).SendAsync("PlaybackPaused", state).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error pausing playback {PlaybackId}", playbackId);
-            await Clients.Caller.SendAsync("PlaybackError", new { PlaybackId = playbackId, Error = ex.Message });
+            await Clients.Caller.SendAsync("PlaybackError", new { PlaybackId = playbackId, Error = ex.Message }).ConfigureAwait(false);
         }
     }
 
@@ -150,14 +150,14 @@ public class RoutePlaybackHub : Hub
     {
         try
         {
-            await _playbackService.ResumePlaybackAsync(playbackId);
-            var state = await _playbackService.GetPlaybackStateAsync(playbackId);
-            await Clients.Group(PlaybackGroup(playbackId)).SendAsync("PlaybackResumed", state);
+            await _playbackService.ResumePlaybackAsync(playbackId).ConfigureAwait(false);
+            var state = await _playbackService.GetPlaybackStateAsync(playbackId).ConfigureAwait(false);
+            await Clients.Group(PlaybackGroup(playbackId)).SendAsync("PlaybackResumed", state).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error resuming playback {PlaybackId}", playbackId);
-            await Clients.Caller.SendAsync("PlaybackError", new { PlaybackId = playbackId, Error = ex.Message });
+            await Clients.Caller.SendAsync("PlaybackError", new { PlaybackId = playbackId, Error = ex.Message }).ConfigureAwait(false);
         }
     }
 
@@ -176,8 +176,8 @@ public class RoutePlaybackHub : Hub
                 StoppedAt = DateTime.UtcNow
             });
 
-            await _playbackService.StopPlaybackAsync(playbackId);
-            await Groups.RemoveFromGroupAsync(Context.ConnectionId, PlaybackGroup(playbackId));
+            await _playbackService.StopPlaybackAsync(playbackId).ConfigureAwait(false);
+            await Groups.RemoveFromGroupAsync(Context.ConnectionId, PlaybackGroup(playbackId)).ConfigureAwait(false);
 
             _logger.LogInformation("Client {ConnectionId} stopped playback {PlaybackId}",
                 Context.ConnectionId, playbackId);
@@ -185,7 +185,7 @@ public class RoutePlaybackHub : Hub
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error stopping playback {PlaybackId}", playbackId);
-            await Clients.Caller.SendAsync("PlaybackError", new { PlaybackId = playbackId, Error = ex.Message });
+            await Clients.Caller.SendAsync("PlaybackError", new { PlaybackId = playbackId, Error = ex.Message }).ConfigureAwait(false);
         }
     }
 
@@ -199,8 +199,8 @@ public class RoutePlaybackHub : Hub
     {
         try
         {
-            await _playbackService.SeekToTimestampAsync(playbackId, timestamp);
-            var state = await _playbackService.GetPlaybackStateAsync(playbackId);
+            await _playbackService.SeekToTimestampAsync(playbackId, timestamp).ConfigureAwait(false);
+            var state = await _playbackService.GetPlaybackStateAsync(playbackId).ConfigureAwait(false);
 
             await Clients.Group(PlaybackGroup(playbackId)).SendAsync("PlaybackSeeked", new
             {
@@ -212,7 +212,7 @@ public class RoutePlaybackHub : Hub
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error seeking playback {PlaybackId} to {Timestamp}", playbackId, timestamp);
-            await Clients.Caller.SendAsync("PlaybackError", new { PlaybackId = playbackId, Error = ex.Message });
+            await Clients.Caller.SendAsync("PlaybackError", new { PlaybackId = playbackId, Error = ex.Message }).ConfigureAwait(false);
         }
     }
 
@@ -227,8 +227,8 @@ public class RoutePlaybackHub : Hub
     {
         try
         {
-            await _playbackService.SetPlaybackSpeedAsync(playbackId, speedMultiplier);
-            var state = await _playbackService.GetPlaybackStateAsync(playbackId);
+            await _playbackService.SetPlaybackSpeedAsync(playbackId, speedMultiplier).ConfigureAwait(false);
+            var state = await _playbackService.GetPlaybackStateAsync(playbackId).ConfigureAwait(false);
 
             await Clients.Group(PlaybackGroup(playbackId)).SendAsync("PlaybackSpeedChanged", new
             {
@@ -239,7 +239,7 @@ public class RoutePlaybackHub : Hub
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error setting speed for playback {PlaybackId}", playbackId);
-            await Clients.Caller.SendAsync("PlaybackError", new { PlaybackId = playbackId, Error = ex.Message });
+            await Clients.Caller.SendAsync("PlaybackError", new { PlaybackId = playbackId, Error = ex.Message }).ConfigureAwait(false);
         }
     }
 
@@ -252,7 +252,7 @@ public class RoutePlaybackHub : Hub
     {
         try
         {
-            var state = await _playbackService.GetPlaybackStateAsync(playbackId);
+            var state = await _playbackService.GetPlaybackStateAsync(playbackId).ConfigureAwait(false);
 
             if (state is null)
             {
@@ -264,8 +264,8 @@ public class RoutePlaybackHub : Hub
                 return;
             }
 
-            await Groups.AddToGroupAsync(Context.ConnectionId, PlaybackGroup(playbackId));
-            await Clients.Caller.SendAsync("SubscribedToPlayback", state);
+            await Groups.AddToGroupAsync(Context.ConnectionId, PlaybackGroup(playbackId)).ConfigureAwait(false);
+            await Clients.Caller.SendAsync("SubscribedToPlayback", state).ConfigureAwait(false);
 
             _logger.LogInformation("Client {ConnectionId} subscribed to playback {PlaybackId}",
                 Context.ConnectionId, playbackId);
@@ -274,7 +274,7 @@ public class RoutePlaybackHub : Hub
         {
             _logger.LogError(ex, "Error subscribing client {ConnectionId} to playback {PlaybackId}",
                 Context.ConnectionId, playbackId);
-            await Clients.Caller.SendAsync("PlaybackError", new { PlaybackId = playbackId, Error = ex.Message });
+            await Clients.Caller.SendAsync("PlaybackError", new { PlaybackId = playbackId, Error = ex.Message }).ConfigureAwait(false);
         }
     }
 
@@ -288,8 +288,8 @@ public class RoutePlaybackHub : Hub
     {
         try
         {
-            await Groups.RemoveFromGroupAsync(Context.ConnectionId, PlaybackGroup(playbackId));
-            await Clients.Caller.SendAsync("UnsubscribedFromPlayback", playbackId);
+            await Groups.RemoveFromGroupAsync(Context.ConnectionId, PlaybackGroup(playbackId)).ConfigureAwait(false);
+            await Clients.Caller.SendAsync("UnsubscribedFromPlayback", playbackId).ConfigureAwait(false);
 
             _logger.LogInformation("Client {ConnectionId} unsubscribed from playback {PlaybackId}",
                 Context.ConnectionId, playbackId);
@@ -309,13 +309,13 @@ public class RoutePlaybackHub : Hub
     {
         try
         {
-            var state = await _playbackService.GetPlaybackStateAsync(playbackId);
-            await Clients.Caller.SendAsync("PlaybackState", state);
+            var state = await _playbackService.GetPlaybackStateAsync(playbackId).ConfigureAwait(false);
+            await Clients.Caller.SendAsync("PlaybackState", state).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error fetching state for playback {PlaybackId}", playbackId);
-            await Clients.Caller.SendAsync("PlaybackError", new { PlaybackId = playbackId, Error = ex.Message });
+            await Clients.Caller.SendAsync("PlaybackError", new { PlaybackId = playbackId, Error = ex.Message }).ConfigureAwait(false);
         }
     }
 
@@ -328,8 +328,8 @@ public class RoutePlaybackHub : Hub
     {
         try
         {
-            var timeline = await _playbackService.BuildTimelineAsync(sessionId);
-            await Clients.Caller.SendAsync("TimelineReady", timeline);
+            var timeline = await _playbackService.BuildTimelineAsync(sessionId).ConfigureAwait(false);
+            await Clients.Caller.SendAsync("TimelineReady", timeline).ConfigureAwait(false);
 
             _logger.LogInformation("Timeline for session {SessionId} delivered to client {ConnectionId}",
                 sessionId, Context.ConnectionId);
@@ -337,7 +337,7 @@ public class RoutePlaybackHub : Hub
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error building timeline for session {SessionId}", sessionId);
-            await Clients.Caller.SendAsync("PlaybackError", new { Error = ex.Message });
+            await Clients.Caller.SendAsync("PlaybackError", new { Error = ex.Message }).ConfigureAwait(false);
         }
     }
 
@@ -352,14 +352,14 @@ public class RoutePlaybackHub : Hub
     {
         try
         {
-            var snapshot = await _playbackService.GetSnapshotAtTimestampAsync(sessionId, timestamp);
-            await Clients.Caller.SendAsync("SnapshotReady", snapshot);
+            var snapshot = await _playbackService.GetSnapshotAtTimestampAsync(sessionId, timestamp).ConfigureAwait(false);
+            await Clients.Caller.SendAsync("SnapshotReady", snapshot).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error fetching snapshot for session {SessionId} at {Timestamp}",
                 sessionId, timestamp);
-            await Clients.Caller.SendAsync("PlaybackError", new { Error = ex.Message });
+            await Clients.Caller.SendAsync("PlaybackError", new { Error = ex.Message }).ConfigureAwait(false);
         }
     }
 
@@ -372,13 +372,13 @@ public class RoutePlaybackHub : Hub
     {
         try
         {
-            var statistics = await _playbackService.GetPlaybackStatisticsAsync(sessionId);
-            await Clients.Caller.SendAsync("StatisticsReady", statistics);
+            var statistics = await _playbackService.GetPlaybackStatisticsAsync(sessionId).ConfigureAwait(false);
+            await Clients.Caller.SendAsync("StatisticsReady", statistics).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error computing statistics for session {SessionId}", sessionId);
-            await Clients.Caller.SendAsync("PlaybackError", new { Error = ex.Message });
+            await Clients.Caller.SendAsync("PlaybackError", new { Error = ex.Message }).ConfigureAwait(false);
         }
     }
 
