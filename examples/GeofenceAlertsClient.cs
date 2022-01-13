@@ -204,10 +204,10 @@ public class GeofenceAlertsClient
     {
         try
         {
-            await _connection.StartAsync();
+            await _connection.StartAsync().ConfigureAwait(false);
             Console.WriteLine("✓ Connected to SignalR hub");
 
-            await _connection.InvokeAsync("SubscribeToVehicle", _vehicleId);
+            await _connection.InvokeAsync("SubscribeToVehicle", _vehicleId).ConfigureAwait(false);
             Console.WriteLine($"✓ Subscribed to vehicle: {_vehicleId}");
         }
         catch (Exception ex)
@@ -223,8 +223,8 @@ public class GeofenceAlertsClient
     {
         try
         {
-            await _connection.InvokeAsync("UnsubscribeFromVehicle", _vehicleId);
-            await _connection.StopAsync();
+            await _connection.InvokeAsync("UnsubscribeFromVehicle", _vehicleId).ConfigureAwait(false);
+            await _connection.StopAsync().ConfigureAwait(false);
             Console.WriteLine("✓ Disconnected from hub");
         }
         catch (Exception ex)
@@ -240,7 +240,7 @@ public class GeofenceAlertsClient
     {
         Console.WriteLine("=== Geofence Alerts Client ===\n");
 
-        await Connect();
+        await Connect().ConfigureAwait(false);
 
         AddGeofence("Warehouse", 40.7128, -74.0060, 1.0);
         AddGeofence("Office", 40.7489, -73.9680, 0.5);
@@ -249,7 +249,7 @@ public class GeofenceAlertsClient
         Console.WriteLine("\n✓ Listening for geofence alerts (press Enter to exit)...\n");
         Console.ReadLine();
 
-        await Disconnect();
+        await Disconnect().ConfigureAwait(false);
     }
 
     private class Alert
@@ -275,6 +275,6 @@ public class GeofenceAlertsClient
         var vehicleId = args.Length > 1 ? args[1] : Guid.NewGuid().ToString();
 
         var client = new GeofenceAlertsClient(hubUrl, vehicleId);
-        await client.RunExample();
+        await client.RunExample().ConfigureAwait(false);
     }
 }
