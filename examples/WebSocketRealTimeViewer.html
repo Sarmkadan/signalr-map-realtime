@@ -12,7 +12,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SignalR Map Realtime - Live Tracker</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"/>
     <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@microsoft/signalr@latest/signalr.js"></script>
     <style>
         * {
@@ -252,6 +255,7 @@
         let connection;
         let markers = {};
         let vehicles = {};
+        let clusterGroup;
         let isConnected = false;
 
         // Initialize map
@@ -261,6 +265,10 @@
                 attribution: '© OpenStreetMap contributors',
                 maxZoom: 19
             }).addTo(map);
+
+            // Use a marker cluster group so large fleets render efficiently
+            clusterGroup = L.markerClusterGroup();
+            map.addLayer(clusterGroup);
         }
 
         // Initialize SignalR connection
@@ -344,8 +352,9 @@
             } else {
                 const marker = L.marker(latlng, {
                     title: vehicleId
-                }).addTo(map)
-                 .bindPopup(`Vehicle: ${vehicleId}<br/>Lat: ${location.latitude.toFixed(4)}<br/>Lon: ${location.longitude.toFixed(4)}`);
+                }).bindPopup(`Vehicle: ${vehicleId}<br/>Lat: ${location.latitude.toFixed(4)}<br/>Lon: ${location.longitude.toFixed(4)}`);
+
+                clusterGroup.addLayer(marker);
 
                 markers[vehicleId] = marker;
             }
