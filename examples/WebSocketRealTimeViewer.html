@@ -294,6 +294,12 @@
                 addMessage(`⚠ ${alert.type}: ${alert.message}`, 'error');
             });
 
+            // Remove marker and clean up all associated event listeners to prevent memory leaks
+            connection.on("AssetRemoved", (vehicleId) => {
+                removeVehicle(vehicleId);
+                addMessage(`Asset ${vehicleId} removed from tracking`, 'info');
+            });
+
             connection.onreconnecting(() => {
                 updateStatus('Reconnecting...', false);
             });
@@ -370,6 +376,17 @@
                 status: 'online'
             };
 
+            updateVehiclesList();
+        }
+
+        // Remove a vehicle's marker and clean up event listeners to prevent memory leaks
+        function removeVehicle(vehicleId) {
+            if (markers[vehicleId]) {
+                markers[vehicleId].off(); // remove all event listeners
+                clusterGroup.removeLayer(markers[vehicleId]);
+                delete markers[vehicleId];
+            }
+            delete vehicles[vehicleId];
             updateVehiclesList();
         }
 

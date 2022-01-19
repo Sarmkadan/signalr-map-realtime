@@ -95,6 +95,25 @@ public class LocationHub : Hub
     }
 
     /// <summary>
+    /// Broadcasts an <c>AssetRemoved</c> event to all clients and cleans up associated state
+    /// so that clients can remove the corresponding Leaflet marker and its event listeners.
+    /// </summary>
+    /// <param name="vehicleId">ID of the asset/vehicle being removed from tracking.</param>
+    public async Task NotifyAssetRemoved(int vehicleId)
+    {
+        try
+        {
+            _throttler.Remove(vehicleId);
+            await Clients.All.SendAsync("AssetRemoved", vehicleId).ConfigureAwait(false);
+            _logger.LogInformation("Asset removed notification sent for vehicle {VehicleId}", vehicleId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError("Error notifying asset removal for vehicle {VehicleId}: {Message}", vehicleId, ex.Message);
+        }
+    }
+
+    /// <summary>
     /// Notifies all clients that a vehicle's status has changed.
     /// </summary>
     public async Task BroadcastVehicleStatusChange(int vehicleId, string newStatus)
