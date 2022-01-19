@@ -17,6 +17,7 @@ A production-grade, enterprise-ready real-time location tracking system built wi
 - [Usage Examples](#usage-examples)
 - [API Reference](#api-reference)
 - [Configuration Guide](#configuration-guide)
+- [Self-Hosting Guide](#self-hosting-guide)
 - [Advanced Topics](#advanced-topics)
 - [Performance](#performance)
 - [Troubleshooting](#troubleshooting)
@@ -89,6 +90,75 @@ The system leverages WebSocket technology through SignalR for ultra-low-latency 
 | **Frontend** | Leaflet.js | 1.9+ |
 
 ## Architecture
+
+### Component Interaction
+
+The three main layers — Leaflet frontend, ASP.NET Core backend, and the database — communicate as follows:
+
+```
+  Browser (Leaflet.js)
+        │
+        │  1. HTTP REST  ──────────────────────────────────────────────────►
+        │                                                  ASP.NET Core App
+        │  2. WebSocket (SignalR)  ────────────────────────────────────────►
+        │                                                  LocationHub
+        │                                                       │
+        │                                               LocationService
+        │                                               VehicleService
+        │                                                       │
+        │                                               EF Core / SQL Server
+        │                                                       │
+        │  3. SignalR broadcast ◄──────────────────────────────────────────
+        │     "LocationUpdated",
+        │     "PositionSnapshot",
+        │     "VehicleStatusChanged", …
+        │
+  Leaflet map updates marker positions
+```
+
+**Data flow for a single location update:**
+
+1. A tracked device calls `POST /api/v1/locations` or invokes `SendLocationUpdate` on the `LocationHub`.
+2. `LocationService` validates coordinates, persists the record, and updates the vehicle's last-known position.
+3. `LocationHub` broadcasts `LocationUpdated` to **all** connected clients and `VehicleLocationUpdated` to the vehicle-specific group.
+4. Each browser's SignalR listener calls `updateVehicleLocation()`, which updates the Leaflet marker position.
+
+**Reconnect handling:**
+
+When a client's WebSocket drops and re-establishes, the `onreconnected` callback invokes `RequestAllVehicleLocations` on the hub. The hub responds with a `PositionSnapshot` containing the latest known position of every online vehicle, so all Leaflet markers are immediately resynced without waiting for the next delta update.
+
+### Infrastructure Requirements
+
+| Concern | Single-node | Multi-node (scale-out) |
+|---------|-------------|------------------------|
+| **Transport** | WebSockets (default) | WebSockets; sticky sessions **required** unless a backplane is configured |
+| **SignalR backplane** | Not required | Redis or Azure SignalR Service |
+| **Session affinity** | Not required | Required when backplane is absent (configure on load balancer) |
+| **Database** | SQL Server (LocalDB for dev) | SQL Server with connection pooling |
+| **Cache** | In-memory | Redis |
+
+#### Enabling the Redis backplane (multi-node)
+
+```bash
+dotnet add package Microsoft.AspNetCore.SignalR.StackExchangeRedis
+```
+
+```json
+// appsettings.json
+{
+  "SignalR": {
+    "Redis": {
+      "ConnectionString": "localhost:6379"
+    }
+  }
+}
+```
+
+```csharp
+// Program.cs
+builder.Services.AddSignalR()
+    .AddStackExchangeRedis(builder.Configuration["SignalR:Redis:ConnectionString"]!);
+```
 
 ### System Architecture
 
@@ -877,6 +947,78 @@ SIGNALR_REDIS_CONNECTIONSTRING=localhost:6379
 ### Docker Configuration
 
 See `docker-compose.yml` for complete multi-container setup with SQL Server and Redis.
+
+## Self-Hosting Guide
+
+### Docker Compose (recommended for production)
+
+The included `docker-compose.yml` starts the API, SQL Server, and Redis together.
+
+```bash
+# 1. Copy and customise environment variables
+cp .env.example .env   # edit DB password, API keys, etc.
+
+# 2. Start all services
+docker-compose up -d
+
+# 3. Apply database migrations
+docker-compose exec api dotnet ef database update --project SignalRMapRealtime.csproj
+
+# 4. Verify
+curl http://localhost:5000/health
+```
+
+### Environment Variables
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `ASPNETCORE_ENVIRONMENT` | Runtime environment | `Production` |
+| `ASPNETCORE_URLS` | Listening addresses | `http://0.0.0.0:5000` |
+| `ConnectionStrings__DefaultConnection` | SQL Server connection string | `Server=db;Database=SignalRMap;User Id=sa;Password=…` |
+| `SignalR__Redis__ConnectionString` | Redis backplane (multi-node) | `redis:6379` |
+| `AppSettings__ApiKey` | API key for hub authentication | `your-secret-key` |
+| `Cors__AllowedOrigins__0` | Allowed CORS origin | `https://your-frontend.example.com` |
+| `LocationThrottle__CourierIntervalSeconds` | Override throttle per asset type | `15` |
+
+### Reverse Proxy Configuration
+
+#### Nginx
+
+WebSocket connections require the `Upgrade` and `Connection` headers to be forwarded.
+
+```nginx
+server {
+    listen 443 ssl;
+    server_name track.example.com;
+
+    location / {
+        proxy_pass         http://localhost:5000;
+        proxy_http_version 1.1;
+        proxy_set_header   Upgrade $http_upgrade;
+        proxy_set_header   Connection "upgrade";
+        proxy_set_header   Host $host;
+        proxy_cache_bypass $http_upgrade;
+        proxy_read_timeout 86400s;  # keep SignalR connections alive
+    }
+}
+```
+
+#### Traefik (Docker label-based)
+
+```yaml
+# docker-compose.yml excerpt
+services:
+  api:
+    labels:
+      - "traefik.http.routers.api.rule=Host(`track.example.com`)"
+      - "traefik.http.services.api.loadbalancer.sticky.cookie=true"
+      - "traefik.http.services.api.loadbalancer.sticky.cookie.name=signalr_affinity"
+```
+
+> **Sticky sessions** — if you are running multiple API replicas without a Redis SignalR backplane,
+> configure sticky sessions on your load balancer so each WebSocket connection is always routed
+> to the same server. Without this, SignalR group broadcasts will only reach clients connected
+> to the same replica.
 
 ## Advanced Topics
 
