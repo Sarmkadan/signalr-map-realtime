@@ -7,7 +7,7 @@
 namespace SignalRMapRealtime.Tests;
 
 using FluentAssertions;
-using Moq;
+using NSubstitute;
 using SignalRMapRealtime.DTOs;
 using SignalRMapRealtime.Services;
 using Xunit;
@@ -18,17 +18,15 @@ public class LocationServiceTests
     public async Task GetLatestLocationAsync_WhenVehicleHasNoRecordedLocations_ReturnsNull()
     {
         // Arrange
-        var serviceMock = new Mock<ILocationService>();
-        serviceMock
-            .Setup(s => s.GetLatestLocationAsync(99, default))
-            .ReturnsAsync((LocationDto?)null);
+        var service = Substitute.For<ILocationService>();
+        service.GetLatestLocationAsync(99, default).Returns((LocationDto?)null);
 
         // Act
-        var result = await serviceMock.Object.GetLatestLocationAsync(99).ConfigureAwait(false);
+        var result = await service.GetLatestLocationAsync(99).ConfigureAwait(false);
 
         // Assert
         result.Should().BeNull();
-        serviceMock.Verify(s => s.GetLatestLocationAsync(99, default), Times.Once());
+        await service.Received(1).GetLatestLocationAsync(99, default);
     }
 
     [Fact]
@@ -44,13 +42,11 @@ public class LocationServiceTests
             VehicleId = 5
         };
 
-        var serviceMock = new Mock<ILocationService>();
-        serviceMock
-            .Setup(s => s.GetLatestLocationAsync(5, default))
-            .ReturnsAsync(expected);
+        var service = Substitute.For<ILocationService>();
+        service.GetLatestLocationAsync(5, default).Returns(expected);
 
         // Act
-        var result = await serviceMock.Object.GetLatestLocationAsync(5).ConfigureAwait(false);
+        var result = await service.GetLatestLocationAsync(5).ConfigureAwait(false);
 
         // Assert
         result.Should().NotBeNull();
@@ -75,18 +71,16 @@ public class LocationServiceTests
             TotalDistance = 48.6
         };
 
-        var serviceMock = new Mock<ILocationService>();
-        serviceMock
-            .Setup(s => s.GetLocationStatsAsync(1, start, end, default))
-            .ReturnsAsync(expected);
+        var service = Substitute.For<ILocationService>();
+        service.GetLocationStatsAsync(1, start, end, default).Returns(expected);
 
         // Act
-        var stats = await serviceMock.Object.GetLocationStatsAsync(1, start, end).ConfigureAwait(false);
+        var stats = await service.GetLocationStatsAsync(1, start, end).ConfigureAwait(false);
 
         // Assert
         stats.PointCount.Should().Be(12);
         stats.MaxSpeed.Should().BeApproximately(87.3, 0.001);
         stats.TotalDistance.Should().BePositive();
-        serviceMock.Verify(s => s.GetLocationStatsAsync(1, start, end, default), Times.Once());
+        await service.Received(1).GetLocationStatsAsync(1, start, end, default);
     }
 }

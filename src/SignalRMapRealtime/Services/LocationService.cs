@@ -12,6 +12,7 @@ using SignalRMapRealtime.Data.Repositories;
 using SignalRMapRealtime.Domain.Enums;
 using SignalRMapRealtime.Domain.Models;
 using SignalRMapRealtime.DTOs;
+using SignalRMapRealtime.Exceptions;
 using SignalRMapRealtime.Models;
 
 /// <summary>
@@ -79,7 +80,7 @@ public class LocationService : ILocationService
     /// <summary>
     /// Gets the latest location for a vehicle.
     /// </summary>
-    public async Task<LocationDto?> GetLatestLocationAsync(Guid vehicleId, CancellationToken cancellationToken = default)
+    public async Task<LocationDto?> GetLatestLocationAsync(int vehicleId, CancellationToken cancellationToken = default)
     {
         var location = await _locationRepository.GetLatestLocationByVehicleAsync(vehicleId).ConfigureAwait(false);
         return location is null ? null : _mapper.Map<LocationDto>(location);
@@ -88,7 +89,7 @@ public class LocationService : ILocationService
     /// <summary>
     /// Gets location history for a vehicle within a time range.
     /// </summary>
-    public async Task<IEnumerable<LocationDto>> GetLocationHistoryAsync(Guid vehicleId, DateTime startTime, DateTime endTime, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<LocationDto>> GetLocationHistoryAsync(int vehicleId, DateTime startTime, DateTime endTime, CancellationToken cancellationToken = default)
     {
         var locations = await _locationRepository.GetLocationsByTimeRangeAsync(vehicleId, startTime, endTime).ConfigureAwait(false);
         return _mapper.Map<IEnumerable<LocationDto>>(locations);
@@ -97,7 +98,7 @@ public class LocationService : ILocationService
     /// <summary>
     /// Gets locations in the last N hours.
     /// </summary>
-    public async Task<IEnumerable<LocationDto>> GetRecentLocationsAsync(Guid vehicleId, int hoursBack = 24, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<LocationDto>> GetRecentLocationsAsync(int vehicleId, int hoursBack = 24, CancellationToken cancellationToken = default)
     {
         var locations = await _locationRepository.GetRecentLocationsAsync(vehicleId, hoursBack).ConfigureAwait(false);
         return _mapper.Map<IEnumerable<LocationDto>>(locations);
@@ -115,7 +116,7 @@ public class LocationService : ILocationService
     /// <summary>
     /// Gets location statistics for a vehicle.
     /// </summary>
-    public async Task<LocationStatsDto> GetLocationStatsAsync(Guid vehicleId, DateTime startTime, DateTime endTime, CancellationToken cancellationToken = default)
+    public async Task<LocationStatsDto> GetLocationStatsAsync(int vehicleId, DateTime startTime, DateTime endTime, CancellationToken cancellationToken = default)
     {
         var (count, minSpeed, maxSpeed, avgSpeed) = await _locationRepository.GetLocationStatsAsync(vehicleId, startTime, endTime).ConfigureAwait(false);
 
@@ -195,10 +196,14 @@ public class LocationService : ILocationService
     /// <summary>
     /// Deletes a location by its ID.
     /// </summary>
-    public async Task DeleteLocationAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<bool> DeleteLocationAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        await _locationRepository.RemoveByIdAsync(id, cancellationToken).ConfigureAwait(false);
+        var existing = await _locationRepository.GetByIdAsync(id, cancellationToken).ConfigureAwait(false);
+        if (existing is null)
+            return false;
+        await _locationRepository.RemoveAsync(existing, cancellationToken).ConfigureAwait(false);
         await _locationRepository.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        return true;
     }
 
     /// <summary>

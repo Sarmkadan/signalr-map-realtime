@@ -15,9 +15,14 @@ namespace SignalRMapRealtime.Data.Repositories;
 public interface IRepository<T> where T : class
 {
     /// <summary>
-    /// Retrieves an entity by its primary key.
+    /// Retrieves an entity by its primary key (Guid).
     /// </summary>
     Task<T?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Retrieves an entity by its integer primary key.
+    /// </summary>
+    Task<T?> GetByIdAsync(int id, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Retrieves all entities of type T.
@@ -60,9 +65,14 @@ public interface IRepository<T> where T : class
     Task RemoveRangeAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Removes an entity by its primary key.
+    /// Removes an entity by its primary key (Guid).
     /// </summary>
     Task RemoveByIdAsync(Guid id, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Removes an entity by its integer primary key.
+    /// </summary>
+    Task RemoveByIdAsync(int id, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Saves all changes made in this context to the database.
@@ -70,9 +80,14 @@ public interface IRepository<T> where T : class
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Checks if an entity with the specified key exists.
+    /// Checks if an entity with the specified Guid key exists.
     /// </summary>
     Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Checks if an entity with the specified integer key exists.
+    /// </summary>
+    Task<bool> ExistsAsync(int id, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets the total count of entities.

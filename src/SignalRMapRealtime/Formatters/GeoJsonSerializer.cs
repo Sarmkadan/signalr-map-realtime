@@ -100,7 +100,7 @@ public class GeoJsonSerializer
                 { "id", route.Id },
                 { "name", route.Name },
                 { "description", route.Description },
-                { "status", route.Status },
+                { "status", route.IsActive ? "active" : (route.IsCompleted ? "completed" : "inactive") },
                 { "createdAt", route.CreatedAt },
                 { "waypointCount", coordinates.Length }
             }
@@ -185,5 +185,5 @@ public class GeoJsonLineString
     public string Type { get; set; } = "LineString";
 
     [JsonPropertyName("coordinates")]
-    public double[][] Coordinates { get; set; } = new double[][0];
+    public double[][] Coordinates { get; set; } = Array.Empty<double[]>();
 }

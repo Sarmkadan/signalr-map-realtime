@@ -47,7 +47,7 @@ public class LocationController : ControllerBase
     public async Task<IActionResult> GetLocations(
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 20,
-        [FromQuery] Guid? vehicleId = null)
+        [FromQuery] int? vehicleId = null)
     {
         try
         {
@@ -59,12 +59,15 @@ public class LocationController : ControllerBase
                 cacheKey,
                 async () =>
                 {
-                    var locations = await _locationService.GetLocationsAsync();
+                    var pagedResult = await _locationService.GetLocationsAsync(validPageNumber, validPageSize);
 
                     if (vehicleId.HasValue)
-                        locations = locations.Where(l => l.VehicleId == vehicleId.Value).ToList();
+                    {
+                        var filtered = pagedResult.Items.Where(l => l.VehicleId == vehicleId.Value).ToList();
+                        return PaginatedResponse<LocationDto>.FromList(filtered, validPageNumber, validPageSize);
+                    }
 
-                    return PaginatedResponse<LocationDto>.FromList(locations, validPageNumber, validPageSize);
+                    return pagedResult;
                 },
                 TimeSpan.FromSeconds(30));
 
@@ -118,7 +121,7 @@ public class LocationController : ControllerBase
     /// </summary>
     /// <param name="createLocationDto">Location data</param>
     [HttpPost]
-    public async Task<IActionResult> CreateLocation([FromBody] LocationDto createLocationDto)
+    public async Task<IActionResult> CreateLocation([FromBody] CreateLocationDto createLocationDto)
     {
         try
         {
@@ -141,7 +144,7 @@ public class LocationController : ControllerBase
                     "Invalid coordinates",
                     HttpContext.TraceIdentifier));
 
-            var location = await _locationService.CreateLocationAsync(createLocationDto);
+            var location = await _locationService.RecordLocationAsync(createLocationDto);
 
             // Invalidate cache
             await _cacheService.RemoveByPatternAsync("locations:*");
@@ -168,7 +171,7 @@ public class LocationController : ControllerBase
     /// <param name="id">Location ID</param>
     /// <param name="updateLocationDto">Updated location data</param>
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateLocation(Guid id, [FromBody] LocationDto updateLocationDto)
+    public async Task<IActionResult> UpdateLocation(Guid id, [FromBody] UpdateLocationDto updateLocationDto)
     {
         try
         {

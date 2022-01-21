@@ -45,6 +45,9 @@ public class AssetDto
 
     /// <summary>Creation timestamp.</summary>
     public DateTime CreatedAt { get; set; }
+
+    /// <summary>Last update timestamp.</summary>
+    public DateTime UpdatedAt { get; set; }
 }
 
 /// <summary>

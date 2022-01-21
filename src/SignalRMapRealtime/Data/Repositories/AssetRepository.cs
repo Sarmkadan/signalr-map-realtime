@@ -66,7 +66,7 @@ public class AssetRepository : BaseRepository<Asset>
     public async Task<IEnumerable<Asset>> GetUnassignedAssetsAsync()
     {
         return await _context.Assets
-            .Where(a => a.VehicleId is null)
+            .Where(a => a.VehicleId == null)
             .Include(a => a.CurrentLocation)
             .OrderByDescending(a => a.UpdatedAt)
             .ToListAsync();

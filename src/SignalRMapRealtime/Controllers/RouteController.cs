@@ -119,10 +119,9 @@ public class RouteController : ControllerBase
 
             var route = new Domain.Models.Route
             {
-                Id = Guid.NewGuid(),
                 Name = createRouteDto.Name,
                 Description = createRouteDto.Description,
-                Status = "Active",
+                IsActive = true,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
@@ -162,7 +161,7 @@ public class RouteController : ControllerBase
             route.Description = updateRouteDto.Description;
             route.UpdatedAt = DateTime.UtcNow;
 
-            _routeRepository.Update(route);
+            await _routeRepository.UpdateAsync(route);
             await _routeRepository.SaveChangesAsync();
 
             var response = ApiResponse<RouteDto>.SuccessResponse(
@@ -193,7 +192,7 @@ public class RouteController : ControllerBase
             if (route is null)
                 return NotFound(ErrorResponse.NotFoundError($"Route with ID {id} not found", HttpContext.TraceIdentifier));
 
-            _routeRepository.Delete(route);
+            await _routeRepository.RemoveAsync(route);
             await _routeRepository.SaveChangesAsync();
 
             return NoContent();
@@ -253,7 +252,8 @@ public class RouteController : ControllerBase
             Id = route.Id,
             Name = route.Name,
             Description = route.Description,
-            Status = route.Status,
+            IsActive = route.IsActive,
+            IsCompleted = route.IsCompleted,
             CreatedAt = route.CreatedAt,
             UpdatedAt = route.UpdatedAt
         };
