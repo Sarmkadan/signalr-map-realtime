@@ -4,7 +4,7 @@
 # =====================================================================
 
 # Build stage using Alpine-based SDK image for minimal size
-FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine AS builder
+FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS builder
 WORKDIR /src
 
 # Copy project files for dependency restoration
@@ -12,19 +12,19 @@ COPY ["signalr-map-realtime.sln", "."]
 COPY ["src/SignalRMapRealtime/SignalRMapRealtime.csproj", "src/SignalRMapRealtime/"]
 
 # Restore dependencies before copying source to leverage Docker layer caching
-RUN dotnet restore "signalr-map-realtime.sln"
+RUN dotnet restore "src/SignalRMapRealtime/SignalRMapRealtime.csproj"
 
 # Copy remaining source code
 COPY . .
 
 # Build and publish the application
-RUN dotnet build "signalr-map-realtime.sln" -c Release -o /app/build
+RUN dotnet build "src/SignalRMapRealtime/SignalRMapRealtime.csproj" -c Release -o /app/build
 RUN dotnet publish "src/SignalRMapRealtime/SignalRMapRealtime.csproj" \
     -c Release -o /app/publish \
     --no-restore
 
 # Runtime stage using Alpine-based ASP.NET image
-FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS runtime
 
 # Create non-root user for security
 RUN adduser -D -u 1001 appuser
