@@ -1184,11 +1184,26 @@ The following benchmarks were measured on a single application node (4 vCPU, 8 G
 | Location history query (30-day range, indexed) | < 200 ms |
 | Geofence boundary evaluation per update | < 2 ms |
 
-**Scaling guidance:**
-- Add a Redis SignalR backplane to distribute WebSocket connections across multiple nodes.
-- Enable response caching for read-heavy endpoints (`GET /api/v1/vehicles`, nearby lookups).
-- Use the bulk import endpoint (`POST /api/v1/locations/bulk`) to batch-write historical GPS data and reduce per-record overhead.
-- Deploy read replicas for reporting and analytics queries to keep the write path latency consistent.
+### Benchmarking
+
+This project includes performance benchmarks for critical geographic and algorithmic operations using BenchmarkDotNet.
+
+#### Running Benchmarks
+
+To run the performance benchmarks:
+
+```bash
+dotnet run -c Release --project tests/signalr-map-realtime.Benchmarks/signalr-map-realtime.Benchmarks.csproj
+```
+
+#### Results
+
+| Method | Mean | Error | StdDev | Allocated |
+|--------------------- |-----------:|----------:|----------:|----------:|
+| CalculateDistance | 62.0812 ns | 1.2735 ns | 1.7431 ns | - |
+| GetCardinalDirection | 0.3416 ns | 0.0785 ns | 0.1126 ns | - |
+| GetBoundingBox | 12.0822 ns | 0.1695 ns | 0.1415 ns | - |
+| IsValidCoordinate | 0.9085 ns | 0.0560 ns | 0.0645 ns | - |
 
 ## Troubleshooting
 
