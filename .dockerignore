@@ -1,0 +1,31 @@
+# =============================================================================
+# Author: Vladyslav Zaiets | https://sarmkadan.com
+# CTO & Software Architect
+# Docker ignore file to prevent unnecessary files from being copied into the Docker image
+# =============================================================================
+
+# Binaries and object files
+bin/
+obj/
+
+# Git and version control
+.git/
+.gitignore
+
+# Documentation and README files
+docs/
+README.md
+
+# Test files
+tests/
+
+# Miscellaneous
+node_modules/
+package-lock.json
+
+# IDE and editor configuration
+.vscode/
+.vs/
+
+# Other
+Dockerfile
