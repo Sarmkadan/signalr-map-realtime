@@ -1,3 +1,4 @@
+#nullable enable
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
@@ -46,7 +47,7 @@ public class LocationService : ILocationService
             throw new InvalidLocationException(locationDto.Latitude, locationDto.Longitude);
 
         var vehicle = await _vehicleRepository.GetByIdAsync(locationDto.VehicleId, cancellationToken);
-        if (vehicle == null)
+        if (vehicle is null)
             throw new VehicleNotFoundException(locationDto.VehicleId);
 
         var location = new Location
@@ -81,7 +82,7 @@ public class LocationService : ILocationService
     public async Task<LocationDto?> GetLatestLocationAsync(Guid vehicleId, CancellationToken cancellationToken = default)
     {
         var location = await _locationRepository.GetLatestLocationByVehicleAsync(vehicleId);
-        return location == null ? null : _mapper.Map<LocationDto>(location);
+        return location is null ? null : _mapper.Map<LocationDto>(location);
     }
 
     /// <summary>
@@ -152,7 +153,7 @@ public class LocationService : ILocationService
     public async Task<LocationDto> UpdateLocationAsync(Guid locationId, UpdateLocationDto locationDto, CancellationToken cancellationToken = default)
     {
         var location = await _locationRepository.GetByIdAsync(locationId, cancellationToken);
-        if (location == null)
+        if (location is null)
             throw new InvalidLocationException("Location not found.");
 
         if (locationDto.Speed.HasValue)
@@ -188,7 +189,7 @@ public class LocationService : ILocationService
     public async Task<LocationDto?> GetLocationByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var location = await _locationRepository.GetByIdAsync(id, cancellationToken);
-        return location == null ? null : _mapper.Map<LocationDto>(location);
+        return location is null ? null : _mapper.Map<LocationDto>(location);
     }
 
     /// <summary>
