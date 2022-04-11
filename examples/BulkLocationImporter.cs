@@ -50,7 +50,7 @@ public class BulkLocationImporter
             var locations = LoadLocationsFromCsv(csvFilePath);
             Console.WriteLine($"Loaded {locations.Count} locations");
 
-            await ImportLocationsInBatches(locations);
+            await ImportLocationsInBatches(locations).ConfigureAwait(false);
 
             Console.WriteLine("\n✓ Import completed successfully!");
         }
@@ -173,7 +173,7 @@ public class BulkLocationImporter
 
             foreach (var location in batch)
             {
-                var success = await SendLocation(location);
+                var success = await SendLocation(location).ConfigureAwait(false);
                 if (success)
                 {
                     successCount++;
@@ -186,7 +186,7 @@ public class BulkLocationImporter
 
             if (i < batches.Count - 1)
             {
-                await Task.Delay(500); // Rate limiting between batches
+                await Task.Delay(500).ConfigureAwait(false); // Rate limiting between batches
             }
         }
 
@@ -206,7 +206,7 @@ public class BulkLocationImporter
             var content = new StringContent(json, Encoding.UTF8, "application/json");
             content.Headers.Add("X-API-Key", _apiKey);
 
-            var response = await _httpClient.PostAsync($"{_baseUrl}/api/v1/locations", content);
+            var response = await _httpClient.PostAsync($"{_baseUrl}/api/v1/locations", content).ConfigureAwait(false);
             return response.IsSuccessStatusCode;
         }
         catch
@@ -274,6 +274,6 @@ public class BulkLocationImporter
         var csvFile = args[2];
 
         var importer = new BulkLocationImporter(baseUrl, apiKey);
-        await importer.ImportFromCsv(csvFile);
+        await importer.ImportFromCsv(csvFile).ConfigureAwait(false);
     }
 }

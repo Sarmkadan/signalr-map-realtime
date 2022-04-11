@@ -109,11 +109,11 @@ public class UserRepository : BaseRepository<User>
     /// </summary>
     public async Task<bool> DeactivateUserAsync(int userId)
     {
-        var user = await _context.Users.FindAsync(userId);
+        var user = await _context.Users.FindAsync(userId).ConfigureAwait(false);
         if (user is null)
             return false;
         user.Deactivate();
-        await SaveChangesAsync();
+        await SaveChangesAsync().ConfigureAwait(false);
         return true;
     }
 
@@ -133,6 +133,6 @@ public class UserRepository : BaseRepository<User>
     /// </summary>
     public async Task<int> GetOnlineUserCountAsync()
     {
-        return await _context.Users.CountAsync(u => u.IsOnline && u.IsActive);
+        return await _context.Users.CountAsync(u => u.IsOnline && u.IsActive).ConfigureAwait(false);
     }
 }

@@ -159,7 +159,7 @@ public static class CollectionExtensions
     {
         foreach (var item in source)
         {
-            await action(item);
+            await action(item).ConfigureAwait(false);
         }
     }
 

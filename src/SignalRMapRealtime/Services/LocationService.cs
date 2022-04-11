@@ -46,7 +46,7 @@ public class LocationService : ILocationService
         if (!ValidateCoordinates(locationDto.Latitude, locationDto.Longitude))
             throw new InvalidLocationException(locationDto.Latitude, locationDto.Longitude);
 
-        var vehicle = await _vehicleRepository.GetByIdAsync(locationDto.VehicleId, cancellationToken);
+        var vehicle = await _vehicleRepository.GetByIdAsync(locationDto.VehicleId, cancellationToken).ConfigureAwait(false);
         if (vehicle is null)
             throw new VehicleNotFoundException(locationDto.VehicleId);
 
@@ -66,12 +66,12 @@ public class LocationService : ILocationService
             CreatedAt = DateTime.UtcNow
         };
 
-        await _locationRepository.AddAsync(location, cancellationToken);
-        await _locationRepository.SaveChangesAsync(cancellationToken);
+        await _locationRepository.AddAsync(location, cancellationToken).ConfigureAwait(false);
+        await _locationRepository.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         vehicle.RecordLocation(location);
-        await _vehicleRepository.UpdateAsync(vehicle, cancellationToken);
-        await _vehicleRepository.SaveChangesAsync(cancellationToken);
+        await _vehicleRepository.UpdateAsync(vehicle, cancellationToken).ConfigureAwait(false);
+        await _vehicleRepository.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         return _mapper.Map<LocationDto>(location);
     }
@@ -81,7 +81,7 @@ public class LocationService : ILocationService
     /// </summary>
     public async Task<LocationDto?> GetLatestLocationAsync(Guid vehicleId, CancellationToken cancellationToken = default)
     {
-        var location = await _locationRepository.GetLatestLocationByVehicleAsync(vehicleId);
+        var location = await _locationRepository.GetLatestLocationByVehicleAsync(vehicleId).ConfigureAwait(false);
         return location is null ? null : _mapper.Map<LocationDto>(location);
     }
 
@@ -90,7 +90,7 @@ public class LocationService : ILocationService
     /// </summary>
     public async Task<IEnumerable<LocationDto>> GetLocationHistoryAsync(Guid vehicleId, DateTime startTime, DateTime endTime, CancellationToken cancellationToken = default)
     {
-        var locations = await _locationRepository.GetLocationsByTimeRangeAsync(vehicleId, startTime, endTime);
+        var locations = await _locationRepository.GetLocationsByTimeRangeAsync(vehicleId, startTime, endTime).ConfigureAwait(false);
         return _mapper.Map<IEnumerable<LocationDto>>(locations);
     }
 
@@ -99,7 +99,7 @@ public class LocationService : ILocationService
     /// </summary>
     public async Task<IEnumerable<LocationDto>> GetRecentLocationsAsync(Guid vehicleId, int hoursBack = 24, CancellationToken cancellationToken = default)
     {
-        var locations = await _locationRepository.GetRecentLocationsAsync(vehicleId, hoursBack);
+        var locations = await _locationRepository.GetRecentLocationsAsync(vehicleId, hoursBack).ConfigureAwait(false);
         return _mapper.Map<IEnumerable<LocationDto>>(locations);
     }
 
@@ -108,7 +108,7 @@ public class LocationService : ILocationService
     /// </summary>
     public async Task<IEnumerable<LocationDto>> GetLocationsNearbyAsync(double centerLat, double centerLng, double radiusKm = 1.0, CancellationToken cancellationToken = default)
     {
-        var locations = await _locationRepository.GetLocationsNearbyAsync(centerLat, centerLng, radiusKm);
+        var locations = await _locationRepository.GetLocationsNearbyAsync(centerLat, centerLng, radiusKm).ConfigureAwait(false);
         return _mapper.Map<IEnumerable<LocationDto>>(locations);
     }
 
@@ -117,9 +117,9 @@ public class LocationService : ILocationService
     /// </summary>
     public async Task<LocationStatsDto> GetLocationStatsAsync(Guid vehicleId, DateTime startTime, DateTime endTime, CancellationToken cancellationToken = default)
     {
-        var (count, minSpeed, maxSpeed, avgSpeed) = await _locationRepository.GetLocationStatsAsync(vehicleId, startTime, endTime);
+        var (count, minSpeed, maxSpeed, avgSpeed) = await _locationRepository.GetLocationStatsAsync(vehicleId, startTime, endTime).ConfigureAwait(false);
 
-        var locations = await _locationRepository.GetLocationsByTimeRangeAsync(vehicleId, startTime, endTime);
+        var locations = await _locationRepository.GetLocationsByTimeRangeAsync(vehicleId, startTime, endTime).ConfigureAwait(false);
         double totalDistance = 0;
         var sortedLocations = locations.OrderBy(l => l.RecordedAt).ToList();
 
@@ -143,7 +143,7 @@ public class LocationService : ILocationService
     /// </summary>
     public async Task<IEnumerable<LocationDto>> GetLocationsByTypeAsync(LocationType locationType, CancellationToken cancellationToken = default)
     {
-        var locations = await _locationRepository.GetLocationsByTypeAsync(locationType);
+        var locations = await _locationRepository.GetLocationsByTypeAsync(locationType).ConfigureAwait(false);
         return _mapper.Map<IEnumerable<LocationDto>>(locations);
     }
 
@@ -152,7 +152,7 @@ public class LocationService : ILocationService
     /// </summary>
     public async Task<LocationDto> UpdateLocationAsync(Guid locationId, UpdateLocationDto locationDto, CancellationToken cancellationToken = default)
     {
-        var location = await _locationRepository.GetByIdAsync(locationId, cancellationToken);
+        var location = await _locationRepository.GetByIdAsync(locationId, cancellationToken).ConfigureAwait(false);
         if (location is null)
             throw new InvalidLocationException("Location not found.");
 
@@ -167,8 +167,8 @@ public class LocationService : ILocationService
         if (locationDto.LocationType.HasValue)
             location.LocationType = locationDto.LocationType.Value;
 
-        await _locationRepository.UpdateAsync(location, cancellationToken);
-        await _locationRepository.SaveChangesAsync(cancellationToken);
+        await _locationRepository.UpdateAsync(location, cancellationToken).ConfigureAwait(false);
+        await _locationRepository.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         return _mapper.Map<LocationDto>(location);
     }
@@ -178,7 +178,7 @@ public class LocationService : ILocationService
     /// </summary>
     public async Task<PaginatedResponse<LocationDto>> GetLocationsAsync(int pageNumber, int pageSize, CancellationToken cancellationToken = default)
     {
-        var locations = await _locationRepository.GetAllAsync(cancellationToken);
+        var locations = await _locationRepository.GetAllAsync(cancellationToken).ConfigureAwait(false);
         var locationDtos = _mapper.Map<IEnumerable<LocationDto>>(locations);
         return PaginatedResponse<LocationDto>.FromList(locationDtos, pageNumber, pageSize);
     }
@@ -188,7 +188,7 @@ public class LocationService : ILocationService
     /// </summary>
     public async Task<LocationDto?> GetLocationByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var location = await _locationRepository.GetByIdAsync(id, cancellationToken);
+        var location = await _locationRepository.GetByIdAsync(id, cancellationToken).ConfigureAwait(false);
         return location is null ? null : _mapper.Map<LocationDto>(location);
     }
 
@@ -197,8 +197,8 @@ public class LocationService : ILocationService
     /// </summary>
     public async Task DeleteLocationAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        await _locationRepository.RemoveByIdAsync(id, cancellationToken);
-        await _locationRepository.SaveChangesAsync(cancellationToken);
+        await _locationRepository.RemoveByIdAsync(id, cancellationToken).ConfigureAwait(false);
+        await _locationRepository.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -232,6 +232,6 @@ public class LocationService : ILocationService
     /// </summary>
     public async Task<int> CleanupOldLocationsAsync(int daysOld = 90, CancellationToken cancellationToken = default)
     {
-        return await _locationRepository.DeleteOldLocationsAsync(daysOld);
+        return await _locationRepository.DeleteOldLocationsAsync(daysOld).ConfigureAwait(false);
     }
 }

@@ -33,25 +33,25 @@ namespace SignalRMapRealtime.Examples.DockerDeployment
             {
                 // 1. Check API health
                 Console.WriteLine("\n1. Checking API health...");
-                var healthResponse = await _httpClient.GetAsync($"{_baseUrl}/health");
+                var healthResponse = await _httpClient.GetAsync($"{_baseUrl}/health").ConfigureAwait(false);
                 healthResponse.EnsureSuccessStatusCode();
-                var health = await healthResponse.Content.ReadAsStringAsync();
+                var health = await healthResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
                 Console.WriteLine($"Health check: {health}");
 
                 // 2. Check API info
                 Console.WriteLine("\n2. Checking API information...");
-                var infoResponse = await _httpClient.GetAsync($"{_baseUrl}/api/info");
+                var infoResponse = await _httpClient.GetAsync($"{_baseUrl}/api/info").ConfigureAwait(false);
                 infoResponse.EnsureSuccessStatusCode();
-                var info = await infoResponse.Content.ReadFromJsonAsync<ApiInfo>();
+                var info = await infoResponse.Content.ReadFromJsonAsync<ApiInfo>().ConfigureAwait(false);
                 Console.WriteLine($"API Version: {info?.Version}");
                 Console.WriteLine($"Environment: {info?.Environment}");
 
                 // 3. List existing vehicles (if any)
                 Console.WriteLine("\n3. Listing existing vehicles...");
-                var vehiclesResponse = await _httpClient.GetAsync($"{_baseUrl}/api/v1/vehicles?take=10");
+                var vehiclesResponse = await _httpClient.GetAsync($"{_baseUrl}/api/v1/vehicles?take=10").ConfigureAwait(false);
                 if (vehiclesResponse.IsSuccessStatusCode)
                 {
-                    var vehicles = await vehiclesResponse.Content.ReadFromJsonAsync<PaginatedResponse<VehicleDto>>();
+                    var vehicles = await vehiclesResponse.Content.ReadFromJsonAsync<PaginatedResponse<VehicleDto>>().ConfigureAwait(false);
                     Console.WriteLine($"Found {vehicles?.Data.Count ?? 0} vehicles in the system");
                 }
                 else
@@ -70,9 +70,9 @@ namespace SignalRMapRealtime.Examples.DockerDeployment
                     Status = "Available"
                 };
 
-                var createResponse = await _httpClient.PostAsJsonAsync($"{_baseUrl}/api/v1/vehicles", testVehicle);
+                var createResponse = await _httpClient.PostAsJsonAsync($"{_baseUrl}/api/v1/vehicles", testVehicle).ConfigureAwait(false);
                 createResponse.EnsureSuccessStatusCode();
-                var vehicleId = await createResponse.Content.ReadFromJsonAsync<string>();
+                var vehicleId = await createResponse.Content.ReadFromJsonAsync<string>().ConfigureAwait(false);
                 Console.WriteLine($"Created vehicle: {vehicleId}");
 
                 // 5. Record a location update
@@ -88,24 +88,24 @@ namespace SignalRMapRealtime.Examples.DockerDeployment
                     Timestamp = DateTime.UtcNow
                 };
 
-                var locationResponse = await _httpClient.PostAsJsonAsync($"{_baseUrl}/api/v1/locations", location);
+                var locationResponse = await _httpClient.PostAsJsonAsync($"{_baseUrl}/api/v1/locations", location).ConfigureAwait(false);
                 locationResponse.EnsureSuccessStatusCode();
-                var locationId = await locationResponse.Content.ReadFromJsonAsync<string>();
+                var locationId = await locationResponse.Content.ReadFromJsonAsync<string>().ConfigureAwait(false);
                 Console.WriteLine($"Recorded location: {locationId}");
 
                 // 6. Retrieve the location
                 Console.WriteLine("\n6. Retrieving location...");
-                var getLocationResponse = await _httpClient.GetAsync($"{_baseUrl}/api/v1/locations/{locationId}");
+                var getLocationResponse = await _httpClient.GetAsync($"{_baseUrl}/api/v1/locations/{locationId}").ConfigureAwait(false);
                 getLocationResponse.EnsureSuccessStatusCode();
-                var retrievedLocation = await getLocationResponse.Content.ReadFromJsonAsync<LocationDto>();
+                var retrievedLocation = await getLocationResponse.Content.ReadFromJsonAsync<LocationDto>().ConfigureAwait(false);
                 Console.WriteLine($"Retrieved location: Vehicle {retrievedLocation?.VehicleId} at ({retrievedLocation?.Latitude}, {retrievedLocation?.Longitude})");
 
                 // 7. List vehicles again to see our new vehicle
                 Console.WriteLine("\n7. Listing vehicles after creation...");
-                var updatedVehiclesResponse = await _httpClient.GetAsync($"{_baseUrl}/api/v1/vehicles?take=10");
+                var updatedVehiclesResponse = await _httpClient.GetAsync($"{_baseUrl}/api/v1/vehicles?take=10").ConfigureAwait(false);
                 if (updatedVehiclesResponse.IsSuccessStatusCode)
                 {
-                    var updatedVehicles = await updatedVehiclesResponse.Content.ReadFromJsonAsync<PaginatedResponse<VehicleDto>>();
+                    var updatedVehicles = await updatedVehiclesResponse.Content.ReadFromJsonAsync<PaginatedResponse<VehicleDto>>().ConfigureAwait(false);
                     var newVehicle = updatedVehicles?.Data.Find(v => v.Id == vehicleId);
                     Console.WriteLine($"Vehicle found: {newVehicle?.LicensePlate} - Status: {newVehicle?.Status}");
                 }

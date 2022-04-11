@@ -45,8 +45,8 @@ public class LocationHub : Hub
     /// </summary>
     public override async Task OnConnectedAsync()
     {
-        _logger.LogInformation($"Client {Context.ConnectionId} connected");
-        await base.OnConnectedAsync();
+        _logger.LogInformation("Client {ConnectionId} connected", Context.ConnectionId);
+        await base.OnConnectedAsync().ConfigureAwait(false);
     }
 
     /// <summary>
@@ -55,7 +55,7 @@ public class LocationHub : Hub
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
         _logger.LogInformation($"Client {Context.ConnectionId} disconnected. Exception: {exception?.Message}");
-        await base.OnDisconnectedAsync(exception);
+        await base.OnDisconnectedAsync(exception).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -65,20 +65,20 @@ public class LocationHub : Hub
     {
         try
         {
-            var location = await _locationService.RecordLocationAsync(locationDto);
+            var location = await _locationService.RecordLocationAsync(locationDto).ConfigureAwait(false);
 
             // Broadcast to all connected clients
-            await Clients.All.SendAsync("LocationUpdated", location);
+            await Clients.All.SendAsync("LocationUpdated", location).ConfigureAwait(false);
 
             // Notify vehicle-specific listeners
-            await Clients.Group($"vehicle-{locationDto.VehicleId}").SendAsync("VehicleLocationUpdated", location);
+            await Clients.Group($"vehicle-{locationDto.VehicleId}").SendAsync("VehicleLocationUpdated", location).ConfigureAwait(false);
 
-            _logger.LogInformation($"Location updated for vehicle {locationDto.VehicleId}");
+            _logger.LogInformation("Location updated for vehicle {VehicleId}", locationDto.VehicleId);
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Error sending location update: {ex.Message}");
-            await Clients.Caller.SendAsync("Error", "Failed to update location");
+            _logger.LogError("Error sending location update: {Message}", ex.Message);
+            await Clients.Caller.SendAsync("Error", "Failed to update location").ConfigureAwait(false);
         }
     }
 
@@ -89,12 +89,12 @@ public class LocationHub : Hub
     {
         try
         {
-            await Clients.All.SendAsync("VehicleStatusChanged", new { vehicleId, newStatus, timestamp = DateTime.UtcNow });
-            _logger.LogInformation($"Vehicle {vehicleId} status changed to {newStatus}");
+            await Clients.All.SendAsync("VehicleStatusChanged", new { vehicleId, newStatus, timestamp = DateTime.UtcNow }).ConfigureAwait(false);
+            _logger.LogInformation("Vehicle {VehicleId} status changed to {NewStatus}", vehicleId, newStatus);
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Error broadcasting vehicle status: {ex.Message}");
+            _logger.LogError("Error broadcasting vehicle status: {Message}", ex.Message);
         }
     }
 
@@ -105,14 +105,14 @@ public class LocationHub : Hub
     {
         try
         {
-            await Groups.AddToGroupAsync(Context.ConnectionId, $"vehicle-{vehicleId}");
-            await Clients.Caller.SendAsync("SubscribedToVehicle", vehicleId);
-            _logger.LogInformation($"Client {Context.ConnectionId} subscribed to vehicle {vehicleId}");
+            await Groups.AddToGroupAsync(Context.ConnectionId, $"vehicle-{vehicleId}").ConfigureAwait(false);
+            await Clients.Caller.SendAsync("SubscribedToVehicle", vehicleId).ConfigureAwait(false);
+            _logger.LogInformation("Client {ConnectionId} subscribed to vehicle {VehicleId}", Context.ConnectionId, vehicleId);
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Error subscribing to vehicle: {ex.Message}");
-            await Clients.Caller.SendAsync("Error", "Failed to subscribe to vehicle");
+            _logger.LogError("Error subscribing to vehicle: {Message}", ex.Message);
+            await Clients.Caller.SendAsync("Error", "Failed to subscribe to vehicle").ConfigureAwait(false);
         }
     }
 
@@ -123,14 +123,14 @@ public class LocationHub : Hub
     {
         try
         {
-            await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"vehicle-{vehicleId}");
-            await Clients.Caller.SendAsync("UnsubscribedFromVehicle", vehicleId);
-            _logger.LogInformation($"Client {Context.ConnectionId} unsubscribed from vehicle {vehicleId}");
+            await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"vehicle-{vehicleId}").ConfigureAwait(false);
+            await Clients.Caller.SendAsync("UnsubscribedFromVehicle", vehicleId).ConfigureAwait(false);
+            _logger.LogInformation("Client {ConnectionId} unsubscribed from vehicle {VehicleId}", Context.ConnectionId, vehicleId);
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Error unsubscribing from vehicle: {ex.Message}");
-            await Clients.Caller.SendAsync("Error", "Failed to unsubscribe from vehicle");
+            _logger.LogError("Error unsubscribing from vehicle: {Message}", ex.Message);
+            await Clients.Caller.SendAsync("Error", "Failed to unsubscribe from vehicle").ConfigureAwait(false);
         }
     }
 
@@ -141,13 +141,13 @@ public class LocationHub : Hub
     {
         try
         {
-            var location = await _locationService.GetLatestLocationAsync(vehicleId);
-            await Clients.Caller.SendAsync("VehicleLocation", location);
+            var location = await _locationService.GetLatestLocationAsync(vehicleId).ConfigureAwait(false);
+            await Clients.Caller.SendAsync("VehicleLocation", location).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Error requesting vehicle location: {ex.Message}");
-            await Clients.Caller.SendAsync("Error", "Failed to retrieve vehicle location");
+            _logger.LogError("Error requesting vehicle location: {Message}", ex.Message);
+            await Clients.Caller.SendAsync("Error", "Failed to retrieve vehicle location").ConfigureAwait(false);
         }
     }
 
@@ -158,12 +158,12 @@ public class LocationHub : Hub
     {
         try
         {
-            await Clients.All.SendAsync("RouteProgressUpdated", new { routeId, completionPercentage, status, timestamp = DateTime.UtcNow });
-            _logger.LogInformation($"Route {routeId} progress: {completionPercentage}%");
+            await Clients.All.SendAsync("RouteProgressUpdated", new { routeId, completionPercentage, status, timestamp = DateTime.UtcNow }).ConfigureAwait(false);
+            _logger.LogInformation("Route {RouteId} progress: {CompletionPercentage}%", routeId, completionPercentage);
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Error broadcasting route progress: {ex.Message}");
+            _logger.LogError("Error broadcasting route progress: {Message}", ex.Message);
         }
     }
 
@@ -175,12 +175,12 @@ public class LocationHub : Hub
         try
         {
             var alert = new { vehicleId, alertType, message, timestamp = DateTime.UtcNow };
-            await Clients.All.SendAsync("Alert", alert);
-            _logger.LogWarning($"Alert for vehicle {vehicleId}: {alertType} - {message}");
+            await Clients.All.SendAsync("Alert", alert).ConfigureAwait(false);
+            _logger.LogWarning("Alert for vehicle {VehicleId}: {AlertType} - {Message}", vehicleId, alertType, message);
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Error sending alert: {ex.Message}");
+            _logger.LogError("Error sending alert: {Message}", ex.Message);
         }
     }
 
@@ -191,13 +191,13 @@ public class LocationHub : Hub
     {
         try
         {
-            var count = await _vehicleService.GetOnlineVehicleCountAsync();
-            await Clients.Caller.SendAsync("OnlineVehicleCount", count);
+            var count = await _vehicleService.GetOnlineVehicleCountAsync().ConfigureAwait(false);
+            await Clients.Caller.SendAsync("OnlineVehicleCount", count).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Error requesting online vehicle count: {ex.Message}");
-            await Clients.Caller.SendAsync("Error", "Failed to retrieve vehicle count");
+            _logger.LogError("Error requesting online vehicle count: {Message}", ex.Message);
+            await Clients.Caller.SendAsync("Error", "Failed to retrieve vehicle count").ConfigureAwait(false);
         }
     }
 
@@ -209,12 +209,12 @@ public class LocationHub : Hub
         try
         {
             var status = new { fleetName, onlineCount, totalCount, percentage = (onlineCount * 100) / totalCount, timestamp = DateTime.UtcNow };
-            await Clients.All.SendAsync("FleetStatusUpdated", status);
-            _logger.LogInformation($"Fleet {fleetName} status: {onlineCount}/{totalCount} online");
+            await Clients.All.SendAsync("FleetStatusUpdated", status).ConfigureAwait(false);
+            _logger.LogInformation("Fleet {FleetName} status: {OnlineCount}/{TotalCount} online", fleetName, onlineCount, totalCount);
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Error broadcasting fleet status: {ex.Message}");
+            _logger.LogError("Error broadcasting fleet status: {Message}", ex.Message);
         }
     }
 
@@ -225,11 +225,11 @@ public class LocationHub : Hub
     {
         try
         {
-            await Clients.Caller.SendAsync("Pong");
+            await Clients.Caller.SendAsync("Pong").ConfigureAwait(false);
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Error handling ping: {ex.Message}");
+            _logger.LogError("Error handling ping: {Message}", ex.Message);
         }
     }
 }
