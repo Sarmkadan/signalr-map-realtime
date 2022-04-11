@@ -40,7 +40,7 @@ public class SessionAnalyticsReporter
 
         try
         {
-            var sessions = await GetVehicleSessions(vehicleId);
+            var sessions = await GetVehicleSessions(vehicleId).ConfigureAwait(false);
             if (sessions.Count == 0)
             {
                 Console.WriteLine("No tracking sessions found for this vehicle.");
@@ -214,7 +214,7 @@ public class SessionAnalyticsReporter
     {
         Console.WriteLine($"Exporting analytics to: {outputPath}");
 
-        var sessions = await GetVehicleSessions(vehicleId);
+        var sessions = await GetVehicleSessions(vehicleId).ConfigureAwait(false);
 
         using (var writer = new StreamWriter(outputPath))
         {
@@ -239,7 +239,7 @@ public class SessionAnalyticsReporter
     /// </summary>
     public async Task RunExample(string vehicleId)
     {
-        await GenerateVehicleAnalyticsReport(vehicleId);
+        await GenerateVehicleAnalyticsReport(vehicleId).ConfigureAwait(false);
     }
 
     private class SessionData
@@ -277,6 +277,6 @@ public class SessionAnalyticsReporter
         var vehicleId = args.Length > 2 ? args[2] : Guid.NewGuid().ToString();
 
         var reporter = new SessionAnalyticsReporter(baseUrl, apiKey);
-        await reporter.RunExample(vehicleId);
+        await reporter.RunExample(vehicleId).ConfigureAwait(false);
     }
 }

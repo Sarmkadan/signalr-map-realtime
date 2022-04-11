@@ -114,7 +114,7 @@ public class VehicleRepository : BaseRepository<Vehicle>
     /// </summary>
     public async Task<int> GetOnlineVehicleCountAsync()
     {
-        return await _context.Vehicles.CountAsync(v => v.IsOnline);
+        return await _context.Vehicles.CountAsync(v => v.IsOnline).ConfigureAwait(false);
     }
 
     /// <summary>

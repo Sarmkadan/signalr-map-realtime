@@ -93,7 +93,7 @@ public class InMemoryEventBus : IEventBus
             }
         });
 
-        await Task.WhenAll(tasks);
+        await Task.WhenAll(tasks).ConfigureAwait(false);
 
         _logger.LogInformation(
             "Event {EventName} (ID: {EventId}) published successfully",

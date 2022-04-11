@@ -34,7 +34,7 @@ public class BaseRepository<T> : IRepository<T> where T : class
     /// </summary>
     public async Task<T?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return await _dbSet.FindAsync(new object[] { id }, cancellationToken: cancellationToken);
+        return await _dbSet.FindAsync(new object[] { id }, cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -42,7 +42,7 @@ public class BaseRepository<T> : IRepository<T> where T : class
     /// </summary>
     public async Task<IEnumerable<T>> GetAllAsync(CancellationToken cancellationToken = default)
     {
-        return await _dbSet.ToListAsync(cancellationToken);
+        return await _dbSet.ToListAsync(cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -51,7 +51,7 @@ public class BaseRepository<T> : IRepository<T> where T : class
     public async Task<IEnumerable<T>> FindAsync(Func<T, bool> predicate, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(predicate);
-        return await Task.FromResult(_dbSet.Where(predicate).ToList());
+        return await Task.FromResult(_dbSet.Where(predicate).ToList()).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -60,7 +60,7 @@ public class BaseRepository<T> : IRepository<T> where T : class
     public async Task<T?> FindSingleAsync(Func<T, bool> predicate, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(predicate);
-        return await Task.FromResult(_dbSet.FirstOrDefault(predicate));
+        return await Task.FromResult(_dbSet.FirstOrDefault(predicate)).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -69,7 +69,7 @@ public class BaseRepository<T> : IRepository<T> where T : class
     public async Task AddAsync(T entity, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(entity);
-        await _dbSet.AddAsync(entity, cancellationToken);
+        await _dbSet.AddAsync(entity, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -78,7 +78,7 @@ public class BaseRepository<T> : IRepository<T> where T : class
     public async Task AddRangeAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(entities);
-        await _dbSet.AddRangeAsync(entities, cancellationToken);
+        await _dbSet.AddRangeAsync(entities, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -116,7 +116,7 @@ public class BaseRepository<T> : IRepository<T> where T : class
     /// </summary>
     public async Task RemoveByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var entity = await GetByIdAsync(id, cancellationToken);
+        var entity = await GetByIdAsync(id, cancellationToken).ConfigureAwait(false);
         if (entity is not null)
         {
             _dbSet.Remove(entity);
@@ -128,7 +128,7 @@ public class BaseRepository<T> : IRepository<T> where T : class
     /// </summary>
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        return await _context.SaveChangesAsync(cancellationToken);
+        return await _context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -144,6 +144,6 @@ public class BaseRepository<T> : IRepository<T> where T : class
     /// </summary>
     public async Task<int> CountAsync(CancellationToken cancellationToken = default)
     {
-        return await _dbSet.CountAsync(cancellationToken);
+        return await _dbSet.CountAsync(cancellationToken).ConfigureAwait(false);
     }
 }
