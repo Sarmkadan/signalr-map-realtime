@@ -300,13 +300,25 @@
                 addMessage(`Asset ${vehicleId} removed from tracking`, 'info');
             });
 
+            // Resync all marker positions after a reconnect to avoid stale state
+            connection.on("PositionSnapshot", (locations) => {
+                locations.forEach(location => updateVehicleLocation(location));
+                addMessage(`Map resynced: ${locations.length} vehicle(s) refreshed`, 'success');
+            });
+
             connection.onreconnecting(() => {
                 updateStatus('Reconnecting...', false);
             });
 
-            connection.onreconnected(() => {
+            connection.onreconnected(async () => {
                 updateStatus('Connected', true);
                 addMessage('Reconnected to server', 'success');
+                // Request a full position snapshot so stale markers are updated immediately
+                try {
+                    await connection.invoke("RequestAllVehicleLocations");
+                } catch (err) {
+                    addMessage(`Snapshot request failed: ${err.message}`, 'error');
+                }
             });
 
             connection.onclose(async (error) => {

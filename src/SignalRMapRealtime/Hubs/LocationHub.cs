@@ -114,6 +114,30 @@ public class LocationHub : Hub
     }
 
     /// <summary>
+    /// Sends a full snapshot of the latest known positions for all online vehicles to the calling client.
+    /// Clients should invoke this method on reconnect to resync stale Leaflet map markers.
+    /// </summary>
+    public async Task RequestAllVehicleLocations()
+    {
+        try
+        {
+            var vehicles = await _vehicleService.GetOnlineVehiclesAsync().ConfigureAwait(false);
+            var snapshot = vehicles
+                .Where(v => v.LastLocation is not null)
+                .Select(v => v.LastLocation!)
+                .ToList();
+
+            await Clients.Caller.SendAsync("PositionSnapshot", snapshot).ConfigureAwait(false);
+            _logger.LogInformation("Position snapshot ({Count} vehicles) sent to reconnected client {ConnectionId}", snapshot.Count, Context.ConnectionId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError("Error sending position snapshot: {Message}", ex.Message);
+            await Clients.Caller.SendAsync("Error", "Failed to retrieve position snapshot").ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>
     /// Notifies all clients that a vehicle's status has changed.
     /// </summary>
     public async Task BroadcastVehicleStatusChange(int vehicleId, string newStatus)
