@@ -100,7 +100,7 @@ public class VehicleRepository : BaseRepository<Vehicle>
     public async Task<IEnumerable<Vehicle>> GetSpeedingVehiclesAsync()
     {
         return await _context.Vehicles
-            .Where(v => v.LastLocation is not null &&
+            .Where(v => v.LastLocation != null &&
                         v.MaxSpeed.HasValue &&
                         v.LastLocation.Speed.HasValue &&
                         v.LastLocation.Speed > v.MaxSpeed)

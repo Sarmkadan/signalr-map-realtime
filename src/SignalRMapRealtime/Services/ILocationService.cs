@@ -22,17 +22,17 @@ public interface ILocationService
     /// <summary>
     /// Gets the latest location for a vehicle.
     /// </summary>
-    Task<LocationDto?> GetLatestLocationAsync(Guid vehicleId, CancellationToken cancellationToken = default);
+    Task<LocationDto?> GetLatestLocationAsync(int vehicleId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets location history for a vehicle within a time range.
     /// </summary>
-    Task<IEnumerable<LocationDto>> GetLocationHistoryAsync(Guid vehicleId, DateTime startTime, DateTime endTime, CancellationToken cancellationToken = default);
+    Task<IEnumerable<LocationDto>> GetLocationHistoryAsync(int vehicleId, DateTime startTime, DateTime endTime, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets locations in the last N hours.
     /// </summary>
-    Task<IEnumerable<LocationDto>> GetRecentLocationsAsync(Guid vehicleId, int hoursBack = 24, CancellationToken cancellationToken = default);
+    Task<IEnumerable<LocationDto>> GetRecentLocationsAsync(int vehicleId, int hoursBack = 24, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Finds locations within a geographic radius.
@@ -42,7 +42,7 @@ public interface ILocationService
     /// <summary>
     /// Gets location statistics for a vehicle.
     /// </summary>
-    Task<LocationStatsDto> GetLocationStatsAsync(Guid vehicleId, DateTime startTime, DateTime endTime, CancellationToken cancellationToken = default);
+    Task<LocationStatsDto> GetLocationStatsAsync(int vehicleId, DateTime startTime, DateTime endTime, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets locations by type.
@@ -67,7 +67,7 @@ public interface ILocationService
     /// <summary>
     /// Deletes a location by its ID.
     /// </summary>
-    Task DeleteLocationAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<bool> DeleteLocationAsync(Guid id, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Validates location coordinates.

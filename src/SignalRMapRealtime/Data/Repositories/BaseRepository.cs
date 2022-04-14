@@ -30,9 +30,17 @@ public class BaseRepository<T> : IRepository<T> where T : class
     }
 
     /// <summary>
-    /// Retrieves an entity by its primary key.
+    /// Retrieves an entity by its Guid primary key.
     /// </summary>
     public async Task<T?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        return await _dbSet.FindAsync(new object[] { id }, cancellationToken: cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Retrieves an entity by its integer primary key.
+    /// </summary>
+    public async Task<T?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
     {
         return await _dbSet.FindAsync(new object[] { id }, cancellationToken: cancellationToken).ConfigureAwait(false);
     }
@@ -112,9 +120,21 @@ public class BaseRepository<T> : IRepository<T> where T : class
     }
 
     /// <summary>
-    /// Removes an entity by its primary key.
+    /// Removes an entity by its Guid primary key.
     /// </summary>
     public async Task RemoveByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var entity = await GetByIdAsync(id, cancellationToken).ConfigureAwait(false);
+        if (entity is not null)
+        {
+            _dbSet.Remove(entity);
+        }
+    }
+
+    /// <summary>
+    /// Removes an entity by its integer primary key.
+    /// </summary>
+    public async Task RemoveByIdAsync(int id, CancellationToken cancellationToken = default)
     {
         var entity = await GetByIdAsync(id, cancellationToken).ConfigureAwait(false);
         if (entity is not null)
@@ -132,9 +152,17 @@ public class BaseRepository<T> : IRepository<T> where T : class
     }
 
     /// <summary>
-    /// Checks if an entity with the specified key exists.
+    /// Checks if an entity with the specified Guid key exists.
     /// </summary>
     public async Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        return await _dbSet.FindAsync(new object[] { id }, cancellationToken: cancellationToken) is not null;
+    }
+
+    /// <summary>
+    /// Checks if an entity with the specified integer key exists.
+    /// </summary>
+    public async Task<bool> ExistsAsync(int id, CancellationToken cancellationToken = default)
     {
         return await _dbSet.FindAsync(new object[] { id }, cancellationToken: cancellationToken) is not null;
     }

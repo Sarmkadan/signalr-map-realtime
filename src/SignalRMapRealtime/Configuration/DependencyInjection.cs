@@ -60,6 +60,16 @@ public static class DependencyInjection
         services.AddScoped<IVehicleService, VehicleService>();
         services.AddScoped<ITrackingService, TrackingService>();
 
+        // Location clustering and heatmap
+        services.AddClustering();
+
+        // Geofencing (singleton so zone configuration and vehicle presence history persist)
+        services.AddGeofencing();
+
+        // Route playback engine (singleton so active session state persists across requests)
+        services.Configure<PlaybackOptions>(configuration.GetSection(PlaybackOptions.SectionName));
+        services.AddSingleton<IRoutePlaybackService, RoutePlaybackService>();
+
         // Location update throttler (singleton so state is shared across hub instances)
         services.Configure<ThrottleOptions>(configuration.GetSection(ThrottleOptions.SectionName));
         services.AddSingleton<LocationUpdateThrottler>();

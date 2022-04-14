@@ -7,6 +7,7 @@
 namespace SignalRMapRealtime.Controllers;
 
 using Microsoft.AspNetCore.Mvc;
+using SignalRMapRealtime.Domain.Enums;
 using SignalRMapRealtime.DTOs;
 using SignalRMapRealtime.Models;
 using SignalRMapRealtime.Services;
@@ -58,8 +59,8 @@ public class VehicleController : ControllerBase
                 {
                     var vehicles = await _vehicleService.GetAllVehiclesAsync();
 
-                    if (!string.IsNullOrEmpty(status))
-                        vehicles = vehicles.Where(v => v.Status == status).ToList();
+                    if (!string.IsNullOrEmpty(status) && Enum.TryParse<VehicleStatus>(status, true, out var parsedStatus))
+                        vehicles = vehicles.Where(v => v.Status == parsedStatus).ToList();
 
                     return PaginatedResponse<VehicleDto>.FromList(vehicles, validPageNumber, validPageSize);
                 },
@@ -85,14 +86,14 @@ public class VehicleController : ControllerBase
     /// Returns vehicle with complete information including recent location data.
     /// </summary>
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetVehicleById(Guid id)
+    public async Task<IActionResult> GetVehicleById(int id)
     {
         try
         {
             var cacheKey = $"vehicle:{id}";
             var vehicle = await _cacheService.GetOrCreateAsync(
                 cacheKey,
-                async () => await _vehicleService.GetVehicleByIdAsync(id),
+                async () => await _vehicleService.GetVehicleAsync(id),
                 TimeSpan.FromSeconds(600));
 
             if (vehicle is null)
@@ -113,7 +114,7 @@ public class VehicleController : ControllerBase
     /// Returns 201 Created with the new vehicle data.
     /// </summary>
     [HttpPost]
-    public async Task<IActionResult> CreateVehicle([FromBody] VehicleDto createVehicleDto)
+    public async Task<IActionResult> CreateVehicle([FromBody] CreateVehicleDto createVehicleDto)
     {
         try
         {
@@ -126,7 +127,7 @@ public class VehicleController : ControllerBase
                     "Validation failed",
                     HttpContext.TraceIdentifier));
 
-            if (string.IsNullOrWhiteSpace(createVehicleDto.Plate))
+            if (string.IsNullOrWhiteSpace(createVehicleDto.RegistrationNumber))
                 return BadRequest(ErrorResponse.ValidationError(
                     new Dictionary<string, string[]> { { "plate", new[] { "Vehicle plate is required" } } },
                     "Validation failed",
@@ -157,7 +158,7 @@ public class VehicleController : ControllerBase
     /// Allows updating vehicle properties like name, status, assignment.
     /// </summary>
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateVehicle(Guid id, [FromBody] VehicleDto updateVehicleDto)
+    public async Task<IActionResult> UpdateVehicle(int id, [FromBody] UpdateVehicleDto updateVehicleDto)
     {
         try
         {
@@ -186,7 +187,7 @@ public class VehicleController : ControllerBase
     /// Vehicle should not have any active tracking sessions.
     /// </summary>
     [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteVehicle(Guid id)
+    public async Task<IActionResult> DeleteVehicle(int id)
     {
         try
         {
@@ -213,11 +214,11 @@ public class VehicleController : ControllerBase
     /// Lightweight endpoint that returns only essential status information.
     /// </summary>
     [HttpGet("{id}/status")]
-    public async Task<IActionResult> GetVehicleStatus(Guid id)
+    public async Task<IActionResult> GetVehicleStatus(int id)
     {
         try
         {
-            var vehicle = await _vehicleService.GetVehicleByIdAsync(id);
+            var vehicle = await _vehicleService.GetVehicleAsync(id);
 
             if (vehicle is null)
                 return NotFound(ErrorResponse.NotFoundError($"Vehicle with ID {id} not found", HttpContext.TraceIdentifier));
@@ -225,7 +226,7 @@ public class VehicleController : ControllerBase
             var status = new
             {
                 id = vehicle.Id,
-                plate = vehicle.Plate,
+                plate = vehicle.RegistrationNumber,
                 status = vehicle.Status,
                 lastUpdated = vehicle.UpdatedAt
             };
