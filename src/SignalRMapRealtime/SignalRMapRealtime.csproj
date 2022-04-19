@@ -6,15 +6,15 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>SignalRMapRealtime</RootNamespace>
     <AssemblyName>SignalRMapRealtime</AssemblyName>
-    <PackageId>Zaiets.signalr.map.realtime</PackageId>
-    <Version>2.0.2</Version>
+    <PackageId>signalr-map-realtime</PackageId>
+    <Version>1.0.0</Version>
     <Authors>Vladyslav Zaiets</Authors>
-    <Description>Real-time location tracking on a map using SignalR and Leaflet - vehicles, couriers, assets</Description>
-    <PackageTags>signalr map realtime location tracking leaflet vehicle</PackageTags>
+    <Description>A real-time mapping solution using SignalR for tracking vehicle and asset locations.</Description>
+    <PackageTags>signalr map realtime location tracking vehicle asset</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/sarmkadan/signalr-map-realtime</PackageProjectUrl>
     <RepositoryUrl>https://github.com/sarmkadan/signalr-map-realtime</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <PackageProjectUrl>https://github.com/sarmkadan/signalr-map-realtime</PackageProjectUrl>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <LangVersion>latest</LangVersion>
