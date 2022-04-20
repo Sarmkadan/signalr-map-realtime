@@ -56,7 +56,8 @@ services:
       ConnectionStrings__DefaultConnection: "Server=sql-server,1433;Database=SignalRMapRealtimeDb;User Id=sa;Password=YourPassword123!;Encrypt=false;Connection Timeout=30;"
       Caching__RedisConnectionString: "redis:6379"
       Logging__LogLevel__Default: "Information"
-      Logging__LogLevel__SignalRMapRealtime: "Debug"
+      Logging__LogLevel__Microsoft: "Warning"
+      Logging__LogLevel__Microsoft.Hosting.Lifetime: "Information"
     ports:
       - "5000:8080"
     networks:
