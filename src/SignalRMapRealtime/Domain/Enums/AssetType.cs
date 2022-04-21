@@ -30,5 +30,11 @@ public enum AssetType
     FixedAsset = 5,
 
     /// <summary>Drone or aerial vehicle.</summary>
-    Drone = 6
+    Drone = 6,
+
+    /// <summary>General equipment asset.</summary>
+    Equipment = 7,
+
+    /// <summary>Vehicle asset classification.</summary>
+    Vehicle = 8
 }

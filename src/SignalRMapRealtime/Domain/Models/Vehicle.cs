@@ -64,6 +64,18 @@ public class Vehicle
     /// <summary>Collection of routes assigned to this vehicle.</summary>
     public ICollection<Route> Routes { get; set; } = new List<Route>();
 
+    /// <summary>Vehicle manufacturer/make (alternate naming for <see cref="Manufacturer"/>).</summary>
+    public string? Make { get; set; }
+
+    /// <summary>Vehicle model name.</summary>
+    public string? Model { get; set; }
+
+    /// <summary>Model year (alternate naming for <see cref="ModelYear"/>).</summary>
+    public int? Year { get; set; }
+
+    /// <summary>License plate (alternate naming for <see cref="RegistrationNumber"/>).</summary>
+    public string? LicensePlate { get; set; }
+
     /// <summary>Timestamp when this vehicle was registered in the system.</summary>
     public DateTime CreatedAt { get; set; }
 

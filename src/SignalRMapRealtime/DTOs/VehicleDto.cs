@@ -49,6 +49,18 @@ public class VehicleDto
     /// <summary>Last recorded location.</summary>
     public LocationDto? LastLocation { get; set; }
 
+    /// <summary>Vehicle manufacturer/make (alternate naming for <see cref="Manufacturer"/>).</summary>
+    public string? Make { get; set; }
+
+    /// <summary>Vehicle model name.</summary>
+    public string? Model { get; set; }
+
+    /// <summary>Model year (alternate naming for <see cref="ModelYear"/>).</summary>
+    public int? Year { get; set; }
+
+    /// <summary>License plate (alternate naming for <see cref="RegistrationNumber"/>).</summary>
+    public string? LicensePlate { get; set; }
+
     /// <summary>Creation timestamp.</summary>
     public DateTime CreatedAt { get; set; }
 

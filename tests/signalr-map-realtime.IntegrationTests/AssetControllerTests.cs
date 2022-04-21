@@ -86,7 +86,7 @@ namespace SignalRMapRealtime.IntegrationTests
             var createdAsset = JsonConvert.DeserializeObject<AssetDto>(responseString);
 
             createdAsset.Should().NotBeNull();
-            createdAsset.Id.Should().NotBeEmpty();
+            createdAsset.Id.Should().BeGreaterThan(0);
             createdAsset.Name.Should().Be(newAsset.Name);
             createdAsset.Type.Should().Be(newAsset.Type);
         }
@@ -110,7 +110,6 @@ namespace SignalRMapRealtime.IntegrationTests
             // Arrange
             var existingAsset = new Asset
             {
-                Id = Guid.NewGuid(),
                 Name = "Existing Asset",
                 Type = AssetType.Vehicle,
                 Status = "Idle"
@@ -136,7 +135,6 @@ namespace SignalRMapRealtime.IntegrationTests
             // Arrange
             var existingAsset = new Asset
             {
-                Id = Guid.NewGuid(),
                 Name = "Asset to Update",
                 Type = AssetType.Equipment,
                 Status = "Active"
@@ -174,7 +172,6 @@ namespace SignalRMapRealtime.IntegrationTests
             // Arrange
             var assetToDelete = new Asset
             {
-                Id = Guid.NewGuid(),
                 Name = "Asset to Delete",
                 Type = AssetType.Equipment,
                 Status = "Active"
@@ -217,7 +214,6 @@ namespace SignalRMapRealtime.IntegrationTests
             // Arrange
             var existingAsset = new Asset
             {
-                Id = Guid.NewGuid(),
                 Name = "Asset to Update",
                 Type = AssetType.Equipment,
                 Status = "Active"
@@ -226,7 +222,7 @@ namespace SignalRMapRealtime.IntegrationTests
 
             var updatedAsset = new AssetDto
             {
-                Id = Guid.NewGuid(), // Mismatched ID
+                Id = existingAsset.Id + 1, // Mismatched ID
                 Name = "Updated Asset Name",
                 Type = AssetType.Vehicle,
                 Status = "Inactive"

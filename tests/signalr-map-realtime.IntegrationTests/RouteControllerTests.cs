@@ -84,7 +84,7 @@ namespace SignalRMapRealtime.IntegrationTests
             var createdRoute = JsonConvert.DeserializeObject<RouteDto>(responseString);
 
             createdRoute.Should().NotBeNull();
-            createdRoute.Id.Should().NotBeEmpty();
+            createdRoute.Id.Should().BeGreaterThan(0);
             createdRoute.Name.Should().Be(newRoute.Name);
             createdRoute.Description.Should().Be(newRoute.Description);
         }
@@ -108,7 +108,6 @@ namespace SignalRMapRealtime.IntegrationTests
             // Arrange
             var existingRoute = new Route
             {
-                Id = Guid.NewGuid(),
                 Name = "Existing Route",
                 Description = "Description for existing route"
             };
@@ -133,7 +132,6 @@ namespace SignalRMapRealtime.IntegrationTests
             // Arrange
             var existingRoute = new Route
             {
-                Id = Guid.NewGuid(),
                 Name = "Route to Update",
                 Description = "Original description"
             };
@@ -169,7 +167,6 @@ namespace SignalRMapRealtime.IntegrationTests
             // Arrange
             var routeToDelete = new Route
             {
-                Id = Guid.NewGuid(),
                 Name = "Route to Delete",
                 Description = "Description to be deleted"
             };
@@ -210,7 +207,6 @@ namespace SignalRMapRealtime.IntegrationTests
             // Arrange
             var existingRoute = new Route
             {
-                Id = Guid.NewGuid(),
                 Name = "Route to Update",
                 Description = "Original description"
             };
@@ -218,7 +214,7 @@ namespace SignalRMapRealtime.IntegrationTests
 
             var updatedRoute = new RouteDto
             {
-                Id = Guid.NewGuid(), // Mismatched ID
+                Id = existingRoute.Id + 1, // Mismatched ID
                 Name = "Updated Route Name",
                 Description = "Updated description"
             };

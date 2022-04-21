@@ -90,7 +90,7 @@ namespace SignalRMapRealtime.IntegrationTests
             var createdLocation = JsonConvert.DeserializeObject<LocationDto>(responseString);
 
             createdLocation.Should().NotBeNull();
-            createdLocation.Id.Should().NotBeEmpty();
+            createdLocation.Id.Should().BeGreaterThan(0);
             createdLocation.Latitude.Should().Be(newLocation.Latitude);
             createdLocation.Longitude.Should().Be(newLocation.Longitude);
         }
@@ -114,7 +114,6 @@ namespace SignalRMapRealtime.IntegrationTests
             // Arrange
             var existingLocation = new Location
             {
-                Id = Guid.NewGuid(),
                 Latitude = 34.0,
                 Longitude = -118.0,
                 Timestamp = DateTime.UtcNow,
@@ -144,7 +143,6 @@ namespace SignalRMapRealtime.IntegrationTests
             // Arrange
             var existingLocation = new Location
             {
-                Id = Guid.NewGuid(),
                 Latitude = 34.0,
                 Longitude = -118.0,
                 Timestamp = DateTime.UtcNow,
@@ -189,7 +187,6 @@ namespace SignalRMapRealtime.IntegrationTests
             // Arrange
             var locationToDelete = new Location
             {
-                Id = Guid.NewGuid(),
                 Latitude = 34.0,
                 Longitude = -118.0,
                 Timestamp = DateTime.UtcNow,
@@ -234,7 +231,6 @@ namespace SignalRMapRealtime.IntegrationTests
             // Arrange
             var existingLocation = new Location
             {
-                Id = Guid.NewGuid(),
                 Latitude = 34.0,
                 Longitude = -118.0,
                 Timestamp = DateTime.UtcNow,
@@ -246,7 +242,7 @@ namespace SignalRMapRealtime.IntegrationTests
 
             var updatedLocation = new LocationDto
             {
-                Id = Guid.NewGuid(), // Mismatched ID
+                Id = existingLocation.Id + 1, // Mismatched ID
                 Latitude = 34.1,
                 Longitude = -118.1,
                 Timestamp = DateTime.UtcNow.AddMinutes(1)

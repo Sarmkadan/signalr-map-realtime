@@ -48,6 +48,12 @@ public class AssetDto
 
     /// <summary>Last update timestamp.</summary>
     public DateTime UpdatedAt { get; set; }
+
+    /// <summary>Type classification (alternate naming for <see cref="AssetType"/>).</summary>
+    public AssetType Type { get; set; }
+
+    /// <summary>Status label (alternate naming for <see cref="Condition"/>).</summary>
+    public string? Status { get; set; }
 }
 
 /// <summary>

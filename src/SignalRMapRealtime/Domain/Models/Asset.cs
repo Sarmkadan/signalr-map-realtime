@@ -61,6 +61,12 @@ public class Asset
     /// <summary>Date when the asset was last tracked.</summary>
     public DateTime? LastTrackedAt { get; set; }
 
+    /// <summary>Type classification (alternate naming for <see cref="AssetType"/>).</summary>
+    public AssetType Type { get; set; }
+
+    /// <summary>Status label (alternate naming for <see cref="Condition"/>).</summary>
+    public string? Status { get; set; }
+
     /// <summary>
     /// Assigns the asset to a vehicle and records the assignment timestamp.
     /// </summary>

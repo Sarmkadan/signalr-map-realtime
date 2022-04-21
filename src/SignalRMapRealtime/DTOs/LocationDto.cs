@@ -51,6 +51,12 @@ public class LocationDto
 
     /// <summary>Creation timestamp.</summary>
     public DateTime CreatedAt { get; set; }
+
+    /// <summary>Recording timestamp (alternate naming for <see cref="RecordedAt"/>).</summary>
+    public DateTime Timestamp { get; set; }
+
+    /// <summary>Direction heading in degrees (alternate naming for <see cref="Bearing"/>).</summary>
+    public double? Heading { get; set; }
 }
 
 /// <summary>

@@ -61,6 +61,12 @@ public class Location
     /// <summary>Timestamp when this record was created in the database.</summary>
     public DateTime CreatedAt { get; set; }
 
+    /// <summary>Recording timestamp (alternate naming for <see cref="RecordedAt"/>).</summary>
+    public DateTime Timestamp { get; set; }
+
+    /// <summary>Direction heading in degrees (alternate naming for <see cref="Bearing"/>).</summary>
+    public double? Heading { get; set; }
+
     /// <summary>
     /// Calculates the distance between this location and another in kilometers using the Haversine formula.
     /// </summary>

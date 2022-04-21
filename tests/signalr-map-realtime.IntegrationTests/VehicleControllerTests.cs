@@ -88,7 +88,7 @@ namespace SignalRMapRealtime.IntegrationTests
             var createdVehicle = JsonConvert.DeserializeObject<VehicleDto>(responseString);
 
             createdVehicle.Should().NotBeNull();
-            createdVehicle.Id.Should().NotBeEmpty();
+            createdVehicle.Id.Should().BeGreaterThan(0);
             createdVehicle.Make.Should().Be(newVehicle.Make);
             createdVehicle.Model.Should().Be(newVehicle.Model);
         }
@@ -112,7 +112,6 @@ namespace SignalRMapRealtime.IntegrationTests
             // Arrange
             var existingVehicle = new Vehicle
             {
-                Id = Guid.NewGuid(),
                 Make = "Mercedes",
                 Model = "Sprinter",
                 Year = 2021,
@@ -141,7 +140,6 @@ namespace SignalRMapRealtime.IntegrationTests
             // Arrange
             var existingVehicle = new Vehicle
             {
-                Id = Guid.NewGuid(),
                 Make = "BMW",
                 Model = "X5",
                 Year = 2019,
@@ -183,7 +181,6 @@ namespace SignalRMapRealtime.IntegrationTests
             // Arrange
             var vehicleToDelete = new Vehicle
             {
-                Id = Guid.NewGuid(),
                 Make = "Audi",
                 Model = "Q7",
                 Year = 2018,
@@ -229,7 +226,6 @@ namespace SignalRMapRealtime.IntegrationTests
             // Arrange
             var existingVehicle = new Vehicle
             {
-                Id = Guid.NewGuid(),
                 Make = "VW",
                 Model = "Golf",
                 Year = 2017,
@@ -240,7 +236,7 @@ namespace SignalRMapRealtime.IntegrationTests
 
             var updatedVehicle = new VehicleDto
             {
-                Id = Guid.NewGuid(), // Mismatched ID
+                Id = existingVehicle.Id + 1, // Mismatched ID
                 Make = "VW",
                 Model = "Golf",
                 Year = 2020,

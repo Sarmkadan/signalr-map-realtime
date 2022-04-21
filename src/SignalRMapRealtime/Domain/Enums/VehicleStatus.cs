@@ -27,5 +27,11 @@ public enum VehicleStatus
     Maintenance = 4,
 
     /// <summary>Vehicle has been deactivated from tracking.</summary>
-    Deactivated = 5
+    Deactivated = 5,
+
+    /// <summary>Vehicle is available for assignment.</summary>
+    Available = 6,
+
+    /// <summary>Vehicle is currently assigned and in use.</summary>
+    InUse = 7
 }
