@@ -17,7 +17,11 @@ using Microsoft.Extensions.Caching.Memory;
 
 #nullable enable
 
-var builder = WebApplication.CreateBuilder(args);
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        var builder = WebApplication.CreateBuilder(args);
 
 // Configuration
 var environment = builder.Environment;
@@ -169,4 +173,6 @@ app.MapGet("/api/info", () =>
 var port = app.Configuration["PORT"] ?? "5000";
 app.Logger.LogInformation($"Application starting on port {port}...");
 
-app.Run($"http://0.0.0.0:{port}");
+        app.Run($"http://0.0.0.0:{port}");
+    }
+}
