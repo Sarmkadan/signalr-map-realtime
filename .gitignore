@@ -67,3 +67,5 @@ node_modules/
 # Test Results
 TestResults/
 coverage/
+BenchmarkDotNet.Artifacts/
+.aider*
