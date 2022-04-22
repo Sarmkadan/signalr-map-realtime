@@ -30,11 +30,22 @@ builder.Configuration
     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
     .AddJsonFile($"appsettings.{environment.EnvironmentName}.json", optional: true, reloadOnChange: true);
 
-// Configuration options registration
-builder.Services.Configure<CachingOptions>(builder.Configuration.GetSection(CachingOptions.SectionName));
-builder.Services.Configure<RateLimitingOptions>(builder.Configuration.GetSection(RateLimitingOptions.SectionName));
-builder.Services.Configure<NotificationOptions>(builder.Configuration.GetSection(NotificationOptions.SectionName));
-builder.Services.Configure<SignalrMapRealtimeOptions>(builder.Configuration.GetSection(SignalrMapRealtimeOptions.SectionName));
+// Configuration options registration with automatic validation
+builder.Services.AddOptions<CachingOptions>()
+    .Bind(builder.Configuration.GetSection(CachingOptions.SectionName))
+    .ValidateDataAnnotations();
+
+builder.Services.AddOptions<RateLimitingOptions>()
+    .Bind(builder.Configuration.GetSection(RateLimitingOptions.SectionName))
+    .ValidateDataAnnotations();
+
+builder.Services.AddOptions<NotificationOptions>()
+    .Bind(builder.Configuration.GetSection(NotificationOptions.SectionName))
+    .ValidateDataAnnotations();
+
+builder.Services.AddOptions<SignalrMapRealtimeOptions>()
+    .Bind(builder.Configuration.GetSection(SignalrMapRealtimeOptions.SectionName))
+    .ValidateDataAnnotations();
 
 // Hotfix: Add API Key authentication for SignalR hubs and API endpoints.
 // This ensures that unauthorized requests are properly rejected with a 401,

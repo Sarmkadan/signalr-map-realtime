@@ -102,6 +102,10 @@ SignalR Map Realtime provides comprehensive configuration through the `appsettin
 
 All application settings are organized under the `SignalRMapRealtime` section. Below is a complete reference of all available configuration options:
 
+> **Automatic Validation**: All configuration options are automatically validated on application startup using DataAnnotations. Invalid configuration will cause the application to fail immediately with detailed validation errors, preventing runtime issues.
+
+> **Best Practice**: Use environment variables or secrets management for sensitive values like API keys. The `ApiKey` field in `ApiKeyAuthentication` should never be hardcoded in production.
+
 #### Root Configuration (`SignalRMapRealtime`)
 
 | Section | Description | Default Value |
