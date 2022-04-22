@@ -89,6 +89,196 @@ The system leverages WebSocket technology through SignalR for ultra-low-latency 
 | **Caching** | In-Memory/Redis | - |
 | **Frontend** | Leaflet.js | 1.9+ |
 
+## Configuration
+
+SignalR Map Realtime provides comprehensive configuration through the `appsettings.json` file. The application supports multiple configuration sources including:
+
+- `appsettings.json` - Default configuration
+- `appsettings.{Environment}.json` - Environment-specific overrides
+- Environment variables - For containerized deployments
+- Command-line arguments - For runtime configuration
+
+### Configuration Structure
+
+All application settings are organized under the `SignalRMapRealtime` section. Below is a complete reference of all available configuration options:
+
+#### Root Configuration (`SignalRMapRealtime`)
+
+| Section | Description | Default Value |
+|---------|-------------|---------------|
+| `AppInfo` | Application metadata and API settings | - |
+| `HealthChecks` | Health monitoring configuration | - |
+| `ApiKeyAuthentication` | API key authentication settings | - |
+| `Performance` | Performance monitoring and optimization | - |
+| `SignalRHubs` | SignalR-specific configuration | - |
+| `WebSockets` | WebSocket communication settings | - |
+| `BackgroundJobs` | Background worker configuration | - |
+| `Security` | Security-related settings | - |
+
+#### AppInfo Options
+
+| Property | Description | Default Value | Valid Values |
+|----------|-------------|---------------|--------------|
+| `ApiVersion` | API version (semantic versioning) | `"2.0.0"` | Regex: `^\d+\.\d+\.\d+$` |
+| `ApiTitle` | API title/name | `"SignalR Map Realtime API"` | String (3-100 chars) |
+| `Environment` | Current environment | `"Production"` | `Development`, `Staging`, `Production` |
+| `EnableSwagger` | Enable Swagger docs | `true` | Boolean |
+| `EnableCors` | Enable CORS policy | `true` | Boolean |
+| `RequestTimeoutSeconds` | Request timeout in seconds | `30` | 5-300 |
+| `LocationUpdateIntervalSeconds` | Default location update interval | `30` | 1-600 |
+| `MaxPayloadSizeKb` | Max request payload size in KB | `1024` | 1-10240 |
+
+#### HealthChecks Options
+
+| Property | Description | Default Value | Valid Values |
+|----------|-------------|---------------|--------------|
+| `Enabled` | Enable health check endpoints | `true` | Boolean |
+| `TimeoutSeconds` | Health check timeout | `5` | 1-60 |
+| `MinimumStatus` | Minimum acceptable health status | `"Healthy"` | `Healthy`, `Degraded`, `Unhealthy` |
+| `IncludeDetails` | Include detailed health info | `true` | Boolean |
+
+#### ApiKeyAuthentication Options
+
+| Property | Description | Default Value | Valid Values |
+|----------|-------------|---------------|--------------|
+| `Enabled` | Enable API key authentication | `true` | Boolean |
+| `HeaderName` | HTTP header name for API key | `"X-API-Key"` | String (3-50 chars) |
+| `ApiKey` | API key value | `null` | String (max 1000 chars) |
+| `Required` | Require API key for all endpoints | `true` | Boolean |
+| `ExemptedEndpoints` | Endpoints exempt from API key requirement | `["health", "api/info", "swagger"]` | Array of strings |
+
+#### Performance Options
+
+| Property | Description | Default Value | Valid Values |
+|----------|-------------|---------------|--------------|
+| `EnableDetailedMetrics` | Enable performance metrics collection | `true` | Boolean |
+| `MaxConcurrentConnections` | Max concurrent WebSocket connections | `10000` | 100-100000 |
+| `RequestQueueLimit` | Max requests in queue | `1000` | 10-10000 |
+| `EnableAdaptiveRateLimiting` | Enable adaptive rate limiting | `false` | Boolean |
+| `MaxProcessingTimeSeconds` | Max request processing time | `30` | 5-300 |
+| `EnableCaching` | Enable caching layer | `true` | Boolean |
+
+#### SignalRHubs Options
+
+| Property | Description | Default Value | Valid Values |
+|----------|-------------|---------------|--------------|
+| `Enabled` | Enable SignalR communication | `true` | Boolean |
+| `MaxConnectionsPerHub` | Max connections per hub | `10000` | 100-50000 |
+| `UseBackplane` | Use Redis backplane for multi-server | `false` | Boolean |
+| `BackplaneConnectionString` | Redis connection string | `"localhost:6379"` | String |
+| `EnableAutomaticReconnect` | Enable automatic reconnect | `true` | Boolean |
+| `ReconnectTimeoutSeconds` | Reconnect timeout in seconds | `30` | 5-120 |
+| `MaxMessageSizeKb` | Max SignalR message size | `256` | 1-1024 |
+| `EnableMessageCompression` | Enable message compression | `true` | Boolean |
+
+#### WebSockets Options
+
+| Property | Description | Default Value | Valid Values |
+|----------|-------------|---------------|--------------|
+| `Enabled` | Enable WebSocket support | `true` | Boolean |
+| `KeepAliveIntervalSeconds` | Keep-alive interval | `30` | 10-300 |
+| `MaxMessageSizeKb` | Max WebSocket message size | `256` | 1-1024 |
+| `EnablePingPong` | Enable ping/pong monitoring | `true` | Boolean |
+| `PingIntervalSeconds` | Ping interval | `30` | 15-120 |
+| `MaxConnectionDurationHours` | Max connection duration | `8` | 1-24 |
+
+#### BackgroundJobs Options
+
+| Property | Description | Default Value | Valid Values |
+|----------|-------------|---------------|--------------|
+| `Enabled` | Enable background jobs | `true` | Boolean |
+| `MaxConcurrentWorkers` | Max concurrent workers | `5` | 1-20 |
+| `SessionCleanupIntervalMinutes` | Session cleanup interval | `5` | 1-1440 |
+| `EnableCacheCleanup` | Enable cache cleanup | `true` | Boolean |
+| `CacheCleanupIntervalMinutes` | Cache cleanup interval | `30` | 5-1440 |
+| `EnableDatabaseMaintenance` | Enable DB maintenance | `true` | Boolean |
+| `DatabaseMaintenanceIntervalHours` | DB maintenance interval | `24` | 1-168 |
+
+#### Security Options
+
+| Property | Description | Default Value | Valid Values |
+|----------|-------------|---------------|--------------|
+| `EnableHttpsRedirection` | Enable HTTPS redirection | `true` | Boolean |
+| `EnableRequestLogging` | Enable security logging | `true` | Boolean |
+| `EnableCorsSecurityHeaders` | Enable CORS security headers | `true` | Boolean |
+| `EnableRateLimiting` | Enable rate limiting | `true` | Boolean |
+| `EnableInputValidation` | Enable input validation | `true` | Boolean |
+| `EnableSecurityHeaders` | Enable security headers | `true` | Boolean |
+| `ContentSecurityPolicy` | CSP directives | CSP string | String (max 1000 chars) |
+
+### Environment Variables
+
+For containerized deployments, use these environment variables:
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `ASPNETCORE_ENVIRONMENT` | Runtime environment | `Production` |
+| `ASPNETCORE_URLS` | Listening addresses | `http://0.0.0.0:5000` |
+| `ConnectionStrings__DefaultConnection` | SQL Server connection | `Server=db;Database=SignalRMap;User Id=sa;Password=...` |
+| `SignalRMapRealtime__AppInfo__ApiVersion` | API version override | `2.0.0` |
+| `SignalRMapRealtime__ApiKeyAuthentication__ApiKey` | API key | `your-secret-key` |
+| `Cors__AllowedOrigins__0` | Allowed CORS origin | `https://your-frontend.example.com` |
+
+### Docker Configuration
+
+See `docker-compose.yml` for complete multi-container setup with SQL Server and Redis. Environment variables can be configured in your compose file or via `.env` file.
+
+### Configuration Examples
+
+#### Development Configuration
+```json
+{
+  "SignalRMapRealtime": {
+    "AppInfo": {
+      "Environment": "Development",
+      "EnableSwagger": true
+    },
+    "ApiKeyAuthentication": {
+      "Required": false
+    }
+  }
+}
+```
+
+#### Production Configuration
+```json
+{
+  "SignalRMapRealtime": {
+    "AppInfo": {
+      "Environment": "Production",
+      "EnableSwagger": false
+    },
+    "ApiKeyAuthentication": {
+      "ApiKey": "your-secure-api-key-from-secrets"
+    },
+    "Performance": {
+      "MaxConcurrentConnections": 50000
+    },
+    "SignalRHubs": {
+      "UseBackplane": true,
+      "BackplaneConnectionString": "redis:6379"
+    }
+  }
+}
+```
+
+### Validation
+
+All configuration options are validated using DataAnnotations. Invalid configurations will cause the application to fail at startup with clear error messages indicating which values are invalid.
+
+```csharp
+// Example validation in code
+var options = new SignalrMapRealtimeOptions();
+if (!options.Validate(out var validationResults))
+{
+    foreach (var validationResult in validationResults)
+    {
+        Console.WriteLine($"Configuration error: {validationResult.ErrorMessage}");
+    }
+    throw new InvalidOperationException("Invalid configuration detected");
+}
+```
+
 ## Architecture
 
 ### Component Interaction

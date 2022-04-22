@@ -34,6 +34,7 @@ builder.Configuration
 builder.Services.Configure<CachingOptions>(builder.Configuration.GetSection(CachingOptions.SectionName));
 builder.Services.Configure<RateLimitingOptions>(builder.Configuration.GetSection(RateLimitingOptions.SectionName));
 builder.Services.Configure<NotificationOptions>(builder.Configuration.GetSection(NotificationOptions.SectionName));
+builder.Services.Configure<SignalrMapRealtimeOptions>(builder.Configuration.GetSection(SignalrMapRealtimeOptions.SectionName));
 
 // Hotfix: Add API Key authentication for SignalR hubs and API endpoints.
 // This ensures that unauthorized requests are properly rejected with a 401,
