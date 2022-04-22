@@ -12,8 +12,14 @@ using SignalRMapRealtime.DTOs;
 using SignalRMapRealtime.Services;
 using Xunit;
 
+/// <summary>
+/// Tests for the ClusteringService class.
+/// </summary>
 public class ClusteringServiceTests
 {
+    /// <summary>
+    /// Tests that GetClustersAsync returns zero clusters when the location set is empty.
+    /// </summary>
     [Fact]
     public async Task GetClusters_WithEmptyLocationSet_ReturnsZeroClusters()
     {
@@ -38,6 +44,9 @@ public class ClusteringServiceTests
         result.TotalPoints.Should().Be(0);
     }
 
+    /// <summary>
+    /// Tests that GetClustersAsync collapses two points within the same grid cell into one cluster.
+    /// </summary>
     [Fact]
     public async Task GetClusters_WithCollocatedPoints_CollapsesSameCellIntoOneCluster()
     {
@@ -71,6 +80,9 @@ public class ClusteringServiceTests
         result.Clusters[0].Count.Should().Be(2);
     }
 
+    /// <summary>
+    /// Tests that GetHeatmapAsync normalizes intensity to 1.0 when MaxCount > 0.
+    /// </summary>
     [Fact]
     public async Task GetHeatmap_WithMultiplePoints_NormalisesIntensityToOne()
     {
@@ -99,6 +111,9 @@ public class ClusteringServiceTests
         result.TotalSamples.Should().Be(15);
     }
 
+    /// <summary>
+    /// Tests that GetHeatmapAsync returns empty tiles and zero MaxCount when there are no points.
+    /// </summary>
     [Fact]
     public async Task GetHeatmap_WithNoPoints_ReturnsEmptyTilesAndZeroMaxCount()
     {
