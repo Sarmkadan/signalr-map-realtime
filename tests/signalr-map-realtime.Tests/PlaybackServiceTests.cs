@@ -12,8 +12,14 @@ using SignalRMapRealtime.DTOs;
 using SignalRMapRealtime.Services;
 using Xunit;
 
+/// <summary>
+/// Tests for the PlaybackService class.
+/// </summary>
 public class PlaybackServiceTests
 {
+    /// <summary>
+    /// Tests that GetPlaybackStateAsync returns null for an unknown session.
+    /// </summary>
     [Fact]
     public async Task GetPlaybackStateAsync_ForUnknownSession_ReturnsNull()
     {
@@ -29,6 +35,9 @@ public class PlaybackServiceTests
         result.Should().BeNull();
     }
 
+    /// <summary>
+    /// Tests that GetActivePlaybacksAsync returns an empty list when there are no active sessions.
+    /// </summary>
     [Fact]
     public async Task GetActivePlaybacksAsync_WithNoActiveSessions_ReturnsEmptyList()
     {
@@ -44,6 +53,9 @@ public class PlaybackServiceTests
         result.Should().BeEmpty();
     }
 
+    /// <summary>
+    /// Tests that BuildTimelineAsync returns null for a session with no locations.
+    /// </summary>
     [Fact]
     public async Task BuildTimelineAsync_ForSessionWithNoLocations_ReturnsNull()
     {
@@ -59,6 +71,9 @@ public class PlaybackServiceTests
         result.Should().BeNull();
     }
 
+    /// <summary>
+    /// Tests that BuildTimelineAsync returns a populated timeline for a session with locations.
+    /// </summary>
     [Fact]
     public async Task BuildTimelineAsync_ForSessionWithLocations_ReturnsPopulatedTimeline()
     {
@@ -90,6 +105,9 @@ public class PlaybackServiceTests
         result.Duration.Should().Be(TimeSpan.FromHours(1));
     }
 
+    /// <summary>
+    /// Tests that GetPlaybackStatisticsAsync returns statistics for a valid session.
+    /// </summary>
     [Fact]
     public async Task GetPlaybackStatisticsAsync_ForValidSession_ReturnsStatistics()
     {
@@ -126,6 +144,9 @@ public class PlaybackServiceTests
         result.SpeedDistribution.Should().HaveCount(4);
     }
 
+    /// <summary>
+    /// Tests that GetSnapshotAtTimestampAsync returns a frame for a session with data.
+    /// </summary>
     [Fact]
     public async Task GetSnapshotAtTimestampAsync_ForSessionWithData_ReturnsFrame()
     {
