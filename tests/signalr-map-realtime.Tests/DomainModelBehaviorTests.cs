@@ -11,8 +11,14 @@ using SignalRMapRealtime.Domain.Enums;
 using SignalRMapRealtime.Domain.Models;
 using Xunit;
 
+/// <summary>
+/// Contains unit tests for domain model behavior.
+/// </summary>
 public class DomainModelBehaviorTests
 {
+    /// <summary>
+    /// Tests the <see cref="Vehicle.HasExceededSpeedLimit"/> method when the current speed exceeds the maximum speed.
+    /// </summary>
     [Fact]
     public void Vehicle_HasExceededSpeedLimit_WhenCurrentSpeedExceedsMax_ReturnsTrue()
     {
@@ -30,6 +36,9 @@ public class DomainModelBehaviorTests
         exceeded.Should().BeTrue();
     }
 
+    /// <summary>
+    /// Tests the <see cref="Vehicle.HasExceededSpeedLimit"/> method when the maximum speed is not configured.
+    /// </summary>
     [Fact]
     public void Vehicle_HasExceededSpeedLimit_WhenMaxSpeedNotConfigured_ReturnsFalse()
     {
@@ -47,6 +56,9 @@ public class DomainModelBehaviorTests
         exceeded.Should().BeFalse();
     }
 
+    /// <summary>
+    /// Tests the <see cref="TrackingSession.StartSession"/> method by verifying that the session status is set to Active and the start time is recorded.
+    /// </summary>
     [Fact]
     public void TrackingSession_StartSession_SetsActiveStatusAndRecordsStartTime()
     {
@@ -61,6 +73,9 @@ public class DomainModelBehaviorTests
         session.StartTime.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(2));
     }
 
+    /// <summary>
+    /// Tests that recording a location throws an <see cref="InvalidOperationException"/> when the session is Pending.
+    /// </summary>
     [Fact]
     public void TrackingSession_RecordLocation_WhenSessionIsPending_ThrowsInvalidOperationException()
     {
@@ -76,6 +91,9 @@ public class DomainModelBehaviorTests
            .WithMessage("*inactive*");
     }
 
+    /// <summary>
+    /// Tests that enabling special handling throws an <see cref="ArgumentException"/> when the instructions are empty.
+    /// </summary>
     [Fact]
     public void Asset_EnableSpecialHandling_WithEmptyInstructions_ThrowsArgumentException()
     {
