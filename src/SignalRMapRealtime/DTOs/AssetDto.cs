@@ -97,3 +97,21 @@ public class UpdateAssetDto
     /// <summary>Assigned vehicle ID.</summary>
     public int? VehicleId { get; set; }
 }
+
+/// <summary>
+/// Statistics DTO for asset analytics and reporting.
+/// </summary>
+public class AssetStatisticsDto
+{
+    /// <summary>Total count of all assets.</summary>
+    public int TotalAssets { get; set; }
+
+    /// <summary>Count of assets grouped by type.</summary>
+    public Dictionary<string, int> AssetsByType { get; set; } = new();
+
+    /// <summary>Count of assets grouped by condition.</summary>
+    public Dictionary<string, int> AssetsByCondition { get; set; } = new();
+
+    /// <summary>Timestamp of the most recent asset update.</summary>
+    public DateTime LastUpdated { get; set; }
+}
