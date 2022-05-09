@@ -12,8 +12,14 @@ using SignalRMapRealtime.DTOs;
 using SignalRMapRealtime.Services;
 using Xunit;
 
+/// <summary>
+/// Tests for the LocationService class.
+/// </summary>
 public class LocationServiceTests
 {
+    /// <summary>
+    /// Tests that GetLatestLocationAsync returns null when the vehicle has no recorded locations.
+    /// </summary>
     [Fact]
     public async Task GetLatestLocationAsync_WhenVehicleHasNoRecordedLocations_ReturnsNull()
     {
@@ -29,6 +35,9 @@ public class LocationServiceTests
         await service.Received(1).GetLatestLocationAsync(99, default);
     }
 
+    /// <summary>
+    /// Tests that GetLatestLocationAsync returns the most recent LocationDto when the vehicle has locations.
+    /// </summary>
     [Fact]
     public async Task GetLatestLocationAsync_WhenVehicleHasLocations_ReturnsMostRecentDto()
     {
@@ -55,6 +64,9 @@ public class LocationServiceTests
         result.VehicleId.Should().Be(5);
     }
 
+    /// <summary>
+    /// Tests that GetLocationStatsAsync returns populated metrics for an active session.
+    /// </summary>
     [Fact]
     public async Task GetLocationStatsAsync_ForActiveSession_ReturnsPopulatedMetrics()
     {
