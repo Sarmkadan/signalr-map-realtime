@@ -15,14 +15,25 @@ using SignalRMapRealtime.Events;
 using SignalRMapRealtime.Services;
 using Xunit;
 
+/// <summary>
+/// Tests for the GeofenceService class.
+/// </summary>
 public class GeofenceServiceTests
 {
+    /// <summary>
+    /// Creates a new instance of the GeofenceService class.
+    /// </summary>
+    /// <param name="eventBus">The event bus to use. Defaults to a mock event bus.</param>
+    /// <returns>A new instance of the GeofenceService class.</returns>
     private static GeofenceService CreateService(IEventBus? eventBus = null)
     {
         eventBus ??= Substitute.For<IEventBus>();
         return new GeofenceService(eventBus, NullLogger<GeofenceService>.Instance);
     }
 
+    /// <summary>
+    /// Tests that registering a zone with a valid DTO returns a zone DTO with matching properties.
+    /// </summary>
     [Fact]
     public async Task RegisterZone_WithValidDto_ReturnsZoneDtoWithMatchingProperties()
     {
@@ -52,6 +63,9 @@ public class GeofenceServiceTests
         result.RadiusKm.Should().Be(0.5);
     }
 
+    /// <summary>
+    /// Tests that getting active zones after registering a zone contains the registered zone.
+    /// </summary>
     [Fact]
     public async Task GetActiveZones_AfterRegisteringZone_ContainsRegisteredZone()
     {
@@ -75,6 +89,9 @@ public class GeofenceServiceTests
         zones[0].Name.Should().Be("Zone One");
     }
 
+    /// <summary>
+    /// Tests that removing a zone with an existing zone returns true and the zone is gone.
+    /// </summary>
     [Fact]
     public async Task RemoveZone_ExistingZone_ReturnsTrueAndZoneIsGone()
     {
@@ -99,6 +116,9 @@ public class GeofenceServiceTests
         remaining.Should().BeEmpty();
     }
 
+    /// <summary>
+    /// Tests that removing a zone with a non-existent ID returns false.
+    /// </summary>
     [Fact]
     public async Task RemoveZone_NonExistentId_ReturnsFalse()
     {
@@ -112,6 +132,9 @@ public class GeofenceServiceTests
         result.Should().BeFalse();
     }
 
+    /// <summary>
+    /// Tests that checking a location when a vehicle enters a circle zone emits an entered alert.
+    /// </summary>
     [Fact]
     public async Task CheckLocation_WhenVehicleEntersCircleZone_EmitsEnteredAlert()
     {
@@ -142,6 +165,9 @@ public class GeofenceServiceTests
         await eventBus.Received(1).PublishAsync(Arg.Any<GeofenceViolationEvent>());
     }
 
+    /// <summary>
+    /// Tests that checking a location when a vehicle exits a zone emits an exited alert.
+    /// </summary>
     [Fact]
     public async Task CheckLocation_VehicleExitsZone_EmitsExitedAlert()
     {
@@ -170,6 +196,9 @@ public class GeofenceServiceTests
         alerts[0].ViolationType.Should().Be("Exited");
     }
 
+    /// <summary>
+    /// Tests that checking a location when a vehicle remains inside a zone produces no duplicate alerts.
+    /// </summary>
     [Fact]
     public async Task CheckLocation_VehicleRemainsInsideZone_ProducesNoDuplicateAlerts()
     {
