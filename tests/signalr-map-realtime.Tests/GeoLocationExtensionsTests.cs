@@ -11,8 +11,14 @@ using SignalRMapRealtime.Domain.Models;
 using SignalRMapRealtime.Utilities;
 using Xunit;
 
+/// <summary>
+/// Tests for the <see cref="GeoLocationExtensions"/> utility methods.
+/// </summary>
 public class GeoLocationExtensionsTests
 {
+    /// <summary>
+    /// Verifies that the distance between identical coordinates is zero.
+    /// </summary>
     [Fact]
     public void DistanceBetween_SameCoordinates_ReturnsZero()
     {
@@ -27,6 +33,9 @@ public class GeoLocationExtensionsTests
         distance.Should().BeApproximately(0.0, 0.0001);
     }
 
+    /// <summary>
+    /// Verifies that the distance between London and New York is within the expected range.
+    /// </summary>
     [Fact]
     public void DistanceBetween_LondonToNewYork_ReturnsApproximateDistance()
     {
@@ -43,6 +52,9 @@ public class GeoLocationExtensionsTests
         distance.Should().BeInRange(5500.0, 5640.0);
     }
 
+    /// <summary>
+    /// Verifies that converting one kilometer to miles yields the expected value.
+    /// </summary>
     [Fact]
     public void KilometersToMiles_OneKilometer_ReturnsExpectedMiles()
     {
@@ -56,6 +68,9 @@ public class GeoLocationExtensionsTests
         miles.Should().BeApproximately(0.621371, 0.000001);
     }
 
+    /// <summary>
+    /// Verifies that a point far from the center is correctly identified as outside the radius.
+    /// </summary>
     [Fact]
     public void IsWithinRadius_PointBeyondRadius_ReturnsFalse()
     {
