@@ -23,17 +23,28 @@ using SignalRMapRealtime.Domain.Enums;
 
 namespace SignalRMapRealtime.IntegrationTests
 {
+    /// <summary>
+    /// Tests for the AssetController.
+    /// </summary>
     public class AssetControllerTests : IClassFixture<TestApplicationFactory>
     {
         private readonly HttpClient _client;
         private readonly TestApplicationFactory _factory;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AssetControllerTests"/> class.
+        /// </summary>
+        /// <param name="factory">The test application factory.</param>
         public AssetControllerTests(TestApplicationFactory factory)
         {
             _factory = factory;
             _client = _factory.CreateClient();
         }
 
+        /// <summary>
+        /// Seeds an asset in the database.
+        /// </summary>
+        /// <param name="asset">The asset to seed.</param>
         private async Task SeedAsset(Asset asset)
         {
             using (var scope = _factory.Services.CreateScope())
@@ -44,6 +55,9 @@ namespace SignalRMapRealtime.IntegrationTests
             }
         }
 
+        /// <summary>
+        /// Tests that getting assets returns a successful response with the correct content type.
+        /// </summary>
         [Fact]
         public async Task GetAssets_ReturnsSuccessAndCorrectContentType()
         {
@@ -63,6 +77,9 @@ namespace SignalRMapRealtime.IntegrationTests
             pagedResponse.Items.Should().BeEmpty(); // Assuming no seed data initially
         }
 
+        /// <summary>
+        /// Tests that posting an asset returns a created asset.
+        /// </summary>
         [Fact]
         public async Task PostAsset_ReturnsCreatedAsset()
         {
@@ -91,6 +108,9 @@ namespace SignalRMapRealtime.IntegrationTests
             createdAsset.Type.Should().Be(newAsset.Type);
         }
 
+        /// <summary>
+        /// Tests that getting an asset by ID returns a not found response for a non-existent ID.
+        /// </summary>
         [Fact]
         public async Task GetAssetById_ReturnsNotFound_ForNonExistentId()
         {
@@ -104,6 +124,9 @@ namespace SignalRMapRealtime.IntegrationTests
             response.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
 
+        /// <summary>
+        /// Tests that getting an asset by ID returns the asset for an existing ID.
+        /// </summary>
         [Fact]
         public async Task GetAssetById_ReturnsAsset_ForExistingId()
         {
@@ -129,6 +152,9 @@ namespace SignalRMapRealtime.IntegrationTests
             assetDto.Name.Should().Be(existingAsset.Name);
         }
 
+        /// <summary>
+        /// Tests that updating an asset updates the existing asset.
+        /// </summary>
         [Fact]
         public async Task PutAsset_UpdatesExistingAsset()
         {
@@ -166,6 +192,9 @@ namespace SignalRMapRealtime.IntegrationTests
             assetDto.Type.Should().Be(updatedAsset.Type);
         }
 
+        /// <summary>
+        /// Tests that deleting an asset removes the asset.
+        /// </summary>
         [Fact]
         public async Task DeleteAsset_RemovesAsset()
         {
@@ -189,6 +218,9 @@ namespace SignalRMapRealtime.IntegrationTests
             getResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
 
+        /// <summary>
+        /// Tests that posting an asset returns a bad request response for an invalid model.
+        /// </summary>
         [Fact]
         public async Task PostAsset_ReturnsBadRequest_ForInvalidModel()
         {
@@ -208,6 +240,9 @@ namespace SignalRMapRealtime.IntegrationTests
             response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         }
 
+        /// <summary>
+        /// Tests that updating an asset returns a bad request response for a mismatched ID.
+        /// </summary>
         [Fact]
         public async Task PutAsset_ReturnsBadRequest_ForMismatchedId()
         {
