@@ -23,17 +23,28 @@ using SignalRMapRealtime.Domain.Enums;
 
 namespace SignalRMapRealtime.IntegrationTests
 {
+    /// <summary>
+    /// Tests for the VehicleController.
+    /// </summary>
     public class VehicleControllerTests : IClassFixture<TestApplicationFactory>
     {
         private readonly HttpClient _client;
         private readonly TestApplicationFactory _factory;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="VehicleControllerTests"/> class.
+        /// </summary>
+        /// <param name="factory">The test application factory.</param>
         public VehicleControllerTests(TestApplicationFactory factory)
         {
             _factory = factory;
             _client = _factory.CreateClient();
         }
 
+        /// <summary>
+        /// Seeds a vehicle in the database.
+        /// </summary>
+        /// <param name="vehicle">The vehicle to seed.</param>
         private async Task SeedVehicle(Vehicle vehicle)
         {
             using (var scope = _factory.Services.CreateScope())
@@ -44,6 +55,9 @@ namespace SignalRMapRealtime.IntegrationTests
             }
         }
 
+        /// <summary>
+        /// Tests that getting vehicles returns a successful response with the correct content type.
+        /// </summary>
         [Fact]
         public async Task GetVehicles_ReturnsSuccessAndCorrectContentType()
         {
@@ -63,6 +77,9 @@ namespace SignalRMapRealtime.IntegrationTests
             pagedResponse.Items.Should().BeEmpty(); // Assuming no seed data initially
         }
 
+        /// <summary>
+        /// Tests that posting a vehicle returns a created vehicle.
+        /// </summary>
         [Fact]
         public async Task PostVehicle_ReturnsCreatedVehicle()
         {
@@ -93,6 +110,9 @@ namespace SignalRMapRealtime.IntegrationTests
             createdVehicle.Model.Should().Be(newVehicle.Model);
         }
 
+        /// <summary>
+        /// Tests that getting a vehicle by ID returns a not found response for a non-existent ID.
+        /// </summary>
         [Fact]
         public async Task GetVehicleById_ReturnsNotFound_ForNonExistentId()
         {
@@ -106,6 +126,9 @@ namespace SignalRMapRealtime.IntegrationTests
             response.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
 
+        /// <summary>
+        /// Tests that getting a vehicle by ID returns the vehicle for an existing ID.
+        /// </summary>
         [Fact]
         public async Task GetVehicleById_ReturnsVehicle_ForExistingId()
         {
@@ -134,6 +157,9 @@ namespace SignalRMapRealtime.IntegrationTests
             vehicleDto.Model.Should().Be(existingVehicle.Model);
         }
 
+        /// <summary>
+        /// Tests that updating a vehicle updates the existing vehicle.
+        /// </summary>
         [Fact]
         public async Task PutVehicle_UpdatesExistingVehicle()
         {
@@ -175,6 +201,9 @@ namespace SignalRMapRealtime.IntegrationTests
             vehicleDto.Status.Should().Be(updatedVehicle.Status);
         }
 
+        /// <summary>
+        /// Tests that deleting a vehicle removes the vehicle.
+        /// </summary>
         [Fact]
         public async Task DeleteVehicle_RemovesVehicle()
         {
@@ -200,6 +229,9 @@ namespace SignalRMapRealtime.IntegrationTests
             getResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
 
+        /// <summary>
+        /// Tests that posting a vehicle returns a bad request response for an invalid model.
+        /// </summary>
         [Fact]
         public async Task PostVehicle_ReturnsBadRequest_ForInvalidModel()
         {
@@ -220,6 +252,9 @@ namespace SignalRMapRealtime.IntegrationTests
             response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         }
 
+        /// <summary>
+        /// Tests that updating a vehicle returns a bad request response for a mismatched ID.
+        /// </summary>
         [Fact]
         public async Task PutVehicle_ReturnsBadRequest_ForMismatchedId()
         {
