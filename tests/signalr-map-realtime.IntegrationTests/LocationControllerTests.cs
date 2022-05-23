@@ -23,17 +23,28 @@ using SignalRMapRealtime.Domain.Models;
 
 namespace SignalRMapRealtime.IntegrationTests
 {
+    /// <summary>
+    /// Tests for the LocationController.
+    /// </summary>
     public class LocationControllerTests : IClassFixture<TestApplicationFactory>
     {
         private readonly HttpClient _client;
         private readonly TestApplicationFactory _factory;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="LocationControllerTests"/> class.
+        /// </summary>
+        /// <param name="factory">The test application factory.</param>
         public LocationControllerTests(TestApplicationFactory factory)
         {
             _factory = factory;
             _client = _factory.CreateClient();
         }
 
+        /// <summary>
+        /// Seeds a location in the database.
+        /// </summary>
+        /// <param name="location">The location to seed.</param>
         private async Task SeedLocation(Location location)
         {
             using (var scope = _factory.Services.CreateScope())
@@ -44,6 +55,9 @@ namespace SignalRMapRealtime.IntegrationTests
             }
         }
 
+        /// <summary>
+        /// Tests that getting locations returns a successful response with the correct content type.
+        /// </summary>
         [Fact]
         public async Task GetLocations_ReturnsSuccessAndCorrectContentType()
         {
@@ -64,6 +78,9 @@ namespace SignalRMapRealtime.IntegrationTests
             pagedResponse.Items.Should().BeEmpty(); // Assuming no seed data initially
         }
 
+        /// <summary>
+        /// Tests that posting a location returns a created location.
+        /// </summary>
         [Fact]
         public async Task PostLocation_ReturnsCreatedLocation()
         {
@@ -95,6 +112,9 @@ namespace SignalRMapRealtime.IntegrationTests
             createdLocation.Longitude.Should().Be(newLocation.Longitude);
         }
 
+        /// <summary>
+        /// Tests that getting a location by ID returns a not found response for a non-existent ID.
+        /// </summary>
         [Fact]
         public async Task GetLocationById_ReturnsNotFound_ForNonExistentId()
         {
@@ -108,6 +128,9 @@ namespace SignalRMapRealtime.IntegrationTests
             response.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
 
+        /// <summary>
+        /// Tests that getting a location by ID returns the location for an existing ID.
+        /// </summary>
         [Fact]
         public async Task GetLocationById_ReturnsLocation_ForExistingId()
         {
@@ -137,6 +160,9 @@ namespace SignalRMapRealtime.IntegrationTests
             locationDto.Longitude.Should().Be(existingLocation.Longitude);
         }
 
+        /// <summary>
+        /// Tests that updating a location updates the existing location.
+        /// </summary>
         [Fact]
         public async Task PutLocation_UpdatesExistingLocation()
         {
@@ -181,6 +207,9 @@ namespace SignalRMapRealtime.IntegrationTests
             locationDto.Accuracy.Should().Be(updatedLocation.Accuracy);
         }
 
+        /// <summary>
+        /// Tests that deleting a location removes the location.
+        /// </summary>
         [Fact]
         public async Task DeleteLocation_RemovesLocation()
         {
@@ -207,6 +236,9 @@ namespace SignalRMapRealtime.IntegrationTests
             getResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
 
+        /// <summary>
+        /// Tests that posting a location returns a bad request response for an invalid model.
+        /// </summary>
         [Fact]
         public async Task PostLocation_ReturnsBadRequest_ForInvalidModel()
         {
@@ -225,6 +257,9 @@ namespace SignalRMapRealtime.IntegrationTests
             response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         }
 
+        /// <summary>
+        /// Tests that updating a location returns a bad request response for a mismatched ID.
+        /// </summary>
         [Fact]
         public async Task PutLocation_ReturnsBadRequest_ForMismatchedId()
         {
