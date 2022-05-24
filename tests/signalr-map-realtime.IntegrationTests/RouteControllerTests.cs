@@ -22,17 +22,28 @@ using SignalRMapRealtime.Domain.Models;
 
 namespace SignalRMapRealtime.IntegrationTests
 {
+    /// <summary>
+    /// Tests for the RouteController.
+    /// </summary>
     public class RouteControllerTests : IClassFixture<TestApplicationFactory>
     {
         private readonly HttpClient _client;
         private readonly TestApplicationFactory _factory;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RouteControllerTests"/> class.
+        /// </summary>
+        /// <param name="factory">The test application factory.</param>
         public RouteControllerTests(TestApplicationFactory factory)
         {
             _factory = factory;
             _client = _factory.CreateClient();
         }
 
+        /// <summary>
+        /// Seeds a route in the database.
+        /// </summary>
+        /// <param name="route">The route to seed.</param>
         private async Task SeedRoute(Route route)
         {
             using (var scope = _factory.Services.CreateScope())
@@ -43,6 +54,9 @@ namespace SignalRMapRealtime.IntegrationTests
             }
         }
 
+        /// <summary>
+        /// Tests that getting all routes returns a successful response with the correct content type.
+        /// </summary>
         [Fact]
         public async Task GetRoutes_ReturnsSuccessAndCorrectContentType()
         {
@@ -62,6 +76,9 @@ namespace SignalRMapRealtime.IntegrationTests
             pagedResponse.Items.Should().BeEmpty(); // Assuming no seed data initially
         }
 
+        /// <summary>
+        /// Tests that posting a new route returns a created route.
+        /// </summary>
         [Fact]
         public async Task PostRoute_ReturnsCreatedRoute()
         {
@@ -89,6 +106,9 @@ namespace SignalRMapRealtime.IntegrationTests
             createdRoute.Description.Should().Be(newRoute.Description);
         }
 
+        /// <summary>
+        /// Tests that getting a route by non-existent ID returns a not found response.
+        /// </summary>
         [Fact]
         public async Task GetRouteById_ReturnsNotFound_ForNonExistentId()
         {
@@ -102,6 +122,9 @@ namespace SignalRMapRealtime.IntegrationTests
             response.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
 
+        /// <summary>
+        /// Tests that getting a route by existing ID returns the route.
+        /// </summary>
         [Fact]
         public async Task GetRouteById_ReturnsRoute_ForExistingId()
         {
@@ -126,6 +149,9 @@ namespace SignalRMapRealtime.IntegrationTests
             routeDto.Name.Should().Be(existingRoute.Name);
         }
 
+        /// <summary>
+        /// Tests that updating an existing route returns a no content response.
+        /// </summary>
         [Fact]
         public async Task PutRoute_UpdatesExistingRoute()
         {
@@ -161,6 +187,9 @@ namespace SignalRMapRealtime.IntegrationTests
             routeDto.Description.Should().Be(updatedRoute.Description);
         }
 
+        /// <summary>
+        /// Tests that deleting a route returns a no content response.
+        /// </summary>
         [Fact]
         public async Task DeleteRoute_RemovesRoute()
         {
@@ -183,6 +212,9 @@ namespace SignalRMapRealtime.IntegrationTests
             getResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
 
+        /// <summary>
+        /// Tests that posting a new route with invalid model returns a bad request response.
+        /// </summary>
         [Fact]
         public async Task PostRoute_ReturnsBadRequest_ForInvalidModel()
         {
@@ -201,6 +233,9 @@ namespace SignalRMapRealtime.IntegrationTests
             response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         }
 
+        /// <summary>
+        /// Tests that updating a route with mismatched ID returns a bad request response.
+        /// </summary>
         [Fact]
         public async Task PutRoute_ReturnsBadRequest_ForMismatchedId()
         {
