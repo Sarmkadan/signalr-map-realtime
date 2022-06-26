@@ -20,10 +20,13 @@ public static class ApiKeyAuthenticationExtensions
     /// <param name="services">The <see cref="IServiceCollection"/> to add services to.</param>
     /// <param name="configureOptions">An action to configure the <see cref="ApiKeyAuthenticationOptions"/>.</param>
     /// <returns>The <see cref="AuthenticationBuilder"/>.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="services"/> is <see langword="null"/>.</exception>
     public static AuthenticationBuilder AddApiKeyAuthentication(
         this IServiceCollection services,
         Action<ApiKeyAuthenticationOptions>? configureOptions = null)
     {
+        ArgumentNullException.ThrowIfNull(services);
+
         return services.AddAuthentication(ApiKeyAuthenticationOptions.DefaultScheme)
             .AddScheme<ApiKeyAuthenticationOptions, ApiKeyAuthenticationHandler>(
                 ApiKeyAuthenticationOptions.DefaultScheme,
