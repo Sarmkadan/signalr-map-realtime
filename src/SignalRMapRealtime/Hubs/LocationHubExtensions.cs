@@ -14,10 +14,12 @@ public static class LocationHubExtensions
     /// <summary>
     /// Broadcasts a message to all clients subscribed to a specific vehicle.
     /// </summary>
-    /// <param name="hub">The location hub instance</param>
-    /// <param name="vehicleId">The vehicle ID to broadcast to</param>
-    /// <param name="methodName">The SignalR method name to invoke</param>
-    /// <param name="args">Optional arguments to pass to the method</param>
+    /// <param name="hub">The location hub instance.</param>
+    /// <param name="vehicleId">The vehicle ID to broadcast to.</param>
+    /// <param name="methodName">The SignalR method name to invoke.</param>
+    /// <param name="args">Optional arguments to pass to the method.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="hub"/> is null.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="methodName"/> is null or empty.</exception>
     public static async Task BroadcastToVehicleGroupAsync(this LocationHub hub, int vehicleId, string methodName, params object?[] args)
     {
         ArgumentNullException.ThrowIfNull(hub);
@@ -32,8 +34,9 @@ public static class LocationHubExtensions
     /// <summary>
     /// Gets the current connection ID of the calling client.
     /// </summary>
-    /// <param name="hub">The location hub instance</param>
-    /// <returns>The connection ID</returns>
+    /// <param name="hub">The location hub instance.</param>
+    /// <returns>The connection ID.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="hub"/> is null.</exception>
     public static string GetConnectionId(this LocationHub hub)
     {
         ArgumentNullException.ThrowIfNull(hub);
@@ -43,10 +46,12 @@ public static class LocationHubExtensions
     /// <summary>
     /// Broadcasts a message to all clients in a specific fleet group.
     /// </summary>
-    /// <param name="hub">The location hub instance</param>
-    /// <param name="fleetName">The fleet name</param>
-    /// <param name="methodName">The SignalR method name to invoke</param>
-    /// <param name="args">Optional arguments to pass to the method</param>
+    /// <param name="hub">The location hub instance.</param>
+    /// <param name="fleetName">The fleet name.</param>
+    /// <param name="methodName">The SignalR method name to invoke.</param>
+    /// <param name="args">Optional arguments to pass to the method.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="hub"/> is null.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="fleetName"/> or <paramref name="methodName"/> is null or empty.</exception>
     public static async Task BroadcastToFleetAsync(this LocationHub hub, string fleetName, string methodName, params object?[] args)
     {
         ArgumentNullException.ThrowIfNull(hub);
@@ -57,19 +62,5 @@ public static class LocationHubExtensions
             .Group($"fleet-{fleetName}")
             .SendAsync(methodName, args)
             .ConfigureAwait(false);
-    }
-
-    /// <summary>
-    /// Gets the total number of clients currently connected to the hub.
-    /// </summary>
-    /// <param name="hub">The location hub instance</param>
-    /// <returns>The count of connected clients</returns>
-    public static async Task<int> GetConnectedClientCountAsync(this LocationHub hub)
-    {
-        ArgumentNullException.ThrowIfNull(hub);
-
-        // Use a simple approach to count connections by tracking connection events
-        // This is a placeholder implementation - actual count would require tracking in a service
-        return 0; // Placeholder - actual implementation would track connections
     }
 }
