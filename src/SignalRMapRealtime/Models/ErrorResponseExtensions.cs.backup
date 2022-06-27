@@ -22,12 +22,12 @@ public static class ErrorResponseExtensions
     /// <param name="errorResponse">The source error response</param>
     /// <param name="newMessage">The new error message</param>
     /// <returns>A new ErrorResponse instance with updated properties</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="errorResponse"/> is null.</exception>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="newMessage"/> is null.</exception>
     public static ErrorResponse WithMessage(this ErrorResponse errorResponse, string newMessage)
     {
-        ArgumentNullException.ThrowIfNull(errorResponse);
-        ArgumentNullException.ThrowIfNull(newMessage);
+        if (errorResponse == null)
+        {
+            throw new ArgumentNullException(nameof(errorResponse));
+        }
 
         return new ErrorResponse
         {
@@ -49,14 +49,11 @@ public static class ErrorResponseExtensions
     /// <param name="errorResponse">The source error response</param>
     /// <param name="newStatusCode">The new HTTP status code</param>
     /// <returns>A new ErrorResponse instance with updated status code</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="errorResponse"/> is null.</exception>
-    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="newStatusCode"/> is less than 100 or greater than 999.</exception>
     public static ErrorResponse WithStatusCode(this ErrorResponse errorResponse, int newStatusCode)
     {
-        ArgumentNullException.ThrowIfNull(errorResponse);
-        if (newStatusCode < 100 || newStatusCode > 999)
+        if (errorResponse == null)
         {
-            throw new ArgumentOutOfRangeException(nameof(newStatusCode), newStatusCode, "Status code must be between 100 and 999");
+            throw new ArgumentNullException(nameof(errorResponse));
         }
 
         return new ErrorResponse
@@ -79,10 +76,12 @@ public static class ErrorResponseExtensions
     /// <param name="errorResponse">The error response to format</param>
     /// <param name="includeStackTrace">Whether to include stack trace in output (defaults to false in production)</param>
     /// <returns>Formatted JSON string</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="errorResponse"/> is null.</exception>
     public static string ToJson(this ErrorResponse errorResponse, bool includeStackTrace = false)
     {
-        ArgumentNullException.ThrowIfNull(errorResponse);
+        if (errorResponse == null)
+        {
+            throw new ArgumentNullException(nameof(errorResponse));
+        }
 
         var options = new System.Text.Json.JsonSerializerOptions
         {
@@ -99,7 +98,7 @@ public static class ErrorResponseExtensions
             ["traceId"] = errorResponse.TraceId ?? string.Empty
         };
 
-        if (errorResponse.Errors?.Count > 0)
+        if (errorResponse.Errors != null && errorResponse.Errors.Count > 0)
         {
             result["errors"] = errorResponse.Errors;
         }
@@ -123,10 +122,12 @@ public static class ErrorResponseExtensions
     /// </summary>
     /// <param name="errorResponse">The error response to format</param>
     /// <returns>Formatted error message string</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="errorResponse"/> is null.</exception>
     public static string ToFriendlyMessage(this ErrorResponse errorResponse)
     {
-        ArgumentNullException.ThrowIfNull(errorResponse);
+        if (errorResponse == null)
+        {
+            throw new ArgumentNullException(nameof(errorResponse));
+        }
 
         var builder = new StringBuilder();
         builder.AppendLine($"Error: {errorResponse.Message}");
@@ -137,15 +138,15 @@ public static class ErrorResponseExtensions
             builder.AppendLine($"Trace ID: {errorResponse.TraceId}");
         }
 
-        if (errorResponse.Errors?.Count > 0)
+        if (errorResponse.Errors != null && errorResponse.Errors.Count > 0)
         {
             builder.AppendLine("Validation Errors:");
             foreach (var fieldError in errorResponse.Errors)
             {
-                builder.AppendLine($" {fieldError.Key}:");
+                builder.AppendLine($"  {fieldError.Key}:");
                 foreach (var error in fieldError.Value)
                 {
-                    builder.AppendLine($" - {error}");
+                    builder.AppendLine($"    - {error}");
                 }
             }
         }
