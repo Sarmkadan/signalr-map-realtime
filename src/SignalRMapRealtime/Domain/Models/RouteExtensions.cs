@@ -3,8 +3,8 @@
 namespace SignalRMapRealtime.Domain.Models;
 
 /// <summary>
-/// Extension methods for the Route class providing additional functionality for route management,
-/// time calculations, and status checks.
+/// Provides extension methods for the <see cref="Route"/> class to calculate route durations,
+/// check delays, and determine route status.
 /// </summary>
 public static class RouteExtensions
 {
@@ -13,8 +13,11 @@ public static class RouteExtensions
     /// </summary>
     /// <param name="route">The route to calculate duration for.</param>
     /// <returns>Estimated duration in minutes, or null if planned times are not set.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="route"/> is null.</exception>
     public static int? GetEstimatedDurationMinutes(this Route route)
     {
+        ArgumentNullException.ThrowIfNull(route);
+
         if (route.PlannedDepartureTime == default || route.EstimatedArrivalTime == default)
         {
             return null;
@@ -29,9 +32,12 @@ public static class RouteExtensions
     /// </summary>
     /// <param name="route">The route to calculate duration for.</param>
     /// <returns>Actual duration in minutes, or null if actual times are not set.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="route"/> is null.</exception>
     public static int? GetActualDurationMinutes(this Route route)
     {
-        if (route.ActualDepartureTime == null || route.ActualArrivalTime == null)
+        ArgumentNullException.ThrowIfNull(route);
+
+        if (route.ActualDepartureTime is null || route.ActualArrivalTime is null)
         {
             return null;
         }
@@ -45,9 +51,12 @@ public static class RouteExtensions
     /// </summary>
     /// <param name="route">The route to check for delays.</param>
     /// <returns>True if the route is delayed, false otherwise.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="route"/> is null.</exception>
     public static bool IsDelayed(this Route route)
     {
-        if (route.ActualArrivalTime == null || route.EstimatedArrivalTime == default)
+        ArgumentNullException.ThrowIfNull(route);
+
+        if (route.ActualArrivalTime is null || route.EstimatedArrivalTime == default)
         {
             return false;
         }
@@ -60,9 +69,12 @@ public static class RouteExtensions
     /// </summary>
     /// <param name="route">The route to check for delay duration.</param>
     /// <returns>Delay duration in minutes, or null if not delayed or times not available.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="route"/> is null.</exception>
     public static int? GetDelayMinutes(this Route route)
     {
-        if (!route.IsDelayed() || route.ActualArrivalTime == null || route.EstimatedArrivalTime == default)
+        ArgumentNullException.ThrowIfNull(route);
+
+        if (!route.IsDelayed() || route.ActualArrivalTime is null || route.EstimatedArrivalTime == default)
         {
             return null;
         }
