@@ -12,16 +12,23 @@ namespace SignalRMapRealtime.Domain.Models
         /// </summary>
         /// <param name="vehicle">The vehicle instance.</param>
         /// <returns><c>true</c> if both <c>DriverId</c> and <c>Driver</c> are present; otherwise <c>false</c>.</returns>
-        public static bool HasDriver(this Vehicle vehicle) =>
-            vehicle.DriverId.HasValue && vehicle.Driver != null;
+        /// <exception cref="ArgumentNullException"><paramref name="vehicle"/> is <c>null</c>.</exception>
+        public static bool HasDriver(this Vehicle vehicle)
+        {
+            ArgumentNullException.ThrowIfNull(vehicle);
+            return vehicle.DriverId.HasValue && vehicle.Driver != null;
+        }
 
         /// <summary>
-        /// Returns a human‑readable description of the vehicle, combining make, model, year and registration details.
+        /// Returns a human-readable description of the vehicle, combining make, model, year and registration details.
         /// </summary>
         /// <param name="vehicle">The vehicle instance.</param>
         /// <returns>A formatted description string.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="vehicle"/> is <c>null</c>.</exception>
         public static string GetFullDescription(this Vehicle vehicle)
         {
+            ArgumentNullException.ThrowIfNull(vehicle);
+
             var make = vehicle.Make ?? "Unknown";
             var model = vehicle.Model ?? "Unknown";
             var year = vehicle.Year?.ToString() ?? vehicle.ModelYear?.ToString() ?? "N/A";
@@ -36,8 +43,12 @@ namespace SignalRMapRealtime.Domain.Models
         /// </summary>
         /// <param name="vehicle">The vehicle instance.</param>
         /// <returns>The count of tracking sessions, or 0 if the collection is null.</returns>
-        public static int GetTrackingSessionCount(this Vehicle vehicle) =>
-            vehicle.TrackingSessions?.Count ?? 0;
+        /// <exception cref="ArgumentNullException"><paramref name="vehicle"/> is <c>null</c>.</exception>
+        public static int GetTrackingSessionCount(this Vehicle vehicle)
+        {
+            ArgumentNullException.ThrowIfNull(vehicle);
+            return vehicle.TrackingSessions?.Count ?? 0;
+        }
 
         /// <summary>
         /// Calculates the vehicle's age in years based on the available year information.
@@ -46,13 +57,16 @@ namespace SignalRMapRealtime.Domain.Models
         /// <returns>
         /// The age in years, or <c>null</c> if neither <c>Year</c> nor <c>ModelYear</c> is set.
         /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="vehicle"/> is <c>null</c>.</exception>
         public static int? GetVehicleAge(this Vehicle vehicle)
         {
+            ArgumentNullException.ThrowIfNull(vehicle);
+
             var year = vehicle.Year ?? vehicle.ModelYear;
             if (!year.HasValue)
                 return null;
 
-            var currentYear = DateTime.Now.Year;
+            var currentYear = DateTime.UtcNow.Year;
             return currentYear - year.Value;
         }
     }
