@@ -13,27 +13,26 @@ namespace SignalRMapRealtime.Domain.Models
         /// <param name="source">The source waypoint.</param>
         /// <param name="destination">The destination waypoint.</param>
         /// <returns>The distance in kilometers.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> or <paramref name="destination"/> is null.</exception>
         public static double CalculateDistanceTo(this Waypoint source, Waypoint destination)
         {
-            if (source == null || destination == null)
-            {
-                return 0.0;
-            }
+            ArgumentNullException.ThrowIfNull(source);
+            ArgumentNullException.ThrowIfNull(destination);
 
             var sourceLat = source.Latitude * (Math.PI / 180.0);
             var destLat = destination.Latitude * (Math.PI / 180.0);
-            var latDiff = (destination.Latitude - source.Latitude) * (Math.PI / 180.0);
-            var lonDiff = (destination.Longitude - source.Longitude) * (Math.PI / 180.0);
+            var dLat = (destination.Latitude - source.Latitude) * (Math.PI / 180.0);
+            var dLon = (destination.Longitude - source.Longitude) * (Math.PI / 180.0);
 
-            var haversine = Math.Pow(Math.Sin(latDiff / 2.0), 2.0) +
+            var a = Math.Pow(Math.Sin(dLat / 2.0), 2.0) +
                             Math.Cos(sourceLat) * Math.Cos(destLat) *
-                            Math.Pow(Math.Sin(lonDiff / 2.0), 2.0);
+                            Math.Pow(Math.Sin(dLon / 2.0), 2.0);
 
-            var arc = 2.0 * Math.Atan2(Math.Sqrt(haversine), Math.Sqrt(1.0 - haversine));
+            var c = 2.0 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1.0 - a));
             
             // Earth radius in kilometers
             const double earthRadiusKm = 6371.0;
-            return earthRadiusKm * arc;
+            return earthRadiusKm * c;
         }
 
         /// <summary>
@@ -41,19 +40,14 @@ namespace SignalRMapRealtime.Domain.Models
         /// </summary>
         /// <param name="waypoint">The waypoint.</param>
         /// <returns>A string representation suitable for display.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="waypoint"/> is null.</exception>
         public static string GetDisplayName(this Waypoint waypoint)
         {
-            if (!string.IsNullOrEmpty(waypoint.Name))
-            {
-                return waypoint.Name;
-            }
+            ArgumentNullException.ThrowIfNull(waypoint);
 
-            if (!string.IsNullOrEmpty(waypoint.Address))
-            {
-                return waypoint.Address;
-            }
-
-            return $"{waypoint.Latitude:F4}, {waypoint.Longitude:F4}";
+            return !string.IsNullOrEmpty(waypoint.Name) ? waypoint.Name
+                 : !string.IsNullOrEmpty(waypoint.Address) ? waypoint.Address
+                 : $"{waypoint.Latitude:F4}, {waypoint.Longitude:F4}";
         }
 
         /// <summary>
@@ -61,8 +55,11 @@ namespace SignalRMapRealtime.Domain.Models
         /// </summary>
         /// <param name="waypoint">The waypoint.</param>
         /// <returns>True if the waypoint is in progress; otherwise, false.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="waypoint"/> is null.</exception>
         public static bool IsInProgress(this Waypoint waypoint)
         {
+            ArgumentNullException.ThrowIfNull(waypoint);
+
             // If it's already marked as completed, it is not in progress.
             if (waypoint.IsCompleted)
             {
