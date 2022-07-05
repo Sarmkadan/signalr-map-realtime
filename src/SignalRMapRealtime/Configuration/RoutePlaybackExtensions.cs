@@ -48,7 +48,6 @@ public static class RoutePlaybackExtensions
 
         services.Configure<PlaybackOptions>(configuration.GetSection(PlaybackOptions.SectionName));
         services.AddSingleton<IRoutePlaybackService, RoutePlaybackService>();
-
         return services;
     }
 
