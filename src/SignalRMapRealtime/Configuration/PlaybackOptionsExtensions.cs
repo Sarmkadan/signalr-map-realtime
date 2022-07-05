@@ -13,12 +13,10 @@ public static class PlaybackOptionsExtensions
     /// <param name="options">The playback options instance.</param>
     /// <param name="speedMultiplier">The speed multiplier to clamp.</param>
     /// <returns>The clamped speed multiplier within [MinSpeedMultiplier, MaxSpeedMultiplier].</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="options"/> is <see langword="null"/>.</exception>
     public static double ClampSpeedMultiplier(this PlaybackOptions options, double speedMultiplier)
     {
-        if (options == null)
-        {
-            throw new ArgumentNullException(nameof(options));
-        }
+        ArgumentNullException.ThrowIfNull(options);
 
         return Math.Clamp(
             speedMultiplier,
@@ -33,12 +31,10 @@ public static class PlaybackOptionsExtensions
     /// <param name="options">The playback options instance.</param>
     /// <param name="speedMultiplier">The speed multiplier to check.</param>
     /// <returns>True if the speed multiplier is within 5% of real-time (1.0); otherwise false.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="options"/> is <see langword="null"/>.</exception>
     public static bool IsRealTime(this PlaybackOptions options, double speedMultiplier)
     {
-        if (options == null)
-        {
-            throw new ArgumentNullException(nameof(options));
-        }
+        ArgumentNullException.ThrowIfNull(options);
 
         const double RealTimeTolerance = 0.05; // 5% tolerance
         var clamped = options.ClampSpeedMultiplier(speedMultiplier);
@@ -52,12 +48,10 @@ public static class PlaybackOptionsExtensions
     /// <param name="options">The playback options instance.</param>
     /// <param name="speedMultiplier">The current speed multiplier.</param>
     /// <returns>The calculated frame interval in milliseconds.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="options"/> is <see langword="null"/>.</exception>
     public static int CalculateFrameIntervalMs(this PlaybackOptions options, double speedMultiplier)
     {
-        if (options == null)
-        {
-            throw new ArgumentNullException(nameof(options));
-        }
+        ArgumentNullException.ThrowIfNull(options);
 
         // Frame interval is inversely proportional to speed multiplier
         // Higher speed multiplier = faster playback = shorter frame interval
@@ -83,12 +77,10 @@ public static class PlaybackOptionsExtensions
     /// <param name="options">The playback options instance.</param>
     /// <param name="speedKmh">The speed to check in kilometers per hour.</param>
     /// <returns>True if the speed exceeds the configured speed alert threshold; otherwise false.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="options"/> is <see langword="null"/>.</exception>
     public static bool IsSpeedAlert(this PlaybackOptions options, double speedKmh)
     {
-        if (options == null)
-        {
-            throw new ArgumentNullException(nameof(options));
-        }
+        ArgumentNullException.ThrowIfNull(options);
 
         return speedKmh > options.SpeedAlertThresholdKmh;
     }
@@ -99,12 +91,10 @@ public static class PlaybackOptionsExtensions
     /// <param name="options">The playback options instance.</param>
     /// <param name="speedKmh">The speed to check in kilometers per hour.</param>
     /// <returns>True if the speed is below the configured idle threshold; otherwise false.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="options"/> is <see langword="null"/>.</exception>
     public static bool IsIdle(this PlaybackOptions options, double speedKmh)
     {
-        if (options == null)
-        {
-            throw new ArgumentNullException(nameof(options));
-        }
+        ArgumentNullException.ThrowIfNull(options);
 
         return speedKmh <= options.IdleSpeedThresholdKmh;
     }
