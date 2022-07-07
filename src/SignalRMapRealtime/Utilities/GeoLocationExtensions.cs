@@ -23,10 +23,14 @@ public static class GeoLocationExtensions
     /// Calculates the distance between two GPS coordinates using Haversine formula.
     /// Returns distance in kilometers.
     /// </summary>
+    /// <param name="from">Source location.</param>
+    /// <param name="to">Target location.</param>
+    /// <returns>Distance between locations in kilometers.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when either location is null.</exception>
     public static double DistanceTo(this Location from, Location to)
     {
-        if (from is null || to is null)
-            throw new ArgumentNullException(from is null ? nameof(from) : nameof(to));
+        ArgumentNullException.ThrowIfNull(from);
+        ArgumentNullException.ThrowIfNull(to);
 
         return CalculateDistance(from.Latitude, from.Longitude, to.Latitude, to.Longitude);
     }
@@ -35,38 +39,55 @@ public static class GeoLocationExtensions
     /// Calculates the distance between two GPS coordinates using Haversine formula.
     /// Returns distance in kilometers.
     /// </summary>
+    /// <param name="lat1">Latitude of first point in decimal degrees.</param>
+    /// <param name="lon1">Longitude of first point in decimal degrees.</param>
+    /// <param name="lat2">Latitude of second point in decimal degrees.</param>
+    /// <param name="lon2">Longitude of second point in decimal degrees.</param>
+    /// <returns>Distance between points in kilometers.</returns>
+    /// <exception cref="ArgumentException">Thrown when coordinates are outside valid geographic bounds.</exception>
     public static double DistanceBetween(double lat1, double lon1, double lat2, double lon2)
     {
+        if (!lat1.IsValidLatitude())
+            throw new ArgumentException($"Invalid latitude: {lat1}. Must be between -90 and 90.", nameof(lat1));
+
+        if (!lon1.IsValidLongitude())
+            throw new ArgumentException($"Invalid longitude: {lon1}. Must be between -180 and 180.", nameof(lon1));
+
+        if (!lat2.IsValidLatitude())
+            throw new ArgumentException($"Invalid latitude: {lat2}. Must be between -90 and 90.", nameof(lat2));
+
+        if (!lon2.IsValidLongitude())
+            throw new ArgumentException($"Invalid longitude: {lon2}. Must be between -180 and 180.", nameof(lon2));
+
         return CalculateDistance(lat1, lon1, lat2, lon2);
     }
 
     /// <summary>
     /// Converts distance from kilometers to miles.
     /// </summary>
-    public static double KilometersToMiles(this double kilometers)
-    {
-        return kilometers * 0.621371;
-    }
+    /// <param name="kilometers">Distance in kilometers.</param>
+    /// <returns>Distance in miles.</returns>
+    public static double KilometersToMiles(this double kilometers) => kilometers * 0.621371;
 
     /// <summary>
     /// Converts distance from miles to kilometers.
     /// </summary>
-    public static double MilesToKilometers(this double miles)
-    {
-        return miles / 0.621371;
-    }
+    /// <param name="miles">Distance in miles.</param>
+    /// <returns>Distance in kilometers.</returns>
+    public static double MilesToKilometers(this double miles) => miles / 0.621371;
 
     /// <summary>
     /// Converts distance from kilometers to meters.
     /// </summary>
-    public static double KilometersToMeters(this double kilometers)
-    {
-        return kilometers * 1000.0;
-    }
+    /// <param name="kilometers">Distance in kilometers.</param>
+    /// <returns>Distance in meters.</returns>
+    public static double KilometersToMeters(this double kilometers) => kilometers * 1000.0;
 
     /// <summary>
     /// Validates if latitude is within valid range (-90 to 90).
     /// </summary>
+    /// <param name="latitude">Latitude value to validate.</param>
+    /// <returns>True if valid, false otherwise.</returns>
     public static bool IsValidLatitude(this double latitude)
     {
         return latitude >= -90.0 && latitude <= 90.0;
@@ -75,6 +96,8 @@ public static class GeoLocationExtensions
     /// <summary>
     /// Validates if longitude is within valid range (-180 to 180).
     /// </summary>
+    /// <param name="longitude">Longitude value to validate.</param>
+    /// <returns>True if valid, false otherwise.</returns>
     public static bool IsValidLongitude(this double longitude)
     {
         return longitude >= -180.0 && longitude <= 180.0;
@@ -83,6 +106,9 @@ public static class GeoLocationExtensions
     /// <summary>
     /// Validates if coordinates form a valid location (both latitude and longitude valid).
     /// </summary>
+    /// <param name="latitude">Latitude value to validate.</param>
+    /// <param name="longitude">Longitude value to validate.</param>
+    /// <returns>True if both coordinates are valid, false otherwise.</returns>
     public static bool IsValidCoordinate(this double latitude, double longitude)
     {
         return latitude.IsValidLatitude() && longitude.IsValidLongitude();
@@ -92,10 +118,14 @@ public static class GeoLocationExtensions
     /// Calculates the bearing (compass direction) from one location to another.
     /// Returns bearing in degrees (0-360) where 0/360 is North.
     /// </summary>
+    /// <param name="from">Source location.</param>
+    /// <param name="to">Target location.</param>
+    /// <returns>Bearing in degrees from source to target.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when either location is null.</exception>
     public static double BearingTo(this Location from, Location to)
     {
-        if (from is null || to is null)
-            throw new ArgumentNullException(from is null ? nameof(from) : nameof(to));
+        ArgumentNullException.ThrowIfNull(from);
+        ArgumentNullException.ThrowIfNull(to);
 
         return CalculateBearing(from.Latitude, from.Longitude, to.Latitude, to.Longitude);
     }
@@ -104,6 +134,8 @@ public static class GeoLocationExtensions
     /// Determines cardinal direction from bearing angle.
     /// Returns: N, NE, E, SE, S, SW, W, NW, or the exact bearing if it doesn't fit.
     /// </summary>
+    /// <param name="bearing">Bearing angle in degrees (0-360).</param>
+    /// <returns>Cardinal direction abbreviation.</returns>
     public static string GetCardinalDirection(this double bearing)
     {
         // Normalize bearing to 0-360 range
@@ -135,8 +167,16 @@ public static class GeoLocationExtensions
     /// Checks if a location is within a specified radius from a center point.
     /// Useful for geofencing and proximity checks.
     /// </summary>
+    /// <param name="location">Location to check.</param>
+    /// <param name="centerPoint">Center point for radius calculation.</param>
+    /// <param name="radiusKm">Maximum allowed distance in kilometers.</param>
+    /// <returns>True if location is within radius, false otherwise.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when location or centerPoint is null.</exception>
     public static bool IsWithinRadius(this Location location, Location centerPoint, double radiusKm)
     {
+        ArgumentNullException.ThrowIfNull(location);
+        ArgumentNullException.ThrowIfNull(centerPoint);
+
         var distance = DistanceBetween(
             location.Latitude, location.Longitude,
             centerPoint.Latitude, centerPoint.Longitude
@@ -148,9 +188,17 @@ public static class GeoLocationExtensions
     /// Calculates the bounding box (rectangular area) around a center point.
     /// Returns tuple of (minLat, minLon, maxLat, maxLon).
     /// </summary>
+    /// <param name="centerPoint">Center point for bounding box calculation.</param>
+    /// <param name="radiusKm">Radius in kilometers to extend from center.</param>
+    /// <returns>Tuple containing min/max latitude and longitude values.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when centerPoint is null.</exception>
+    /// <exception cref="ArgumentException">Thrown when radius is negative.</exception>
     public static (double MinLat, double MinLon, double MaxLat, double MaxLon) GetBoundingBox(
         this Location centerPoint, double radiusKm)
     {
+        ArgumentNullException.ThrowIfNull(centerPoint);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(radiusKm);
+
         const double latChange = 111.32; // 1 degree latitude ≈ 111.32 km
         var lonChange = 111.32 * Math.Cos(centerPoint.Latitude * Math.PI / 180.0);
 
@@ -169,8 +217,14 @@ public static class GeoLocationExtensions
     /// Formats coordinates as a readable string.
     /// Example: "40.7128° N, 74.0060° W"
     /// </summary>
+    /// <param name="location">Location to format.</param>
+    /// <param name="decimalPlaces">Number of decimal places for precision (default: 4).</param>
+    /// <returns>Formatted coordinate string.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when location is null.</exception>
     public static string FormatCoordinates(this Location location, int decimalPlaces = 4)
     {
+        ArgumentNullException.ThrowIfNull(location);
+
         var latDirection = location.Latitude >= 0 ? "N" : "S";
         var lonDirection = location.Longitude >= 0 ? "E" : "W";
 
@@ -214,16 +268,10 @@ public static class GeoLocationExtensions
     /// <summary>
     /// Converts degrees to radians.
     /// </summary>
-    private static double DegreesToRadians(double degrees)
-    {
-        return degrees * Math.PI / 180.0;
-    }
+    private static double DegreesToRadians(double degrees) => degrees * Math.PI / 180.0;
 
     /// <summary>
     /// Converts radians to degrees.
     /// </summary>
-    private static double RadiansToDegrees(double radians)
-    {
-        return radians * 180.0 / Math.PI;
-    }
+    private static double RadiansToDegrees(double radians) => radians * 180.0 / Math.PI;
 }
