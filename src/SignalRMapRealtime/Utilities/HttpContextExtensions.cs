@@ -2,24 +2,32 @@
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
-// =============================================================================
+// =====================================================================
 
 namespace SignalRMapRealtime.Utilities;
 
 using System.Net;
 
 /// <summary>
-/// Extension methods for HttpContext operations.
+/// Extension methods for <see cref="HttpContext"/> operations.
 /// Provides utilities for working with HTTP requests and responses.
 /// </summary>
+/// <remarks>
+/// All extension methods validate their <see cref="HttpContext"/> parameter and throw appropriate exceptions.
+/// </remarks>
 public static class HttpContextExtensions
 {
     /// <summary>
     /// Gets the client's IP address from the request.
     /// Handles X-Forwarded-For header for proxy scenarios.
     /// </summary>
+    /// <param name="context">The <see cref="HttpContext"/> instance.</param>
+    /// <returns>The client IP address as a string.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="context"/> is <see langword="null"/>.</exception>
     public static string GetClientIpAddress(this HttpContext context)
     {
+        ArgumentNullException.ThrowIfNull(context);
+
         // Check for X-Forwarded-For header (behind proxy)
         if (context.Request.Headers.TryGetValue("X-Forwarded-For", out var forwardedFor))
         {
@@ -44,16 +52,24 @@ public static class HttpContextExtensions
     /// <summary>
     /// Gets the request's user agent string.
     /// </summary>
+    /// <param name="context">The <see cref="HttpContext"/> instance.</param>
+    /// <returns>The user agent string, or empty string if not present.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="context"/> is <see langword="null"/>.</exception>
     public static string GetUserAgent(this HttpContext context)
     {
+        ArgumentNullException.ThrowIfNull(context);
         return context.Request.Headers["User-Agent"].ToString();
     }
 
     /// <summary>
     /// Gets the referer URL from the request.
     /// </summary>
+    /// <param name="context">The <see cref="HttpContext"/> instance.</param>
+    /// <returns>The referer URL, or <see langword="null"/> if not present.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="context"/> is <see langword="null"/>.</exception>
     public static string? GetReferer(this HttpContext context)
     {
+        ArgumentNullException.ThrowIfNull(context);
         context.Request.Headers.TryGetValue("Referer", out var referer);
         return referer.ToString();
     }
@@ -61,8 +77,12 @@ public static class HttpContextExtensions
     /// <summary>
     /// Gets the origin of the request.
     /// </summary>
+    /// <param name="context">The <see cref="HttpContext"/> instance.</param>
+    /// <returns>The origin URL, or <see langword="null"/> if not present.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="context"/> is <see langword="null"/>.</exception>
     public static string? GetOrigin(this HttpContext context)
     {
+        ArgumentNullException.ThrowIfNull(context);
         context.Request.Headers.TryGetValue("Origin", out var origin);
         return origin.ToString();
     }
@@ -70,16 +90,24 @@ public static class HttpContextExtensions
     /// <summary>
     /// Checks if the request is using HTTPS.
     /// </summary>
+    /// <param name="context">The <see cref="HttpContext"/> instance.</param>
+    /// <returns><see langword="true"/> if the request is secure; otherwise, <see langword="false"/>.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="context"/> is <see langword="null"/>.</exception>
     public static bool IsSecure(this HttpContext context)
     {
+        ArgumentNullException.ThrowIfNull(context);
         return context.Request.IsHttps;
     }
 
     /// <summary>
     /// Gets the full request URL including query string.
     /// </summary>
+    /// <param name="context">The <see cref="HttpContext"/> instance.</param>
+    /// <returns>The full request URL.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="context"/> is <see langword="null"/>.</exception>
     public static string GetFullUrl(this HttpContext context)
     {
+        ArgumentNullException.ThrowIfNull(context);
         var request = context.Request;
         var scheme = request.Scheme;
         var host = request.Host.Value;
@@ -92,8 +120,12 @@ public static class HttpContextExtensions
     /// <summary>
     /// Gets the base URL without path and query string.
     /// </summary>
+    /// <param name="context">The <see cref="HttpContext"/> instance.</param>
+    /// <returns>The base URL.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="context"/> is <see langword="null"/>.</exception>
     public static string GetBaseUrl(this HttpContext context)
     {
+        ArgumentNullException.ThrowIfNull(context);
         var request = context.Request;
         var scheme = request.Scheme;
         var host = request.Host.Value;
@@ -104,40 +136,66 @@ public static class HttpContextExtensions
     /// <summary>
     /// Checks if the request has a specific header.
     /// </summary>
+    /// <param name="context">The <see cref="HttpContext"/> instance.</param>
+    /// <param name="headerName">The name of the header to check.</param>
+    /// <returns><see langword="true"/> if the header exists; otherwise, <see langword="false"/>.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="context"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="headerName"/> is <see langword="null"/>.</exception>
     public static bool HasHeader(this HttpContext context, string headerName)
     {
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(headerName);
         return context.Request.Headers.ContainsKey(headerName);
     }
 
     /// <summary>
     /// Gets a header value by name.
     /// </summary>
+    /// <param name="context">The <see cref="HttpContext"/> instance.</param>
+    /// <param name="headerName">The name of the header to retrieve.</param>
+    /// <returns>The header value, or <see langword="null"/> if not present.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="context"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="headerName"/> is <see langword="null"/>.</exception>
     public static string? GetHeader(this HttpContext context, string headerName)
     {
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(headerName);
         return context.Request.Headers[headerName].ToString();
     }
 
     /// <summary>
     /// Checks if the request is an AJAX request.
     /// </summary>
+    /// <param name="context">The <see cref="HttpContext"/> instance.</param>
+    /// <returns><see langword="true"/> if the request is an AJAX request; otherwise, <see langword="false"/>.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="context"/> is <see langword="null"/>.</exception>
     public static bool IsAjaxRequest(this HttpContext context)
     {
-        return context.Request.Headers["X-Requested-With"].ToString() == "XMLHttpRequest";
+        ArgumentNullException.ThrowIfNull(context);
+        return string.Equals(context.Request.Headers["X-Requested-With"].ToString(), "XMLHttpRequest", StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>
     /// Gets the content type of the request.
     /// </summary>
+    /// <param name="context">The <see cref="HttpContext"/> instance.</param>
+    /// <returns>The content type, or <see langword="null"/> if not set.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="context"/> is <see langword="null"/>.</exception>
     public static string? GetContentType(this HttpContext context)
     {
+        ArgumentNullException.ThrowIfNull(context);
         return context.Request.ContentType;
     }
 
     /// <summary>
     /// Checks if the request content is JSON.
     /// </summary>
+    /// <param name="context">The <see cref="HttpContext"/> instance.</param>
+    /// <returns><see langword="true"/> if the content type indicates JSON; otherwise, <see langword="false"/>.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="context"/> is <see langword="null"/>.</exception>
     public static bool IsJsonRequest(this HttpContext context)
     {
+        ArgumentNullException.ThrowIfNull(context);
         var contentType = context.Request.ContentType ?? string.Empty;
         return contentType.Contains("application/json", StringComparison.OrdinalIgnoreCase);
     }
@@ -145,8 +203,12 @@ public static class HttpContextExtensions
     /// <summary>
     /// Checks if the request content is form data.
     /// </summary>
+    /// <param name="context">The <see cref="HttpContext"/> instance.</param>
+    /// <returns><see langword="true"/> if the content type indicates form data; otherwise, <see langword="false"/>.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="context"/> is <see langword="null"/>.</exception>
     public static bool IsFormRequest(this HttpContext context)
     {
+        ArgumentNullException.ThrowIfNull(context);
         var contentType = context.Request.ContentType ?? string.Empty;
         return contentType.Contains("application/x-www-form-urlencoded", StringComparison.OrdinalIgnoreCase) ||
                contentType.Contains("multipart/form-data", StringComparison.OrdinalIgnoreCase);
@@ -155,40 +217,70 @@ public static class HttpContextExtensions
     /// <summary>
     /// Gets the HTTP method of the request.
     /// </summary>
+    /// <param name="context">The <see cref="HttpContext"/> instance.</param>
+    /// <returns>The HTTP method (GET, POST, PUT, DELETE, etc.).</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="context"/> is <see langword="null"/>.</exception>
     public static string GetMethod(this HttpContext context)
     {
+        ArgumentNullException.ThrowIfNull(context);
         return context.Request.Method;
     }
 
     /// <summary>
     /// Sets a response header.
     /// </summary>
+    /// <param name="context">The <see cref="HttpContext"/> instance.</param>
+    /// <param name="headerName">The name of the header to set.</param>
+    /// <param name="value">The header value.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="context"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="headerName"/> is <see langword="null"/>.</exception>
     public static void SetHeader(this HttpContext context, string headerName, string value)
     {
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(headerName);
+        ArgumentNullException.ThrowIfNull(value);
         context.Response.Headers[headerName] = value;
     }
 
     /// <summary>
     /// Sets the response status code.
     /// </summary>
+    /// <param name="context">The <see cref="HttpContext"/> instance.</param>
+    /// <param name="statusCode">The HTTP status code to set.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="context"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="statusCode"/> is not a valid HTTP status code.</exception>
     public static void SetStatusCode(this HttpContext context, int statusCode)
     {
+        ArgumentNullException.ThrowIfNull(context);
+        if (statusCode < 100 || statusCode >= 600)
+        {
+            throw new ArgumentOutOfRangeException(nameof(statusCode), "Status code must be between 100 and 599");
+        }
         context.Response.StatusCode = statusCode;
     }
 
     /// <summary>
     /// Sets the response content type.
     /// </summary>
+    /// <param name="context">The <see cref="HttpContext"/> instance.</param>
+    /// <param name="contentType">The content type to set.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="context"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="contentType"/> is <see langword="null"/>.</exception>
     public static void SetContentType(this HttpContext context, string contentType)
     {
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(contentType);
         context.Response.ContentType = contentType;
     }
 
     /// <summary>
     /// Sets response to disable caching.
     /// </summary>
+    /// <param name="context">The <see cref="HttpContext"/> instance.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="context"/> is <see langword="null"/>.</exception>
     public static void DisableCaching(this HttpContext context)
     {
+        ArgumentNullException.ThrowIfNull(context);
         context.Response.Headers["Cache-Control"] = "no-cache, no-store, must-revalidate";
         context.Response.Headers["Pragma"] = "no-cache";
         context.Response.Headers["Expires"] = "0";
@@ -197,16 +289,29 @@ public static class HttpContextExtensions
     /// <summary>
     /// Sets response to allow caching for specified seconds.
     /// </summary>
+    /// <param name="context">The <see cref="HttpContext"/> instance.</param>
+    /// <param name="durationSeconds">The cache duration in seconds.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="context"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="durationSeconds"/> is negative.</exception>
     public static void SetCacheControl(this HttpContext context, int durationSeconds)
     {
+        ArgumentNullException.ThrowIfNull(context);
+        if (durationSeconds < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(durationSeconds), "Duration must be non-negative");
+        }
         context.Response.Headers["Cache-Control"] = $"public, max-age={durationSeconds}";
     }
 
     /// <summary>
-    /// Gets request parameters (from query string or form).
+    /// Gets request parameters from query string.
     /// </summary>
+    /// <param name="context">The <see cref="HttpContext"/> instance.</param>
+    /// <returns>A dictionary of parameter names and values.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="context"/> is <see langword="null"/>.</exception>
     public static Dictionary<string, string> GetParameters(this HttpContext context)
     {
+        ArgumentNullException.ThrowIfNull(context);
         var parameters = new Dictionary<string, string>();
 
         // Add query string parameters
