@@ -5,14 +5,14 @@ using System.Linq;
 namespace SignalRMapRealtime.Domain.Models
 {
     /// <summary>
-    /// Provides extension methods for <see cref="Asset"/> entities.
+    /// Provides extension methods for <see cref="Asset"/> entities, allowing for additional functionality and operations.
     /// </summary>
     public static class AssetExtensions
     {
         /// <summary>
         /// Determines whether the asset is currently assigned to a vehicle.
         /// </summary>
-        /// <param name="asset">The asset to check.</param>
+        /// <param name="asset">The asset to check for vehicle assignment.</param>
         /// <returns><see langword="true"/> if the asset has a vehicle assigned; otherwise, <see langword="false"/>.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="asset"/> is <see langword="null"/>.</exception>
         public static bool IsAssigned(this Asset asset)
@@ -25,7 +25,7 @@ namespace SignalRMapRealtime.Domain.Models
         /// Generates a formatted string containing detailed information about the asset.
         /// </summary>
         /// <param name="asset">The asset to get details for.</param>
-        /// <returns>A formatted string with asset details.</returns>
+        /// <returns>A formatted string with asset details, including name, serial number, type, value, and condition.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="asset"/> is <see langword="null"/>.</exception>
         public static string GetAssetDetails(this Asset asset)
         {
@@ -39,7 +39,7 @@ namespace SignalRMapRealtime.Domain.Models
         /// <summary>
         /// Determines whether the asset requires special handling.
         /// </summary>
-        /// <param name="asset">The asset to check.</param>
+        /// <param name="asset">The asset to check for special handling requirements.</param>
         /// <returns><see langword="true"/> if the asset requires special handling and has instructions; otherwise, <see langword="false"/>.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="asset"/> is <see langword="null"/>.</exception>
         public static bool NeedsSpecialHandling(this Asset asset)
