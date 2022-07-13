@@ -136,3 +136,52 @@ catch (ValidationException ex)
     }
 }
 ```
+
+## IEventBus
+
+The `IEventBus` interface defines a contract for event handling and publishing. It provides methods for subscribing and unsubscribing event handlers, as well as publishing events to all registered handlers.
+
+### Usage Example
+
+```csharp
+// Subscribe to events of type 'MyEvent'
+var eventBus = new InMemoryEventBus();
+eventBus.Subscribe<MyEvent>(async (event) =>
+{
+    Console.WriteLine($"Received event: {event.Message}");
+});
+
+// Publish an event
+await eventBus.PublishAsync(new MyEvent { Message = "Hello, world!" });
+```
+
+## Documentation
+
+This project uses a variety of extension methods and utility classes to simplify common tasks and provide a more intuitive API. The following sections provide a brief overview of each extension method and utility class, along with examples of how to use them.
+
+### Usage
+
+To use this project, simply reference the `SignalRMapRealtime` assembly and start using the extension methods and utility classes. For example, to use the `ApiResponseExtensions` class, you can add the following using statement to your code:
+
+```csharp
+using SignalRMapRealtime.Extensions.ApiResponse;
+```
+
+You can then use the extension methods on the `ApiResponse` class, like this:
+
+```csharp
+var apiResponse = new ApiResponse
+{
+    Success = true,
+    Message = "Asset retrieved successfully",
+    StatusCode = 200,
+    Timestamp = DateTime.UtcNow,
+    TraceId = "abc123"
+};
+
+bool isSuccessful = apiResponse.IsSuccessful(); // Returns true
+string message = apiResponse.GetMessageOrDefault(); // Returns "Asset retrieved successfully"
+```
+
+Note that this is just a brief overview of the project's API. For more information, please refer to the individual documentation sections for each extension method and utility class.
+```
