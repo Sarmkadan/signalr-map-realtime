@@ -111,4 +111,28 @@ if (assetsSortedByDateResult is OkObjectResult sortedAssetsResult)
     var sortedAssets = sortedAssetsResult.Value as List<Asset>;
     // Process sorted assets
 }
-``` 
+```
+
+## ValidationException
+
+The `ValidationException` class represents an exception thrown when validation fails. It contains a collection of error messages that can be accessed through the `Errors` property.
+
+### Usage Example
+
+```csharp
+try
+{
+    // Attempt to validate some data
+    var validationException = new ValidationException();
+    validationException.Errors.Add("Error message 1");
+    validationException.Errors.Add("Error message 2");
+    throw validationException;
+}
+catch (ValidationException ex)
+{
+    foreach (var error in ex.Errors)
+    {
+        Console.WriteLine(error); // Prints "Error message 1" and "Error message 2"
+    }
+}
+```
