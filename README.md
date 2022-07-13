@@ -78,4 +78,37 @@ bool hasSpeedAlert = PlaybackOptionsExtensions.IsSpeedAlert(playbackOptions.Spee
 bool isIdle = PlaybackOptionsExtensions.IsIdle(playbackOptions); // Returns true if playback is paused/idle
 ```
 
-This example demonstrates adjusting playback speed, checking real-time status, calculating frame intervals, and detecting speed or idle states.
+## AssetControllerExtensions
+
+The `AssetControllerExtensions` class provides a set of extension methods for the `AssetController` to handle various asset-related operations. These methods enable retrieving assets by type, condition, date range, and sorted by date, as well as fetching asset statistics.
+
+### Usage Example
+
+```csharp
+var assetController = new AssetController();
+var assetType = "Vehicle";
+
+// Retrieve assets by type
+var assetsByTypeResult = await AssetControllerExtensions.GetAssetsByType(assetController, assetType);
+if (assetsByTypeResult is OkObjectResult okResult)
+{
+    var assets = okResult.Value as List<Asset>;
+    // Process assets
+}
+
+// Get asset statistics
+var assetStatisticsResult = await AssetControllerExtensions.GetAssetStatistics(assetController);
+if (assetStatisticsResult is OkObjectResult statisticsResult)
+{
+    var statistics = statisticsResult.Value as AssetStatistics;
+    // Process statistics
+}
+
+// Retrieve assets sorted by date
+var assetsSortedByDateResult = await AssetControllerExtensions.GetAssetsSortedByDate(assetController, sortDescending: true);
+if (assetsSortedByDateResult is OkObjectResult sortedAssetsResult)
+{
+    var sortedAssets = sortedAssetsResult.Value as List<Asset>;
+    // Process sorted assets
+}
+``` 
