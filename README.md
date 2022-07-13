@@ -57,3 +57,25 @@ int skip = PagedRequestExtensions.CalculateSkip(pageNumber, pageSize); // Return
 int take = PagedRequestExtensions.CalculateTake(pageNumber, pageSize); // Returns 20
 bool hasFilters = PagedRequestExtensions.HasFilters(processedRequest); // Returns true
 ```
+
+## PlaybackOptionsExtensions
+
+The `PlaybackOptionsExtensions` class provides methods to configure and validate playback settings for real-time or simulated data streams. It includes utilities for clamping speed multipliers, calculating frame intervals, and checking speed/idle alerts.
+
+### Usage Example
+
+```csharp
+var playbackOptions = new PlaybackOptions
+{
+    SpeedMultiplier = 2.5,
+    IsRealTime = false
+};
+
+double clampedSpeed = PlaybackOptionsExtensions.ClampSpeedMultiplier(playbackOptions, 2.0, 5.0); // Returns 2.5
+bool isRealTime = playbackOptions.IsRealTime; // Returns false
+int frameInterval = PlaybackOptionsExtensions.CalculateFrameIntervalMs(clampedSpeed); // Returns calculated interval based on speed
+bool hasSpeedAlert = PlaybackOptionsExtensions.IsSpeedAlert(playbackOptions.SpeedMultiplier); // Returns true if speed exceeds threshold
+bool isIdle = PlaybackOptionsExtensions.IsIdle(playbackOptions); // Returns true if playback is paused/idle
+```
+
+This example demonstrates adjusting playback speed, checking real-time status, calculating frame intervals, and detecting speed or idle states.
