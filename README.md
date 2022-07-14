@@ -182,6 +182,82 @@ catch (VehicleNotFoundException ex)
 }
 ```
 
+## DomainEvent
+
+The `DomainEvent` class is the base class for all domain events in the application. Domain events represent significant business occurrences and enable the system to react to changes in state. The base `DomainEvent` provides common properties like `EventId`, `OccurredAt`, `TriggeredBy`, and `CorrelationId`, while derived event types add domain-specific data.
+
+### Usage Examples
+
+#### Publishing a LocationUpdatedEvent
+```csharp
+var locationEvent = new LocationUpdatedEvent
+{
+    VehicleId = Guid.Parse("123e4567-e89b-12d3-a456-426614174000"),
+    Latitude = 40.7128,
+    Longitude = -74.0060,
+    Accuracy = 5.2,
+    Speed = 45.5,
+    Heading = 90.0,
+    PreviousLatitude = 40.7127,
+    PreviousLongitude = -74.0059,
+    TriggeredBy = "system-tracker",
+    CorrelationId = "req-12345"
+};
+
+// Publish the event via event bus
+await eventBus.PublishAsync(locationEvent);
+```
+
+#### Handling a VehicleStatusChangedEvent
+```csharp
+var statusEvent = new VehicleStatusChangedEvent
+{
+    VehicleId = Guid.Parse("123e4567-e89b-12d3-a456-426614174000"),
+    VehiclePlate = "ABC123",
+    PreviousStatus = "Inactive",
+    NewStatus = "Active",
+    Reason = "Route started",
+    Metadata = new Dictionary<string, object>
+    {
+        ["routeId"] = "route-456",
+        ["driverId"] = "driver-789"
+    }
+};
+
+// Subscribe to status change events
+var eventBus = new InMemoryEventBus();
+eventBus.Subscribe<VehicleStatusChangedEvent>(async (vehicleStatusEvent) =>
+{
+    Console.WriteLine($"Vehicle {vehicleStatusEvent.VehiclePlate} changed status from {vehicleStatusEvent.PreviousStatus} to {vehicleStatusEvent.NewStatus}");
+    Console.WriteLine($"Reason: {vehicleStatusEvent.Reason}");
+    
+    foreach (var kvp in vehicleStatusEvent.Metadata)
+    {
+        Console.WriteLine($"{kvp.Key}: {kvp.Value}");
+    }
+});
+
+// Publish the event
+await eventBus.PublishAsync(statusEvent);
+```
+
+#### Tracking Session Completion
+```csharp
+var sessionEvent = new TrackingSessionCompletedEvent
+{
+    SessionId = Guid.Parse("789e4567-e89b-12d3-a456-426614174001"),
+    VehicleId = Guid.Parse("123e4567-e89b-12d3-a456-426614174000"),
+    StartedAt = DateTime.UtcNow.AddMinutes(-30),
+    EndedAt = DateTime.UtcNow,
+    TotalDistanceKm = 15.75,
+    LocationCount = 452,
+    AverageSpeedKmh = 31.5
+};
+
+// Process completed session
+await eventBus.PublishAsync(sessionEvent);
+```
+
 ## IEventBus
 
 The `IEventBus` interface defines a contract for event handling and publishing. It provides methods for subscribing and unsubscribing event handlers, as well as publishing events to all registered handlers.
