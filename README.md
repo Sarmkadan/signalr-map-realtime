@@ -137,6 +137,51 @@ catch (ValidationException ex)
 }
 ```
 
+## LocationTrackingException
+
+The `LocationTrackingException` class serves as the base exception for all location tracking-related errors in the system. It provides three standard constructors for creating exceptions and is inherited by more specific tracking exceptions like `VehicleNotFoundException`, `InvalidLocationException`, `AssetNotFoundException`, and `TrackingSessionNotFoundException`.
+
+
+### Usage Example
+
+```csharp
+// Basic exception usage
+try
+{
+    // Some location tracking operation
+    throw new LocationTrackingException("Location tracking service unavailable");
+}
+catch (LocationTrackingException ex)
+{
+    Console.WriteLine($"Location tracking error: {ex.Message}");
+}
+
+// Using with inner exception
+try
+{
+    // Nested operation
+}
+catch (Exception innerEx)
+{
+    throw new LocationTrackingException("Failed to process location update", innerEx);
+}
+
+// Derived exception usage
+try
+{
+    var vehicleId = 123;
+    // Attempt to find vehicle
+    if (vehicle == null)
+    {
+        throw new VehicleNotFoundException(vehicleId);
+    }
+}
+catch (VehicleNotFoundException ex)
+{
+    Console.WriteLine($"Vehicle {ex.VehicleId} not found: {ex.Message}");
+}
+```
+
 ## IEventBus
 
 The `IEventBus` interface defines a contract for event handling and publishing. It provides methods for subscribing and unsubscribing event handlers, as well as publishing events to all registered handlers.
