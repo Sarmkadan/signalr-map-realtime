@@ -6,6 +6,8 @@
 
 namespace SignalRMapRealtime.Integration;
 
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using SignalRMapRealtime.Events;
@@ -39,11 +41,17 @@ public class WebhookHandler : IWebhookHandler
 {
     private readonly ILogger<WebhookHandler> _logger;
     private readonly IEventBus _eventBus;
+    private readonly IConfiguration _configuration;
 
-    public WebhookHandler(ILogger<WebhookHandler> logger, IEventBus eventBus)
+    public WebhookHandler(ILogger<WebhookHandler> logger, IEventBus eventBus, IConfiguration configuration)
     {
+        ArgumentNullException.ThrowIfNull(logger);
+        ArgumentNullException.ThrowIfNull(eventBus);
+        ArgumentNullException.ThrowIfNull(configuration);
+
         _logger = logger;
         _eventBus = eventBus;
+        _configuration = configuration;
     }
 
     /// <summary>
@@ -99,8 +107,9 @@ public class WebhookHandler : IWebhookHandler
     /// </summary>
     public bool ValidateSignature(string provider, string payload, Dictionary<string, string> headers)
     {
-        // In production, implement actual signature validation
-        // This would verify HMAC-SHA256 or provider-specific signatures
+        ArgumentNullException.ThrowIfNull(provider);
+        ArgumentNullException.ThrowIfNull(payload);
+        ArgumentNullException.ThrowIfNull(headers);
 
         return provider.ToLowerInvariant() switch
         {
@@ -180,30 +189,75 @@ public class WebhookHandler : IWebhookHandler
     }
 
     /// <summary>
-    /// Validates signature from tracking service.
-    /// Placeholder for actual HMAC validation.
+    /// Validates the tracking service's HMAC-SHA256 signature against the shared secret
+    /// configured under "Webhooks:TrackingService:Secret".
     /// </summary>
     private bool ValidateTrackingServiceSignature(string payload, Dictionary<string, string> headers)
     {
-        // TODO: Implement HMAC-SHA256 signature validation
-        // For now, just check if signature header exists
-        return headers.ContainsKey("X-Signature") || headers.ContainsKey("Authorization");
+        if (!headers.TryGetValue("X-Signature", out var signature) || string.IsNullOrWhiteSpace(signature))
+            return false;
+
+        var secret = _configuration["Webhooks:TrackingService:Secret"];
+        return VerifyHmacSignature(payload, signature, secret);
     }
 
     /// <summary>
-    /// Validates signature from notification service.
+    /// Validates the notification service's HMAC-SHA256 signature against the shared secret
+    /// configured under "Webhooks:NotificationService:Secret".
     /// </summary>
     private bool ValidateNotificationServiceSignature(string payload, Dictionary<string, string> headers)
     {
-        return headers.ContainsKey("X-Webhook-Secret");
+        if (!headers.TryGetValue("X-Webhook-Secret", out var signature) || string.IsNullOrWhiteSpace(signature))
+            return false;
+
+        var secret = _configuration["Webhooks:NotificationService:Secret"];
+        return VerifyHmacSignature(payload, signature, secret);
     }
 
     /// <summary>
-    /// Validates signature from route optimization service.
+    /// Validates the route optimization service's HMAC-SHA256 signature against the shared secret
+    /// configured under "Webhooks:RouteOptimization:Secret".
     /// </summary>
     private bool ValidateRouteOptimizationSignature(string payload, Dictionary<string, string> headers)
     {
-        return headers.ContainsKey("Authorization");
+        if (!headers.TryGetValue("Authorization", out var signature) || string.IsNullOrWhiteSpace(signature))
+            return false;
+
+        var secret = _configuration["Webhooks:RouteOptimization:Secret"];
+        return VerifyHmacSignature(payload, signature, secret);
+    }
+
+    /// <summary>
+    /// Computes the HMAC-SHA256 signature of <paramref name="payload"/> using <paramref name="secret"/>
+    /// and compares it, in constant time, against the provided signature (hex-encoded, with an optional
+    /// "sha256=" prefix as used by several webhook providers).
+    /// </summary>
+    private bool VerifyHmacSignature(string payload, string providedSignature, string? secret)
+    {
+        if (string.IsNullOrWhiteSpace(secret))
+        {
+            _logger.LogWarning("Webhook signature validation skipped: no shared secret configured.");
+            return false;
+        }
+
+        var normalizedSignature = providedSignature.StartsWith("sha256=", StringComparison.OrdinalIgnoreCase)
+            ? providedSignature["sha256=".Length..]
+            : providedSignature;
+
+        byte[] providedBytes;
+        try
+        {
+            providedBytes = Convert.FromHexString(normalizedSignature.Trim());
+        }
+        catch (FormatException)
+        {
+            return false;
+        }
+
+        using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(secret));
+        var computedBytes = hmac.ComputeHash(Encoding.UTF8.GetBytes(payload));
+
+        return CryptographicOperations.FixedTimeEquals(providedBytes, computedBytes);
     }
 }
 

@@ -24,8 +24,10 @@ public class ApiKeyAuthenticationAttribute : Attribute, IAsyncAuthorizationFilte
     /// <summary>
     /// Executes the authorization filter to validate API key.
     /// </summary>
-    public async Task OnAuthorizationAsync(AuthorizationFilterContext context)
+    public Task OnAuthorizationAsync(AuthorizationFilterContext context)
     {
+        ArgumentNullException.ThrowIfNull(context);
+
         // Get API key from header or query parameter
         var apiKey = ExtractApiKey(context.HttpContext.Request);
 
@@ -36,22 +38,22 @@ public class ApiKeyAuthenticationAttribute : Attribute, IAsyncAuthorizationFilte
                 error = "API key is required",
                 message = $"Please provide an API key using '{ApiKeyHeaderName}' header or '{ApiKeyQueryParamName}' query parameter"
             });
-            return;
+            return Task.CompletedTask;
         }
 
-        // Validate API key (in production, check against database or configuration)
-        if (!IsValidApiKey(apiKey))
+        // Validate API key against the configured value
+        if (!IsValidApiKey(apiKey, context.HttpContext.RequestServices.GetService(typeof(IConfiguration)) as IConfiguration))
         {
             context.Result = new UnauthorizedObjectResult(new
             {
                 error = "Invalid API key",
                 message = "The provided API key is not valid"
             });
-            return;
+            return Task.CompletedTask;
         }
 
         // Authentication successful - add claims or user context as needed
-        await Task.CompletedTask;
+        return Task.CompletedTask;
     }
 
     /// <summary>
@@ -76,25 +78,18 @@ public class ApiKeyAuthenticationAttribute : Attribute, IAsyncAuthorizationFilte
     }
 
     /// <summary>
-    /// Validates if the API key is valid.
-    /// In production, this would check against a database, cache, or configuration.
-    /// Currently uses simple validation against known keys.
+    /// Validates the API key against the value configured under "Authentication:ApiKey".
     /// </summary>
-    private bool IsValidApiKey(string apiKey)
+    private static bool IsValidApiKey(string apiKey, IConfiguration? configuration)
     {
-        // TODO: Implement actual API key validation
-        // This could check against:
-        // - Database of valid API keys
-        // - Configuration file
-        // - Redis cache
-        // - External authentication service
+        if (string.IsNullOrWhiteSpace(apiKey))
+            return false;
 
-        // Placeholder validation - reject empty or obviously invalid keys
-        if (string.IsNullOrWhiteSpace(apiKey)) return false;
-        if (apiKey.Length < 20) return false;
+        var validApiKey = configuration?["Authentication:ApiKey"];
+        if (string.IsNullOrWhiteSpace(validApiKey))
+            return false;
 
-        // For now, accept any reasonably-formatted key
-        return true;
+        return apiKey == validApiKey;
     }
 }
 

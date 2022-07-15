@@ -22,14 +22,19 @@ using SignalRMapRealtime.Utilities;
 [Produces("application/json")]
 public class RouteController : ControllerBase
 {
+    private const double AssumedAverageSpeedKmh = 40.0;
+
     private readonly IRepository<Domain.Models.Route> _routeRepository;
+    private readonly IRepository<Domain.Models.Waypoint> _waypointRepository;
     private readonly ILogger<RouteController> _logger;
 
     public RouteController(
         IRepository<Domain.Models.Route> routeRepository,
+        IRepository<Domain.Models.Waypoint> waypointRepository,
         ILogger<RouteController> logger)
     {
         _routeRepository = routeRepository;
+        _waypointRepository = waypointRepository;
         _logger = logger;
     }
 
@@ -70,7 +75,7 @@ public class RouteController : ControllerBase
     /// Gets a specific route by ID.
     /// </summary>
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetRouteById(Guid id)
+    public async Task<IActionResult> GetRouteById(int id)
     {
         try
         {
@@ -148,7 +153,7 @@ public class RouteController : ControllerBase
     /// Updates a route.
     /// </summary>
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateRoute(Guid id, [FromBody] RouteDto updateRouteDto)
+    public async Task<IActionResult> UpdateRoute(int id, [FromBody] RouteDto updateRouteDto)
     {
         try
         {
@@ -183,7 +188,7 @@ public class RouteController : ControllerBase
     /// Deletes a route.
     /// </summary>
     [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteRoute(Guid id)
+    public async Task<IActionResult> DeleteRoute(int id)
     {
         try
         {
@@ -208,7 +213,7 @@ public class RouteController : ControllerBase
     /// Calculates the total distance and estimated time for a route.
     /// </summary>
     [HttpPost("{id}/calculate")]
-    public async Task<IActionResult> CalculateRoute(Guid id)
+    public async Task<IActionResult> CalculateRoute(int id)
     {
         try
         {
@@ -217,13 +222,30 @@ public class RouteController : ControllerBase
             if (route is null)
                 return NotFound(ErrorResponse.NotFoundError($"Route with ID {id} not found", HttpContext.TraceIdentifier));
 
-            // Placeholder calculation - in production would use actual waypoint coordinates
+            var waypoints = (await _waypointRepository.FindAsync(w => w.RouteId == id))
+                .OrderBy(w => w.Sequence)
+                .ToList();
+
+            var totalDistanceKm = 0.0;
+            for (var i = 1; i < waypoints.Count; i++)
+            {
+                totalDistanceKm += GeoLocationExtensions.DistanceBetween(
+                    waypoints[i - 1].Latitude,
+                    waypoints[i - 1].Longitude,
+                    waypoints[i].Latitude,
+                    waypoints[i].Longitude);
+            }
+
+            var travelMinutes = totalDistanceKm / AssumedAverageSpeedKmh * 60.0;
+            var stopMinutes = waypoints.Sum(w => w.EstimatedDurationMinutes ?? 0);
+            var estimatedDurationMinutes = (int)Math.Round(travelMinutes + stopMinutes);
+
             var calculation = new
             {
                 routeId = route.Id,
-                estimatedDistance = 25.5,
-                estimatedDurationMinutes = 45,
-                waypointCount = 5,
+                estimatedDistance = Math.Round(totalDistanceKm, 2),
+                estimatedDurationMinutes,
+                waypointCount = waypoints.Count,
                 calculatedAt = DateTime.UtcNow
             };
 
