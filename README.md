@@ -429,6 +429,66 @@ connection.On("Pong", () => Console.WriteLine("Ping received, connection alive")
 await connection.InvokeAsync("Ping");
 ```
 
+## RoutePlaybackHub
+
+The `RoutePlaybackHub` class is a SignalR hub that enables playback of historical route data for analysis and review. It allows clients to control playback operations (start, pause, resume, stop, seek), adjust playback speed, and subscribe to real-time playback state updates. The hub provides methods to retrieve playback state, timeline data, snapshots, and statistics.
+
+### Usage Example
+
+```csharp
+// Setup SignalR client connection
+var connection = new HubConnectionBuilder()
+.WithUrl("https://your-server.com/routePlaybackHub")
+.WithAutomaticReconnect()
+.Build();
+
+// Start the connection
+await connection.StartAsync();
+
+// Subscribe to playback state updates
+await connection.InvokeAsync("SubscribeToPlayback", 456); // routeId = 456
+
+// Start playback from beginning
+var startTime = DateTime.UtcNow.AddHours(-1); // Start from 1 hour ago
+var endTime = DateTime.UtcNow;
+await connection.InvokeAsync("StartPlayback", 456, startTime, endTime);
+
+// Pause playback
+await connection.InvokeAsync("PausePlayback", 456);
+
+// Resume paused playback
+await connection.InvokeAsync("ResumePlayback", 456);
+
+// Stop playback
+await connection.InvokeAsync("StopPlayback", 456);
+
+// Seek to specific timestamp
+var seekTime = DateTime.UtcNow.AddMinutes(-30);
+await connection.InvokeAsync("SeekTo", 456, seekTime);
+
+// Set playback speed (1.0 = real-time, 2.0 = 2x speed, 0.5 = half speed)
+await connection.InvokeAsync("SetSpeed", 456, 2.5);
+
+// Get current playback state
+var state = await connection.InvokeAsync<PlaybackStateDto>("GetPlaybackState", 456);
+Console.WriteLine($"Playback status: {state.Status}, Position: {state.CurrentPosition}");
+
+// Request timeline data for the route
+var timeline = await connection.InvokeAsync<TimelineDataDto>("RequestTimeline", 456);
+Console.WriteLine($"Timeline contains {timeline.Points.Count} data points");
+
+// Request current snapshot of all vehicles on route
+var snapshot = await connection.InvokeAsync<RouteSnapshotDto>("RequestSnapshot", 456);
+Console.WriteLine($"Snapshot has {snapshot.Vehicles.Count} vehicles");
+
+// Request playback statistics
+var stats = await connection.InvokeAsync<PlaybackStatisticsDto>("RequestStatistics", 456);
+Console.WriteLine($"Total distance: {stats.TotalDistanceKm} km, Average speed: {stats.AverageSpeedKph} kph");
+
+// Unsubscribe when done
+await connection.InvokeAsync("UnsubscribeFromPlayback", 456);
+```
+
 ## Documentation
 
 This project uses a variety of extension methods and utility classes to simplify common tasks and provide a more intuitive API. The following sections provide a brief overview of each extension method and utility class, along with examples of how to use them.
