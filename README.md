@@ -350,6 +350,85 @@ var notificationHeaders = new Dictionary<string, string>
 var notificationResult = await webhookHandler.ProcessWebhookAsync("notification-service", notificationPayload, notificationHeaders);
 ```
 
+## LocationHub
+
+The `LocationHub` class is a SignalR hub that enables real-time location tracking and vehicle updates. It handles client connections, location updates, vehicle status changes, and route progress broadcasts. The hub requires API key authentication and manages client groups for efficient message routing.
+
+### Usage Example
+
+```csharp
+// Setup SignalR client connection
+var connection = new HubConnectionBuilder()
+    .WithUrl("https://your-server.com/locationHub", options =>
+    {
+        options.Headers.Add("X-API-Key", "your-api-key-here");
+    })
+    .WithAutomaticReconnect()
+    .Build();
+
+// Start the connection
+await connection.StartAsync();
+
+// Subscribe to vehicle updates
+await connection.InvokeAsync("SubscribeToVehicle", 123);
+
+// Send a location update from a vehicle tracker
+var locationUpdate = new CreateLocationDto
+{
+    VehicleId = 123,
+    Latitude = 40.7128,
+    Longitude = -74.0060,
+    Accuracy = 5.2,
+    Speed = 45.5,
+    Heading = 90.0,
+    Timestamp = DateTime.UtcNow
+};
+await connection.InvokeAsync("SendLocationUpdate", locationUpdate);
+
+// Request all vehicle locations on reconnect
+await connection.InvokeAsync("RequestAllVehicleLocations");
+
+// Broadcast vehicle status change
+await connection.InvokeAsync("BroadcastVehicleStatusChange", 123, "Active");
+
+// Request latest location for a specific vehicle
+await connection.InvokeAsync("RequestVehicleLocation", 123);
+
+// Subscribe to route progress updates
+await connection.InvokeAsync("BroadcastRouteProgress", 456, 75, "InProgress");
+
+// Send an alert
+await connection.InvokeAsync("SendAlert", 123, "SpeedViolation", "Vehicle exceeded speed limit");
+
+// Get online vehicle count
+var vehicleCount = await connection.InvokeAsync<int>("RequestOnlineVehicleCount");
+
+// Broadcast fleet status
+await connection.InvokeAsync("BroadcastFleetStatus", "DeliveryFleet", 15, 20);
+
+// Handle incoming messages from server
+connection.On<LocationDto>("LocationUpdated", location =>
+{
+    Console.WriteLine($"Vehicle {location.VehicleId} updated at ({location.Latitude}, {location.Longitude})");
+});
+
+connection.On<VehicleStatusChangedDto>("VehicleStatusChanged", status =>
+{
+    Console.WriteLine($"Vehicle {status.VehicleId} status changed to {status.NewStatus}");
+});
+
+connection.On<int>("AssetRemoved", vehicleId =>
+{
+    Console.WriteLine($"Asset {vehicleId} removed from tracking");
+});
+
+// Keep connection alive
+connection.On("Pong", () => Console.WriteLine("Ping received, connection alive"));
+
+// Send heartbeat ping
+await connection.InvokeAsync("Ping");
+```
+
 ## Documentation
 
 This project uses a variety of extension methods and utility classes to simplify common tasks and provide a more intuitive API. The following sections provide a brief overview of each extension method and utility class, along with examples of how to use them.
