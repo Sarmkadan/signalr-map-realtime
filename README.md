@@ -276,6 +276,80 @@ eventBus.Subscribe<MyEvent>(async (event) =>
 await eventBus.PublishAsync(new MyEvent { Message = "Hello, world!" });
 ```
 
+## IWebhookHandler
+
+The `IWebhookHandler` interface and its implementation (`WebhookHandler`) provide functionality for receiving, validating, and processing webhooks from external services. It handles signature validation to ensure authenticity, deserializes payloads based on the provider, and routes to appropriate handlers for tracking updates, notifications, and route optimization.
+
+
+### Usage Example
+
+```csharp
+// Setup dependency injection
+var services = new ServiceCollection();
+services.AddLogging(configure => configure.AddConsole());
+services.AddSingleton<IEventBus, InMemoryEventBus>();
+services.AddSingleton<IConfiguration>(new ConfigurationBuilder()
+    .AddInMemoryCollection(new Dictionary<string, string?>
+    {
+        ["Webhooks:TrackingService:Secret"] = "your-secret-key-here"
+    })
+    .Build());
+
+var serviceProvider = services.BuildServiceProvider();
+
+// Create webhook handler
+var webhookHandler = new WebhookHandler(
+    serviceProvider.GetRequiredService<ILogger<WebhookHandler>>(),
+    serviceProvider.GetRequiredService<IEventBus>(),
+    serviceProvider.GetRequiredService<IConfiguration>()
+);
+
+// Example 1: Process a tracking service webhook with valid signature
+var trackingPayload = @"{
+    "vehicleId": "123e4567-e89b-12d3-a456-426614174000",
+    "latitude": 40.7128,
+    "longitude": -74.0060,
+    "speed": 45.5,
+    "heading": 90.0,
+    "accuracy": 5.2,
+    "timestamp": "2024-07-14T10:30:00Z"
+}";
+
+var trackingHeaders = new Dictionary<string, string>
+{
+    ["X-Signature"] = "valid-hmac-signature-here"
+};
+
+var trackingResult = await webhookHandler.ProcessWebhookAsync("tracking-service", trackingPayload, trackingHeaders);
+
+if (trackingResult.Success)
+{
+    Console.WriteLine($"Tracking webhook processed successfully at {trackingResult.ProcessedAt}");
+}
+else
+{
+    Console.WriteLine($"Error: {trackingResult.ErrorMessage}");
+}
+
+// Example 2: Validate signature before processing
+var isValid = webhookHandler.ValidateSignature("tracking-service", trackingPayload, trackingHeaders);
+Console.WriteLine($"Signature valid: {isValid}");
+
+// Example 3: Process a notification service webhook
+var notificationPayload = @"{
+    "deliveryId": "789e4567-e89b-12d3-a456-426614174001",
+    "status": "delivered",
+    "timestamp": "2024-07-14T10:35:00Z"
+}";
+
+var notificationHeaders = new Dictionary<string, string>
+{
+    ["X-Webhook-Secret"] = "valid-notification-secret-here"
+};
+
+var notificationResult = await webhookHandler.ProcessWebhookAsync("notification-service", notificationPayload, notificationHeaders);
+```
+
 ## Documentation
 
 This project uses a variety of extension methods and utility classes to simplify common tasks and provide a more intuitive API. The following sections provide a brief overview of each extension method and utility class, along with examples of how to use them.
