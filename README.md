@@ -24,3 +24,23 @@ catch (Exception ex)
     }
 }
 ```
+
+## ApiResponse
+
+The `ApiResponse<T>` and its non‑generic counterpart provide a consistent wrapper for API responses. They expose properties such as `Success`, `Data`, `Message`, `StatusCode`, `Timestamp`, and `TraceId`, and static factory methods `SuccessResponse` and `FailureResponse` for quick construction.
+
+```csharp
+// Successful response with data
+var success = ApiResponse<string>.SuccessResponse("Hello, world!", traceId: "abc123");
+
+// Failed response without data
+var failure = ApiResponse<string>.FailureResponse("Something went wrong", statusCode: 500);
+
+// Non‑generic success
+var ok = ApiResponse.SuccessResponse("All good", traceId: "xyz789");
+
+// Non‑generic failure
+var err = ApiResponse.FailureResponse("Bad request", statusCode: 400);
+```
+
+The example demonstrates creating both generic and non‑generic responses, setting custom status codes and trace identifiers, and accessing the exposed properties.
