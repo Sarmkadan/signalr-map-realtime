@@ -1,24 +1,16 @@
 // ... (rest of file remains unchanged)
 
-## PagedRequest
+## PaginatedResponse
 
-The `PagedRequest` class serves as a base request model for paginated API endpoints, providing standard pagination parameters with validation. It ensures consistent pagination across all list endpoints by inheriting from this class.
+The `PaginatedResponse<T>` class serves as a generic wrapper for paginated data, providing metadata about the current page and the total count of items. It includes properties for the list of items, page number, page size, total count, total pages, and indicators for the presence of next and previous pages.
 
 ### Usage Example
 
 ```csharp
-var request = new PagedRequest
-{
-    PageNumber = 2,
-    PageSize = 50,
-    SearchQuery = "example search query",
-    SortBy = "createdAt",
-    Filter = "{\"field1\": \"value1\", \"field2\": \"value2\"}"
-};
-
-Console.WriteLine($"Page Number: {request.PageNumber}, Page Size: {request.PageSize}");
-Console.WriteLine($"Search Query: {request.SearchQuery}, Sort By: {request.SortBy}");
-Console.WriteLine($"Filter: {request.Filter}");
+var items = new List<string> { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
+var paginatedResponse = PaginatedResponse<string>.FromList(items, 1, 2);
+Console.WriteLine($"Items: {string.Join(", ", paginatedResponse.Items)}, Page Number: {paginatedResponse.PageNumber}, Page Size: {paginatedResponse.PageSize}");
+Console.WriteLine($"Total Count: {paginatedResponse.TotalCount}, Total Pages: {paginatedResponse.TotalPages}, Has Next Page: {paginatedResponse.HasNextPage}, Has Previous Page: {paginatedResponse.HasPreviousPage}");
 ```
 
 ## ErrorResponse
@@ -64,4 +56,3 @@ var err = ApiResponse.FailureResponse("Bad request", statusCode: 400);
 ```
 
 The example demonstrates creating both generic and non‑generic responses, setting custom status codes and trace identifiers, and accessing the exposed properties.
-```
