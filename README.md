@@ -56,3 +56,45 @@ var err = ApiResponse.FailureResponse("Bad request", statusCode: 400);
 ```
 
 The example demonstrates creating both generic and non‑generic responses, setting custom status codes and trace identifiers, and accessing the exposed properties.
+
+
+## Waypoint
+
+The `Waypoint` class represents a specific location within a route that needs to be visited during navigation. It tracks sequencing information, timing constraints, estimated duration, completion status, and contact details for each waypoint in a route. Waypoints can be marked as completed and reset when needed.
+
+### Usage Example
+
+```csharp
+// Create a new waypoint for a delivery route
+var waypoint = new Waypoint
+{
+    Id = 1,
+    Sequence = 1,
+    Name = "Warehouse Pickup",
+    Latitude = 40.7128,
+    Longitude = -74.0060,
+    Address = "123 Main St, New York, NY",
+    ArrivalTimeStart = "09:00",
+    ArrivalTimeEnd = "10:00",
+    EstimatedDurationMinutes = 30,
+    Instructions = "Pick up package from loading dock B",
+    ContactName = "John Smith",
+    ContactPhone = "+1-555-123-4567",
+    RouteId = 101
+};
+
+// Mark the waypoint as completed
+waypoint.CompleteWaypoint();
+
+// Check if coordinates are valid
+if (waypoint.HasValidCoordinates)
+{
+    Console.WriteLine($"Waypoint {waypoint.Name} at ({waypoint.Latitude}, {waypoint.Longitude})");
+}
+
+// Reset the waypoint for a new attempt
+waypoint.Reset();
+
+// Access route navigation
+var route = waypoint.Route;
+```
