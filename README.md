@@ -1,5 +1,25 @@
-// =============================================================================
 // ... (rest of file remains unchanged)
+
+## PagedRequest
+
+The `PagedRequest` class serves as a base request model for paginated API endpoints, providing standard pagination parameters with validation. It ensures consistent pagination across all list endpoints by inheriting from this class.
+
+### Usage Example
+
+```csharp
+var request = new PagedRequest
+{
+    PageNumber = 2,
+    PageSize = 50,
+    SearchQuery = "example search query",
+    SortBy = "createdAt",
+    Filter = "{\"field1\": \"value1\", \"field2\": \"value2\"}"
+};
+
+Console.WriteLine($"Page Number: {request.PageNumber}, Page Size: {request.PageSize}");
+Console.WriteLine($"Search Query: {request.SearchQuery}, Sort By: {request.SortBy}");
+Console.WriteLine($"Filter: {request.Filter}");
+```
 
 ## ErrorResponse
 
@@ -44,3 +64,4 @@ var err = ApiResponse.FailureResponse("Bad request", statusCode: 400);
 ```
 
 The example demonstrates creating both generic and non‑generic responses, setting custom status codes and trace identifiers, and accessing the exposed properties.
+```
