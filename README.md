@@ -1,63 +1,5 @@
 // ... (rest of file remains unchanged)
 
-## PaginatedResponse
-
-The `PaginatedResponse<T>` class serves as a generic wrapper for paginated data, providing metadata about the current page and the total count of items. It includes properties for the list of items, page number, page size, total count, total pages, and indicators for the presence of next and previous pages.
-
-### Usage Example
-
-```csharp
-var items = new List<string> { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
-var paginatedResponse = PaginatedResponse<string>.FromList(items, 1, 2);
-Console.WriteLine($"Items: {string.Join(", ", paginatedResponse.Items)}, Page Number: {paginatedResponse.PageNumber}, Page Size: {paginatedResponse.PageSize}");
-Console.WriteLine($"Total Count: {paginatedResponse.TotalCount}, Total Pages: {paginatedResponse.TotalPages}, Has Next Page: {paginatedResponse.HasNextPage}, Has Previous Page: {paginatedResponse.HasPreviousPage}");
-```
-
-## ErrorResponse
-
-The `ErrorResponse` class represents a standardized error response structure for providing comprehensive error information to clients. It includes properties for a general error message, error code, field-level validation errors, HTTP status code, timestamp, and optional details like stack trace and inner exception.
-
-### Usage Example
-
-```csharp
-try
-{
-    // Attempt to perform some operation that may throw an error
-    var data = new Dictionary<string, string[]> { ["field1"] = new[] { "Error message 1" } };
-    throw new ValidationException(data);
-}
-catch (Exception ex)
-{
-    var errorResponse = ErrorResponse.ValidationError(data, "Validation failed", "abc123");
-    Console.WriteLine($"Error: {errorResponse.Message}, Code: {errorResponse.ErrorCode}, Status Code: {errorResponse.StatusCode}");
-    foreach (var error in errorResponse.Errors)
-    {
-        Console.WriteLine($"Field: {error.Key}, Errors: {string.Join(", ", error.Value)}");
-    }
-}
-```
-
-## ApiResponse
-
-The `ApiResponse<T>` and its non‑generic counterpart provide a consistent wrapper for API responses. They expose properties such as `Success`, `Data`, `Message`, `StatusCode`, `Timestamp`, and `TraceId`, and static factory methods `SuccessResponse` and `FailureResponse` for quick construction.
-
-```csharp
-// Successful response with data
-var success = ApiResponse<string>.SuccessResponse("Hello, world!", traceId: "abc123");
-
-// Failed response without data
-var failure = ApiResponse<string>.FailureResponse("Something went wrong", statusCode: 500);
-
-// Non‑generic success
-var ok = ApiResponse.SuccessResponse("All good", traceId: "xyz789");
-
-// Non‑generic failure
-var err = ApiResponse.FailureResponse("Bad request", statusCode: 400);
-```
-
-The example demonstrates creating both generic and non‑generic responses, setting custom status codes and trace identifiers, and accessing the exposed properties.
-
-
 ## Waypoint
 
 The `Waypoint` class represents a specific location within a route that needs to be visited during navigation. It tracks sequencing information, timing constraints, estimated duration, completion status, and contact details for each waypoint in a route. Waypoints can be marked as completed and reset when needed.
@@ -68,19 +10,19 @@ The `Waypoint` class represents a specific location within a route that needs to
 // Create a new waypoint for a delivery route
 var waypoint = new Waypoint
 {
-    Id = 1,
-    Sequence = 1,
-    Name = "Warehouse Pickup",
-    Latitude = 40.7128,
-    Longitude = -74.0060,
-    Address = "123 Main St, New York, NY",
-    ArrivalTimeStart = "09:00",
-    ArrivalTimeEnd = "10:00",
-    EstimatedDurationMinutes = 30,
-    Instructions = "Pick up package from loading dock B",
-    ContactName = "John Smith",
-    ContactPhone = "+1-555-123-4567",
-    RouteId = 101
+  Id = 1,
+  Sequence = 1,
+  Name = "Warehouse Pickup",
+  Latitude = 40.7128,
+  Longitude = -74.0060,
+  Address = "123 Main St, New York, NY",
+  ArrivalTimeStart = "09:00",
+  ArrivalTimeEnd = "10:00",
+  EstimatedDurationMinutes = 30,
+  Instructions = "Pick up package from loading dock B",
+  ContactName = "John Smith",
+  ContactPhone = "+1-555-123-4567",
+  RouteId = 101
 };
 
 // Mark the waypoint as completed
@@ -89,7 +31,7 @@ waypoint.CompleteWaypoint();
 // Check if coordinates are valid
 if (waypoint.HasValidCoordinates)
 {
-    Console.WriteLine($"Waypoint {waypoint.Name} at ({waypoint.Latitude}, {waypoint.Longitude})");
+  Console.WriteLine($"Waypoint {waypoint.Name} at ({waypoint.Latitude}, {waypoint.Longitude})");
 }
 
 // Reset the waypoint for a new attempt
@@ -97,4 +39,49 @@ waypoint.Reset();
 
 // Access route navigation
 var route = waypoint.Route;
+```
+
+## Asset
+
+The `Asset` class represents a trackable asset (equipment, container, package) in the system. It provides comprehensive tracking capabilities including location history, vehicle assignments, condition monitoring, and special handling requirements. Assets can be assigned to vehicles, have their location updated, and track various metadata such as value, serial numbers, and status conditions.
+
+### Usage Example
+
+```csharp
+// Create a new asset representing a delivery container
+var asset = new Asset
+{
+    Id = 101,
+    Name = "Container-2024-001",
+    SerialNumber = "CON-2024-001-ABC",
+    AssetType = AssetType.Container,
+    Value = 15000.00m,
+    Description = "High-value medical equipment container",
+    Condition = "Excellent",
+    RequiresSpecialHandling = true,
+    SpecialHandlingInstructions = "Keep upright, avoid extreme temperatures",
+    CreatedAt = DateTime.UtcNow,
+    UpdatedAt = DateTime.UtcNow,
+    LastTrackedAt = DateTime.UtcNow
+};
+
+// Assign the asset to a vehicle for transport
+var vehicle = new Vehicle { Id = 5, Name = "Truck-001", LicensePlate = "ABC123" };
+asset.AssignToVehicle(vehicle);
+
+// Update the asset's current location
+var currentLocation = new Location { Id = 20, Name = "Warehouse Dock 3B", Latitude = 40.7128, Longitude = -74.0060 };
+asset.UpdateLocation(currentLocation);
+
+// Add to location history
+asset.LocationHistory.Add(new Location { Id = 15, Name = "Distribution Center", Latitude = 40.7306, Longitude = -73.9352 });
+
+// Update condition status
+asset.UpdateCondition("Good");
+
+// Disable special handling when no longer needed
+asset.DisableSpecialHandling();
+
+// Unassign from vehicle when delivery is complete
+asset.UnassignFromVehicle();
 ```
