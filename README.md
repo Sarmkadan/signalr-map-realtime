@@ -86,6 +86,86 @@ asset.DisableSpecialHandling();
 asset.UnassignFromVehicle();
 ```
 
+## TrackingSession
+
+The `TrackingSession` class represents a continuous tracking session for a vehicle with comprehensive location history and statistics. It manages vehicle tracking state, session status, and calculates real-time metrics like distance traveled, average speed, and maximum speed. Sessions can be started, paused, resumed, completed, or cancelled, with automatic statistics calculation upon completion.
+
+### Usage Example
+
+```csharp
+// Create a new tracking session for a delivery vehicle
+var vehicle = new Vehicle { Id = 5, Name = "Truck-001", LicensePlate = "ABC123" };
+var route = new Route { Id = 10, Name = "Downtown Delivery Route" };
+
+var trackingSession = new TrackingSession
+{
+    Id = 1,
+    SessionName = "Delivery Run #2024-001",
+    VehicleId = vehicle.Id,
+    Vehicle = vehicle,
+    RouteId = route.Id,
+    Route = route,
+    Status = SessionStatus.Pending,
+    TotalDistance = 0,
+    AverageSpeed = 0,
+    MaxSpeed = 0,
+    TotalIdleSeconds = 0,
+    Notes = "Morning delivery route",
+    CreatedAt = DateTime.UtcNow,
+    UpdatedAt = DateTime.UtcNow
+};
+
+// Start the tracking session
+trackingSession.StartSession();
+
+// Record location points during the journey
+var location1 = new Location
+{
+    Id = 1,
+    Latitude = 40.7128,
+    Longitude = -74.0060,
+    Speed = 45.6,
+    RecordedAt = DateTime.UtcNow,
+    LocationType = LocationType.TrackingPoint
+};
+
+trackingSession.RecordLocation(location1);
+
+// Pause the session when vehicle stops
+// trackingSession.PauseSession();
+
+// Resume the session when vehicle continues
+// trackingSession.ResumeSession();
+
+// Record more locations
+var location2 = new Location
+{
+    Id = 2,
+    Latitude = 40.7306,
+    Longitude = -73.9352,
+    Speed = 55.2,
+    RecordedAt = DateTime.UtcNow.AddMinutes(5),
+    LocationType = LocationType.TrackingPoint
+};
+
+trackingSession.RecordLocation(location2);
+
+// Complete the session and calculate statistics
+trackingSession.CompleteSession();
+
+// Access calculated statistics
+Console.WriteLine($"Session completed in {trackingSession.GetSessionDurationHours():F2} hours");
+Console.WriteLine($"Total distance: {trackingSession.TotalDistance:F2} km");
+Console.WriteLine($"Average speed: {trackingSession.AverageSpeed:F2} km/h");
+Console.WriteLine($"Max speed: {trackingSession.MaxSpeed:F2} km/h");
+Console.WriteLine($"Total idle time: {trackingSession.TotalIdleSeconds} seconds");
+
+// Access related entities
+var completedVehicle = trackingSession.Vehicle;
+var completedRoute = trackingSession.Route;
+var allLocations = trackingSession.Locations;
+```
+
 ## Location
 
 The `Location` class represents a geographic location point with comprehensive tracking metadata for real-time mapping and navigation systems. It stores essential GPS coordinates along with optional movement data (speed, bearing, accuracy), timing information, and contextual details like address and notes. The class includes utility methods for distance calculation and coordinate validation.
