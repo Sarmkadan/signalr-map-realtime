@@ -85,3 +85,55 @@ asset.DisableSpecialHandling();
 // Unassign from vehicle when delivery is complete
 asset.UnassignFromVehicle();
 ```
+
+## Location
+
+The `Location` class represents a geographic location point with comprehensive tracking metadata for real-time mapping and navigation systems. It stores essential GPS coordinates along with optional movement data (speed, bearing, accuracy), timing information, and contextual details like address and notes. The class includes utility methods for distance calculation and coordinate validation.
+
+### Usage Example
+
+```csharp
+// Create a location record for a vehicle tracking system
+var location = new Location
+{
+    Id = 1,
+    Latitude = 40.7128,
+    Longitude = -74.0060,
+    Altitude = 15.5,
+    Accuracy = 3.2,
+    Speed = 45.6,
+    Bearing = 125.3,
+    LocationType = LocationType.TrackingPoint,
+    Address = "123 Main St, New York, NY 10001",
+    Notes = "Vehicle on delivery route",
+    VehicleId = 5,
+    TrackingSessionId = 101,
+    RecordedAt = DateTime.UtcNow,
+    CreatedAt = DateTime.UtcNow,
+    Timestamp = DateTime.UtcNow,
+    Heading = 125.3
+};
+
+// Validate coordinates
+if (location.IsValidCoordinate())
+{
+    Console.WriteLine($"Valid location: {location.Latitude}, {location.Longitude}");
+}
+
+// Calculate distance to another location (in kilometers)
+var otherLocation = new Location
+{
+    Latitude = 40.7306,
+    Longitude = -73.9352
+};
+double distanceKm = location.CalculateDistanceTo(otherLocation);
+Console.WriteLine($"Distance to other location: {distanceKm:F2} km");
+
+// Check if location is significantly different from another
+bool isDifferent = location.IsDifferentFrom(otherLocation);
+Console.WriteLine($"Location is different: {isDifferent}");
+
+// Access related entities
+var vehicle = location.Vehicle;
+var trackingSession = location.TrackingSession;
+```
