@@ -217,3 +217,72 @@ Console.WriteLine($"Location is different: {isDifferent}");
 var vehicle = location.Vehicle;
 var trackingSession = location.TrackingSession;
 ```
+
+## Geofence
+
+The `Geofence` class represents a geographic boundary zone used for proximity-based alerts and event triggers. It supports both circular zones (defined by a center point and radius) and polygonal zones (defined by an ordered series of coordinate vertices). Geofences can be used to monitor when tracked assets or vehicles enter or exit specific geographic areas, enabling automated notifications and workflow automation.
+
+### Usage Example
+
+```csharp
+// Create a circular geofence for a warehouse delivery zone
+var warehouseGeofence = new Geofence
+{
+  Name = "Warehouse Delivery Zone",
+  Description = "Primary delivery and pickup area for warehouse operations",
+  Type = GeofenceType.Circle,
+  IsActive = true,
+  CenterLatitude = 40.7128,
+  CenterLongitude = -74.0060,
+  RadiusKm = 0.5,
+  CreatedBy = "system"
+};
+
+// Check if a delivery truck is within the warehouse zone
+var truckLocation = new Location
+{
+  Latitude = 40.7130,
+  Longitude = -74.0062
+};
+
+bool isInZone = warehouseGeofence.ContainsPoint(
+  truckLocation.Latitude,
+  truckLocation.Longitude
+);
+
+Console.WriteLine($"Truck is in warehouse zone: {isInZone}");
+
+// Create a polygonal geofence for a restricted construction area
+var restrictedArea = new Geofence
+{
+  Name = "Construction Zone Alpha",
+  Description = "Restricted area during active construction work",
+  Type = GeofenceType.Polygon,
+  IsActive = true,
+  PolygonCoordinates = "40.7128,-74.0060;40.7132,-74.0055;40.7135,-74.0060;40.7132,-74.0065",
+  CreatedBy = "safety-team"
+};
+
+// Get polygon points for validation
+var polygonPoints = restrictedArea.GetPolygonPoints();
+Console.WriteLine($"Restricted area has {polygonPoints.Count} vertices");
+
+// Check if a vehicle is entering the restricted construction zone
+var vehicleLocation = new Location
+{
+  Latitude = 40.7131,
+  Longitude = -74.0058
+};
+
+bool isInRestrictedZone = restrictedArea.ContainsPoint(
+  vehicleLocation.Latitude,
+  vehicleLocation.Longitude
+);
+
+Console.WriteLine($"Vehicle is in restricted zone: {isInRestrictedZone}");
+
+// Access geofence properties
+Console.WriteLine($"Geofence ID: {restrictedArea.Id}");
+Console.WriteLine($"Created at: {restrictedArea.CreatedAt:yyyy-MM-dd HH:mm:ss}");
+Console.WriteLine($"Last updated: {restrictedArea.UpdatedAt:yyyy-MM-dd HH:mm:ss}");
+```
