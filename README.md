@@ -86,6 +86,103 @@ asset.DisableSpecialHandling();
 asset.UnassignFromVehicle();
 ```
 
+## Vehicle
+
+The `Vehicle` class represents a vehicle being tracked in the real-time location system. It provides comprehensive vehicle tracking capabilities including status monitoring, location history, driver assignments, fuel level tracking, and speed limit enforcement. Vehicles can be configured with manufacturer details, model information, and operational constraints like maximum speed and fuel capacity.
+
+### Usage Example
+
+```csharp
+// Create a new delivery vehicle with manufacturer details
+var vehicle = new Vehicle
+{
+    Id = 5,
+    Name = "Delivery Van-001",
+    RegistrationNumber = "ABC123",
+    Manufacturer = "Ford",
+    Model = "Transit",
+    ModelYear = 2023,
+    Make = "Ford",
+    Year = 2023,
+    VIN = "1FTEW1E83NKD00001",
+    AssetType = AssetType.Van,
+    MaxSpeed = 120.0,
+    FuelLevel = 85.5,
+    IsOnline = true,
+    Status = VehicleStatus.Active,
+    CreatedAt = DateTime.UtcNow,
+    UpdatedAt = DateTime.UtcNow
+};
+
+// Assign a driver to the vehicle
+var driver = new User { Id = 10, Name = "John Doe", Email = "john.doe@company.com" };
+vehicle.DriverId = driver.Id;
+vehicle.Driver = driver;
+
+// Record the vehicle's current location
+var currentLocation = new Location
+{
+    Id = 1,
+    Latitude = 40.7128,
+    Longitude = -74.0060,
+    Speed = 45.6,
+    Accuracy = 3.2,
+    RecordedAt = DateTime.UtcNow,
+    LocationType = LocationType.TrackingPoint,
+    Address = "123 Main St, New York, NY",
+    VehicleId = vehicle.Id
+};
+
+vehicle.RecordLocation(currentLocation);
+
+// Update vehicle status
+vehicle.UpdateStatus(VehicleStatus.OnRoute);
+
+// Check if vehicle has exceeded speed limit
+bool exceededLimit = vehicle.HasExceededSpeedLimit();
+Console.WriteLine($"Vehicle exceeded speed limit: {exceededLimit}");
+
+// Check if vehicle is idle
+bool isIdle = vehicle.IsIdle();
+Console.WriteLine($"Vehicle is idle: {isIdle}");
+
+// Toggle online status
+vehicle.SetOnlineStatus(false);
+
+// Access vehicle's tracking sessions
+var trackingSession = new TrackingSession
+{
+    Id = 1,
+    SessionName = "Morning Delivery Run",
+    VehicleId = vehicle.Id,
+    Status = SessionStatus.Active,
+    TotalDistance = 0,
+    AverageSpeed = 0,
+    MaxSpeed = 0,
+    TotalIdleSeconds = 0,
+    CreatedAt = DateTime.UtcNow,
+    UpdatedAt = DateTime.UtcNow
+};
+
+vehicle.TrackingSessions.Add(trackingSession);
+
+// Access vehicle's routes
+var route = new Route
+{
+    Id = 10,
+    Name = "Downtown Delivery Route",
+    Description = "Morning delivery route for downtown area"
+};
+
+vehicle.Routes.Add(route);
+
+// Access vehicle's location history
+foreach (var location in vehicle.Locations)
+{
+    Console.WriteLine($"Location recorded at {location.RecordedAt}: ({location.Latitude}, {location.Longitude})");
+}
+```
+
 ## TrackingSession
 
 The `TrackingSession` class represents a continuous tracking session for a vehicle with comprehensive location history and statistics. It manages vehicle tracking state, session status, and calculates real-time metrics like distance traveled, average speed, and maximum speed. Sessions can be started, paused, resumed, completed, or cancelled, with automatic statistics calculation upon completion.
