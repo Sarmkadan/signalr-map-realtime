@@ -263,6 +263,64 @@ var completedRoute = trackingSession.Route;
 var allLocations = trackingSession.Locations;
 ```
 
+## User
+
+The `User` class represents a system user with comprehensive profile information, authentication details, and real-time presence tracking. It stores essential user data including contact information, employment details, profile images, and online/offline status. Users can be assigned to vehicles and routes, and their location history can be tracked for operational purposes.
+
+### Usage Example
+
+```csharp
+// Create a new user representing a delivery driver
+var user = new User
+{
+    Id = 10,
+    FullName = "John Doe",
+    Email = "john.doe@company.com",
+    PhoneNumber = "+1-555-123-4567",
+    EmployeeId = "EMP-2024-001",
+    JobTitle = "Delivery Driver",
+    Department = "Operations",
+    ProfileImageUrl = "/images/users/john-doe.jpg",
+    IsActive = true,
+    IsOnline = true,
+    CreatedAt = DateTime.UtcNow,
+    UpdatedAt = DateTime.UtcNow,
+    LastLoginAt = DateTime.UtcNow.AddHours(-1)
+};
+
+// Set online status based on device activity
+user.SetOnlineStatus(true);
+
+// Validate user email format
+bool isEmailValid = user.IsEmailValid();
+Console.WriteLine($"Email is valid: {isEmailValid}");
+
+// Update user's current location
+var currentLocation = new Location
+{
+    Id = 20,
+    Latitude = 40.7128,
+    Longitude = -74.0060,
+    Address = "123 Main St, New York, NY"
+};
+user.UpdateLocation(currentLocation);
+
+// Deactivate user account when needed
+user.Deactivate();
+
+// Access user's assigned vehicles
+foreach (var vehicle in user.AssignedVehicles)
+{
+    Console.WriteLine($"Assigned vehicle: {vehicle.Name} (License: {vehicle.RegistrationNumber})");
+}
+
+// Access user's assigned routes
+foreach (var route in user.AssignedRoutes)
+{
+    Console.WriteLine($"Assigned route: {route.Name}");
+}
+```
+
 ## Location
 
 The `Location` class represents a geographic location point with comprehensive tracking metadata for real-time mapping and navigation systems. It stores essential GPS coordinates along with optional movement data (speed, bearing, accuracy), timing information, and contextual details like address and notes. The class includes utility methods for distance calculation and coordinate validation.
