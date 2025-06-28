@@ -6,7 +6,13 @@
 using SignalRMapRealtime.Configuration;
 using SignalRMapRealtime.Data;
 using SignalRMapRealtime.Hubs;
+using SignalRMapRealtime.Services;
+using SignalRMapRealtime.Events;
+using SignalRMapRealtime.Integration;
+using SignalRMapRealtime.BackgroundJobs;
+using SignalRMapRealtime.Middleware;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,10 +23,34 @@ builder.Configuration
     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
     .AddJsonFile($"appsettings.{environment.EnvironmentName}.json", optional: true, reloadOnChange: true);
 
+// Configuration options registration
+builder.Services.Configure<CachingOptions>(builder.Configuration.GetSection(CachingOptions.SectionName));
+builder.Services.Configure<RateLimitingOptions>(builder.Configuration.GetSection(RateLimitingOptions.SectionName));
+builder.Services.Configure<NotificationOptions>(builder.Configuration.GetSection(NotificationOptions.SectionName));
+
 // Services registration
 builder.Services.AddApplicationServices(builder.Configuration);
 builder.Services.AddSignalRServices();
 builder.Services.AddSwaggerDocumentation();
+
+// Cache service registration
+builder.Services.AddMemoryCache();
+builder.Services.AddScoped<ICacheService, MemoryCacheService>();
+
+// Event bus registration
+builder.Services.AddEventBus();
+
+// Notification service registration
+builder.Services.AddScoped<INotificationService, InMemoryNotificationService>();
+
+// Webhook handler registration
+builder.Services.AddScoped<IWebhookHandler, WebhookHandler>();
+
+// HTTP client factory registration
+builder.Services.AddExternalHttpClientFactory();
+
+// Background workers registration
+builder.Services.AddSessionCleanupWorker();
 
 // Controllers and routing
 builder.Services.AddControllers();
@@ -67,6 +97,18 @@ using (var scope = app.Services.CreateScope())
 }
 
 // Middleware configuration
+// Error handling should be first to catch all exceptions
+app.UseErrorHandling();
+
+// Logging middleware for request/response tracking
+app.UseMiddleware<LoggingMiddleware>();
+
+// Rate limiting to prevent abuse
+app.UseRateLimiting();
+
+// Performance monitoring
+app.UsePerformanceMonitoring();
+
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
