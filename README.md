@@ -1,280 +1,1040 @@
-# SignalR Map Realtime
+# SignalR Map Realtime - Real-Time Location Tracking System
 
-A real-time location tracking system using ASP.NET Core SignalR and Leaflet maps. Track vehicles, couriers, and assets in real-time with live location updates, route management, and fleet monitoring capabilities.
+[![Build Status](https://github.com/Sarmkadan/signalr-map-realtime/workflows/Build/badge.svg)](https://github.com/Sarmkadan/signalr-map-realtime/actions)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![.NET 10](https://img.shields.io/badge/.NET-10.0-512BD4.svg)](https://dotnet.microsoft.com/download/dotnet/10.0)
 
-## Features
+A production-grade, enterprise-ready real-time location tracking system built with ASP.NET Core 10, SignalR, and modern web technologies. Track vehicles, couriers, assets, and mobile workers in real-time with live GPS updates, intelligent route management, and comprehensive fleet monitoring.
 
-- **Real-time Location Tracking**: Live GPS coordinates streaming via SignalR
-- **Vehicle Management**: Full CRUD operations for vehicles with status tracking
-- **Route Planning**: Create and manage routes with waypoints
-- **Asset Tracking**: Track multiple assets with location history
-- **User Management**: Driver and courier management with assignment tracking
-- **Live Statistics**: Distance calculations, speed monitoring, fuel tracking
-- **Session Management**: Start, pause, resume, and complete tracking sessions
-- **Geofencing**: Define geographic boundaries and receive alerts
-- **SignalR Hub**: Bi-directional real-time communication
-- **Comprehensive API**: RESTful API with Swagger/OpenAPI documentation
+## 📋 Table of Contents
 
-## Technology Stack
+- [Overview](#overview)
+- [Key Features](#key-features)
+- [Technical Stack](#technical-stack)
+- [Architecture](#architecture)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Usage Examples](#usage-examples)
+- [API Reference](#api-reference)
+- [Configuration Guide](#configuration-guide)
+- [Advanced Topics](#advanced-topics)
+- [Troubleshooting](#troubleshooting)
+- [Contributing](#contributing)
+- [License](#license)
 
-- **.NET 10** - Latest .NET framework
-- **Entity Framework Core 10** - ORM for database operations
-- **SQL Server** - Database
-- **SignalR** - Real-time communication
-- **AutoMapper** - Object mapping
-- **Swagger/OpenAPI** - API documentation
-- **FluentValidation** - Data validation
+## Overview
 
-## Project Structure
+SignalR Map Realtime provides a comprehensive solution for tracking the location of mobile assets in real-time. Whether you're building a ride-sharing platform, fleet management system, logistics solution, or any application requiring live location tracking, this project provides a battle-tested, scalable foundation.
+
+The system leverages WebSocket technology through SignalR for ultra-low-latency bidirectional communication, enabling seamless real-time updates of vehicle positions, route progress, and system alerts. The architecture follows domain-driven design principles, ensuring clean separation of concerns and long-term maintainability.
+
+### Use Cases
+
+- **Fleet Management**: Monitor vehicle locations, fuel consumption, driver behavior
+- **Ride-Sharing**: Real-time driver availability, ETA calculation, dynamic routing
+- **Logistics & Delivery**: Package tracking, route optimization, delivery proof
+- **Field Service**: Technician location, job assignment, service area coverage
+- **Public Transportation**: Bus/vehicle tracking, arrival predictions, crowd management
+- **Emergency Response**: Ambulance/fire truck dispatching, optimal routing
+
+## Key Features
+
+### Core Tracking Capabilities
+
+- **Real-time GPS Updates**: Bi-directional WebSocket communication via SignalR for instantaneous location streaming
+- **Multi-Asset Tracking**: Simultaneous tracking of vehicles, couriers, packages, and equipment
+- **Historical Tracking**: Complete location history with timestamps and metadata
+- **Session Management**: Start, pause, resume, and complete tracking sessions with statistics
+- **Location Clustering**: Efficiently group nearby locations to reduce bandwidth
+
+### Advanced Features
+
+- **Route Planning & Management**: Create optimized routes with multiple waypoints
+- **Geofencing**: Define geographic boundaries with entry/exit notifications
+- **Live Statistics**: Real-time distance, speed, and performance calculations
+- **Vehicle Status Tracking**: Online/offline status, connectivity monitoring
+- **Driver/Courier Management**: User assignments and performance tracking
+- **Asset Type Support**: Vehicles, packages, equipment with type-specific attributes
+- **Speed Monitoring**: Detect and alert on speed violations
+- **Fuel Tracking**: Monitor fuel levels and consumption patterns
+
+### Technical Features
+
+- **Comprehensive API**: RESTful endpoints with full Swagger/OpenAPI documentation
+- **Authentication Ready**: API key authentication infrastructure for extensibility
+- **Rate Limiting**: Built-in rate limiting to prevent abuse
+- **Caching Layer**: Redis-compatible in-memory caching for performance
+- **Error Handling**: Comprehensive error handling with custom exceptions
+- **Request Logging**: Detailed request/response logging for debugging
+- **Performance Monitoring**: Middleware for tracking endpoint performance
+- **Webhook Support**: Integration points for third-party systems
+
+## Technical Stack
+
+| Component | Technology | Version |
+|-----------|-----------|---------|
+| **Runtime** | .NET | 10.0 |
+| **Framework** | ASP.NET Core | 10.0 |
+| **Language** | C# | 13.0 |
+| **ORM** | Entity Framework Core | 10.0 |
+| **Real-time** | SignalR | 10.0 |
+| **Database** | SQL Server / PostgreSQL | 2019+ |
+| **Object Mapping** | AutoMapper | 13.0 |
+| **Validation** | FluentValidation | 11.9+ |
+| **API Docs** | Swagger/OpenAPI | 3.0 |
+| **Caching** | In-Memory/Redis | - |
+| **Frontend** | Leaflet.js | 1.9+ |
+
+## Architecture
+
+### System Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                       Web Clients                               │
+│              (Browser, Mobile, Desktop Apps)                   │
+└────────────────┬────────────────────────────────────────────────┘
+                 │
+         ┌───────┴────────┐
+         │                │
+    ┌────▼──────┐    ┌───▼─────┐
+    │   HTTP    │    │WebSocket │
+    │   (REST)  │    │(SignalR) │
+    └────┬──────┘    └───┬─────┘
+         │                │
+    ┌────▼────────────────▼──────────────────────┐
+    │         ASP.NET Core Application           │
+    │  ┌─────────────────────────────────────┐   │
+    │  │    API Controllers (REST)           │   │
+    │  │    SignalR Hubs (Real-time)         │   │
+    │  │    Middleware Pipeline              │   │
+    │  │    ├─ Authentication                │   │
+    │  │    ├─ CORS                          │   │
+    │  │    ├─ Rate Limiting                 │   │
+    │  │    ├─ Error Handling                │   │
+    │  │    └─ Logging                       │   │
+    │  └────────────────┬──────────────────┘   │
+    │                   │                      │
+    │  ┌────────────────▼──────────────────┐   │
+    │  │      Business Service Layer       │   │
+    │  │  ├─ LocationService               │   │
+    │  │  ├─ VehicleService                │   │
+    │  │  ├─ TrackingService               │   │
+    │  │  ├─ NotificationService           │   │
+    │  │  └─ CacheService                  │   │
+    │  └────────────────┬──────────────────┘   │
+    │                   │                      │
+    │  ┌────────────────▼──────────────────┐   │
+    │  │    Data Access Layer              │   │
+    │  │  (Repository Pattern)             │   │
+    │  │  ├─ LocationRepository            │   │
+    │  │  ├─ VehicleRepository             │   │
+    │  │  ├─ RouteRepository               │   │
+    │  │  ├─ AssetRepository               │   │
+    │  │  └─ UserRepository                │   │
+    │  └────────────────┬──────────────────┘   │
+    │                   │                      │
+    │  ┌────────────────▼──────────────────┐   │
+    │  │  Entity Framework Core (EF Core)  │   │
+    │  │  ├─ DbContext                     │   │
+    │  │  ├─ Migrations                    │   │
+    │  │  └─ LINQ to Entities              │   │
+    │  └────────────────┬──────────────────┘   │
+    └────────────────┬──────────────────────────┘
+                     │
+    ┌────────────────▼──────────────────┐
+    │      SQL Server Database          │
+    │  ├─ Vehicles                      │
+    │  ├─ Locations (History)           │
+    │  ├─ Routes & Waypoints            │
+    │  ├─ Users (Drivers/Couriers)      │
+    │  ├─ Assets                        │
+    │  ├─ TrackingSessions              │
+    │  └─ Indices & Views               │
+    └───────────────────────────────────┘
+```
+
+### Layered Architecture
+
+```
+┌─────────────────────────────────┐
+│    Presentation Layer           │
+│  (Controllers, SignalR Hubs)    │
+└────────────────┬────────────────┘
+                 │
+┌────────────────▼────────────────┐
+│     Application/Service Layer   │
+│    (Business Logic, DTOs)       │
+└────────────────┬────────────────┘
+                 │
+┌────────────────▼────────────────┐
+│     Domain Layer                │
+│   (Models, Enums, Exceptions)   │
+└────────────────┬────────────────┘
+                 │
+┌────────────────▼────────────────┐
+│    Data Access Layer            │
+│   (Repositories, EF Core)       │
+└────────────────┬────────────────┘
+                 │
+┌────────────────▼────────────────┐
+│     Infrastructure Layer        │
+│   (Database, Configuration)     │
+└─────────────────────────────────┘
+```
+
+### Project Structure
 
 ```
 signalr-map-realtime/
 ├── src/
 │   └── SignalRMapRealtime/
 │       ├── Domain/
-│       │   ├── Models/           # Entity models
-│       │   └── Enums/            # Status and type enumerations
+│       │   ├── Models/
+│       │   │   ├── Vehicle.cs
+│       │   │   ├── Location.cs
+│       │   │   ├── Route.cs
+│       │   │   ├── User.cs
+│       │   │   ├── Asset.cs
+│       │   │   ├── Waypoint.cs
+│       │   │   └── TrackingSession.cs
+│       │   └── Enums/
+│       │       ├── VehicleStatus.cs
+│       │       ├── LocationType.cs
+│       │       ├── AssetType.cs
+│       │       └── SessionStatus.cs
 │       ├── Data/
 │       │   ├── ApplicationDbContext.cs
-│       │   └── Repositories/     # Data access layer
-│       ├── Services/             # Business logic layer
-│       ├── DTOs/                 # Data transfer objects
-│       ├── Hubs/                 # SignalR hubs
-│       ├── Exceptions/           # Custom exceptions
-│       ├── Constants/            # Application constants
-│       ├── Configuration/        # Dependency injection & configuration
-│       ├── Program.cs            # Application entry point
-│       └── appsettings*.json    # Configuration files
+│       │   └── Repositories/
+│       │       ├── IRepository.cs
+│       │       ├── BaseRepository.cs
+│       │       ├── VehicleRepository.cs
+│       │       ├── LocationRepository.cs
+│       │       ├── RouteRepository.cs
+│       │       ├── AssetRepository.cs
+│       │       ├── UserRepository.cs
+│       │       └── TrackingSessionRepository.cs
+│       ├── Services/
+│       │   ├── LocationService.cs
+│       │   ├── VehicleService.cs
+│       │   ├── TrackingService.cs
+│       │   ├── NotificationService.cs
+│       │   ├── CacheService.cs
+│       │   └── Interfaces/
+│       │       ├── ILocationService.cs
+│       │       ├── IVehicleService.cs
+│       │       └── ITrackingService.cs
+│       ├── Controllers/
+│       │   ├── VehicleController.cs
+│       │   ├── LocationController.cs
+│       │   ├── RouteController.cs
+│       │   └── AssetController.cs
+│       ├── Hubs/
+│       │   └── LocationHub.cs
+│       ├── DTOs/
+│       │   ├── VehicleDto.cs
+│       │   ├── LocationDto.cs
+│       │   ├── RouteDto.cs
+│       │   ├── AssetDto.cs
+│       │   └── UserDto.cs
+│       ├── Configuration/
+│       │   ├── DependencyInjection.cs
+│       │   ├── AutoMapperProfile.cs
+│       │   └── Options/
+│       ├── Middleware/
+│       │   ├── ErrorHandlingMiddleware.cs
+│       │   ├── LoggingMiddleware.cs
+│       │   ├── RateLimitingMiddleware.cs
+│       │   └── PerformanceMonitoringMiddleware.cs
+│       ├── Attributes/
+│       │   └── ApiKeyAuthenticationAttribute.cs
+│       ├── Exceptions/
+│       │   └── LocationTrackingException.cs
+│       ├── BackgroundJobs/
+│       │   └── SessionCleanupWorker.cs
+│       ├── Events/
+│       │   ├── DomainEvent.cs
+│       │   └── EventBus.cs
+│       ├── Integration/
+│       │   ├── HttpClientFactory.cs
+│       │   └── WebhookHandler.cs
+│       ├── Utilities/
+│       │   └── Extension methods
+│       ├── Constants/
+│       ├── Program.cs
+│       ├── appsettings.json
+│       ├── appsettings.Development.json
+│       └── SignalRMapRealtime.csproj
+├── examples/
+│   ├── VehicleTrackerClient.cs
+│   ├── LocationUpdateSimulator.cs
+│   ├── RouteOptimizationClient.cs
+│   ├── FleetManagementDashboard.cs
+│   ├── GeofenceAlertsClient.cs
+│   ├── BulkLocationImporter.cs
+│   ├── SessionAnalyticsReporter.cs
+│   └── WebSocketRealTimeViewer.html
+├── docs/
+│   ├── getting-started.md
+│   ├── architecture.md
+│   ├── api-reference.md
+│   ├── deployment.md
+│   ├── faq.md
+│   ├── database-schema.md
+│   └── troubleshooting.md
+├── .github/
+│   └── workflows/
+│       └── build.yml
+├── Dockerfile
+├── docker-compose.yml
+├── .editorconfig
+├── Makefile
+├── CHANGELOG.md
 ├── LICENSE
-├── README.md
-└── .gitignore
+├── .gitignore
+└── signalr-map-realtime.sln
 ```
 
-## Getting Started
+## Installation
 
 ### Prerequisites
 
-- .NET 10 SDK or later
-- SQL Server (LocalDB or Express)
-- Visual Studio 2022 or VS Code
+- **.NET SDK**: 10.0 or later ([download](https://dotnet.microsoft.com/download/dotnet/10.0))
+- **SQL Server**: 2019 Express or later, or use LocalDB
+- **Visual Studio**: 2022 (17.8+) or VS Code with C# extension
+- **Git**: For cloning the repository
 
-### Installation
+### Method 1: Using Visual Studio (Recommended for Windows)
 
-1. Clone the repository:
+1. **Clone the Repository**
+   ```bash
+   git clone https://github.com/Sarmkadan/signalr-map-realtime.git
+   cd signalr-map-realtime
+   ```
+
+2. **Open Solution**
+   - Open `signalr-map-realtime.sln` in Visual Studio 2022
+
+3. **Configure Connection String** (if needed)
+   - Edit `src/SignalRMapRealtime/appsettings.json`
+   - Update `ConnectionStrings.DefaultConnection` for your SQL Server
+
+4. **Apply Migrations**
+   - Package Manager Console: `Update-Database`
+   - Or CLI: `dotnet ef database update`
+
+5. **Run the Application**
+   - Press `F5` or click Run button
+   - API available at `https://localhost:5001`
+   - Swagger UI at `https://localhost:5001/swagger`
+
+### Method 2: Command Line
+
 ```bash
-git clone https://github.com/vladyslavzaiets/signalr-map-realtime.git
+# Clone
+git clone https://github.com/Sarmkadan/signalr-map-realtime.git
 cd signalr-map-realtime
+
+# Restore packages
+dotnet restore
+
+# Build
+dotnet build
+
+# Apply database migrations
+dotnet ef database update --project src/SignalRMapRealtime
+
+# Run
+dotnet run --project src/SignalRMapRealtime
 ```
 
-2. Update database connection string in `appsettings.json`:
-```json
-"ConnectionStrings": {
-  "DefaultConnection": "Server=YOUR_SERVER;Database=SignalRMapRealtimeDb;Trusted_Connection=true;"
-}
-```
+### Method 3: Docker
 
-3. Apply database migrations:
 ```bash
-dotnet ef database update
+# Clone and navigate
+git clone https://github.com/Sarmkadan/signalr-map-realtime.git
+cd signalr-map-realtime
+
+# Build image
+docker build -t signalr-map-realtime:latest .
+
+# Run with compose (includes SQL Server)
+docker-compose up -d
+
+# API available at http://localhost:5000
+# Swagger at http://localhost:5000/swagger
 ```
 
-4. Run the application:
+## Quick Start
+
+### 1. Verify Installation
+
 ```bash
-dotnet run
+curl https://localhost:5001/health
+# Expected response: { "status": "Healthy" }
 ```
 
-The API will be available at `https://localhost:5001` and Swagger documentation at `https://localhost:5001/swagger`
+### 2. Create a Vehicle
 
-## API Endpoints
+```bash
+curl -X POST https://localhost:5001/api/v1/vehicles \
+  -H "Content-Type: application/json" \
+  -d '{
+    "licensePlate": "ABC-123",
+    "manufacturer": "Toyota",
+    "model": "Camry",
+    "year": 2023,
+    "status": "Available"
+  }'
+```
 
-### Health Check
-- `GET /health` - Application health status
-- `GET /api/info` - API information
+### 3. Start Real-time Tracking
 
-### Vehicles (Future Implementation)
-- `GET /api/v1/vehicles` - List all vehicles
-- `GET /api/v1/vehicles/{id}` - Get vehicle details
-- `POST /api/v1/vehicles` - Create vehicle
-- `PUT /api/v1/vehicles/{id}` - Update vehicle
-- `DELETE /api/v1/vehicles/{id}` - Delete vehicle
+```javascript
+// Connect to SignalR hub
+const connection = new signalR.HubConnectionBuilder()
+    .withUrl("https://localhost:5001/locationHub")
+    .withAutomaticReconnect()
+    .build();
 
-### Locations (Future Implementation)
-- `GET /api/v1/locations/vehicle/{vehicleId}` - Get vehicle locations
-- `POST /api/v1/locations` - Record new location
-- `GET /api/v1/locations/nearby` - Find locations nearby
+// Subscribe to location updates
+connection.on("LocationUpdated", (location) => {
+    console.log(`Vehicle ${location.vehicleId} at ${location.latitude}, ${location.longitude}`);
+});
 
-### Routes (Future Implementation)
-- `GET /api/v1/routes` - List routes
-- `POST /api/v1/routes` - Create route
-- `PUT /api/v1/routes/{id}` - Update route
+// Connect and send location
+await connection.start();
+await connection.invoke("SendLocationUpdate", {
+    vehicleId: "your-vehicle-id",
+    latitude: 40.7128,
+    longitude: -74.0060,
+    accuracy: 5.0
+});
+```
 
-## SignalR Hub Methods
+### 4. Retrieve Location History
 
-### Client -> Server
-- `SendLocationUpdate(locationDto)` - Send GPS location update
-- `SubscribeToVehicle(vehicleId)` - Subscribe to vehicle updates
-- `UnsubscribeFromVehicle(vehicleId)` - Unsubscribe from vehicle
-- `RequestVehicleLocation(vehicleId)` - Request current location
-- `RequestOnlineVehicleCount()` - Request fleet status
+```bash
+curl "https://localhost:5001/api/v1/locations/vehicle/your-vehicle-id" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
 
-### Server -> Client
-- `LocationUpdated(locationDto)` - Location update broadcast
-- `VehicleStatusChanged(vehicleId, status)` - Status change notification
-- `RouteProgressUpdated(routeId, percentage, status)` - Route progress update
-- `Alert(vehicleId, alertType, message)` - Alert notification
-- `FleetStatusUpdated(fleetName, onlineCount, totalCount)` - Fleet status
-- `Pong()` - Heartbeat response
+## Usage Examples
 
-## Core Services
+### Example 1: Basic Vehicle Tracking
 
-### LocationService
-- Records and retrieves location points
-- Calculates distances and statistics
-- Manages location history
-- Provides geofencing capabilities
+See `examples/VehicleTrackerClient.cs` for a complete working example.
 
-### VehicleService
-- Manages vehicle lifecycle
-- Tracks vehicle status and connectivity
-- Monitors fuel levels and speed violations
-- Handles driver assignments
+```csharp
+var client = new HttpClient();
+var baseUrl = "https://localhost:5001";
 
-### TrackingService
-- Manages tracking sessions
-- Handles session state transitions
-- Calculates session statistics
-- Generates performance reports
+// Create vehicle
+var vehicle = new { 
+    licensePlate = "XYZ-789",
+    manufacturer = "Ford",
+    model = "Transit"
+};
 
-## Database Models
+var response = await client.PostAsJsonAsync(
+    $"{baseUrl}/api/v1/vehicles", 
+    vehicle
+);
+var vehicleId = await response.Content.ReadAsAsync<string>();
 
-- **Vehicle** - Tracked vehicles with status and metrics
-- **Location** - GPS coordinates with metadata
-- **User** - Drivers, couriers, and system users
-- **Asset** - Equipment and packages being tracked
-- **Route** - Planned routes with waypoints
-- **Waypoint** - Individual stops on a route
-- **TrackingSession** - Continuous tracking periods with statistics
+// Start tracking
+var location = new {
+    vehicleId = vehicleId,
+    latitude = 40.7128,
+    longitude = -74.0060,
+    accuracy = 10.0,
+    speed = 35.5,
+    heading = 90,
+    timestamp = DateTime.UtcNow
+};
 
-## Domain-Driven Design
+await client.PostAsJsonAsync(
+    $"{baseUrl}/api/v1/locations",
+    location
+);
+```
 
-The project implements domain-driven design principles with:
-- Rich domain models with business logic
-- Repository pattern for data access
-- Service layer for orchestration
-- Custom exceptions for error handling
-- Value objects and aggregates
+### Example 2: SignalR Real-time Updates
 
-## Configuration
+See `examples/WebSocketRealTimeViewer.html` for a complete HTML/JavaScript example.
 
-### Connection Strings
-Update in `appsettings.json`:
-```json
-"ConnectionStrings": {
-  "DefaultConnection": "connection_string_here"
+```csharp
+// In your C# client
+var connection = new HubConnectionBuilder()
+    .WithUrl("https://localhost:5001/locationHub")
+    .WithAutomaticReconnect()
+    .Build();
+
+connection.On<LocationDto>("LocationUpdated", location => 
+{
+    Console.WriteLine($"Update: {location.VehicleId} - {location.Latitude}, {location.Longitude}");
+});
+
+connection.On<string, string>("VehicleStatusChanged", (vehicleId, status) =>
+{
+    Console.WriteLine($"Vehicle {vehicleId} is now {status}");
+});
+
+await connection.StartAsync();
+
+// Subscribe to specific vehicle
+await connection.InvokeAsync("SubscribeToVehicle", vehicleId);
+```
+
+### Example 3: Route Optimization
+
+See `examples/RouteOptimizationClient.cs`.
+
+```csharp
+var route = new {
+    name = "Downtown Delivery Route",
+    vehicleId = "vehicle-123",
+    waypoints = new[] {
+        new { latitude = 40.7128, longitude = -74.0060, name = "Start" },
+        new { latitude = 40.7489, longitude = -73.9680, name = "Stop 1" },
+        new { latitude = 40.7614, longitude = -73.9776, name = "Stop 2" },
+        new { latitude = 40.7282, longitude = -73.7949, name = "End" }
+    },
+    estimatedDuration = 3600
+};
+
+var response = await client.PostAsJsonAsync(
+    $"{baseUrl}/api/v1/routes",
+    route
+);
+```
+
+### Example 4: Geofence Alerts
+
+See `examples/GeofenceAlertsClient.cs`.
+
+```csharp
+connection.On<AlertDto>("Alert", alert =>
+{
+    if (alert.Type == AlertType.GeofenceEntry)
+    {
+        Console.WriteLine($"Vehicle {alert.VehicleId} entered restricted area!");
+    }
+    else if (alert.Type == AlertType.GeofenceExit)
+    {
+        Console.WriteLine($"Vehicle {alert.VehicleId} left geofence");
+    }
+});
+```
+
+### Example 5: Bulk Location Import
+
+See `examples/BulkLocationImporter.cs` for importing historical data.
+
+```csharp
+var locations = new List<LocationDto>();
+// ... populate locations ...
+
+var client = new HttpClient();
+foreach (var batch in locations.Batch(100))
+{
+    await client.PostAsJsonAsync($"{baseUrl}/api/v1/locations/bulk", batch);
 }
 ```
 
-### CORS
-Configure allowed origins:
+### Example 6: Session Analytics
+
+See `examples/SessionAnalyticsReporter.cs`.
+
+```csharp
+var session = await trackingService.GetSessionAsync(sessionId);
+var analytics = new {
+    sessionId = session.Id,
+    totalDistance = session.TotalDistance,
+    totalDuration = session.EndTime - session.StartTime,
+    averageSpeed = session.AverageSpeed,
+    maxSpeed = session.MaxSpeed,
+    locationCount = session.Locations.Count
+};
+```
+
+## API Reference
+
+### Health & Info Endpoints
+
+#### Health Check
+```
+GET /health
+```
+**Response** (200 OK):
 ```json
-"Cors": {
-  "AllowedOrigins": ["http://localhost:3000"]
+{
+  "status": "Healthy",
+  "timestamp": "2024-05-04T10:30:00Z",
+  "version": "1.0.0"
 }
 ```
 
-### Logging
-Set log levels in `appsettings.json`:
+#### API Information
+```
+GET /api/info
+```
+**Response** (200 OK):
 ```json
-"Logging": {
-  "LogLevel": {
-    "Default": "Information",
-    "SignalRMapRealtime": "Debug"
+{
+  "version": "1.0.0",
+  "title": "SignalR Map Realtime API",
+  "environment": "Production"
+}
+```
+
+### Vehicle Endpoints
+
+#### List Vehicles
+```
+GET /api/v1/vehicles
+?skip=0&take=20&status=Active
+```
+**Query Parameters**:
+- `skip`: Number of items to skip (default: 0)
+- `take`: Number of items to return (default: 20, max: 100)
+- `status`: Filter by status (Active, Inactive, InMaintenance)
+
+**Response** (200 OK):
+```json
+{
+  "data": [
+    {
+      "id": "uuid",
+      "licensePlate": "ABC-123",
+      "manufacturer": "Toyota",
+      "model": "Camry",
+      "year": 2023,
+      "status": "Active",
+      "lastLocationUpdate": "2024-05-04T10:25:00Z",
+      "currentLatitude": 40.7128,
+      "currentLongitude": -74.0060,
+      "speed": 35.5
+    }
+  ],
+  "pageSize": 20,
+  "totalCount": 150
+}
+```
+
+#### Get Vehicle Details
+```
+GET /api/v1/vehicles/{id}
+```
+**Response** (200 OK):
+```json
+{
+  "id": "uuid",
+  "licensePlate": "ABC-123",
+  "manufacturer": "Toyota",
+  "model": "Camry",
+  "year": 2023,
+  "status": "Active",
+  "fuelLevel": 85.5,
+  "odometerReading": 45230,
+  "assignedDriver": {
+    "id": "uuid",
+    "name": "John Doe",
+    "phone": "+1234567890"
+  },
+  "createdAt": "2024-01-15T09:00:00Z",
+  "updatedAt": "2024-05-04T10:25:00Z"
+}
+```
+
+#### Create Vehicle
+```
+POST /api/v1/vehicles
+Content-Type: application/json
+
+{
+  "licensePlate": "XYZ-789",
+  "manufacturer": "Ford",
+  "model": "Transit",
+  "year": 2024,
+  "vin": "1FTYR14D04TM00001",
+  "status": "Active"
+}
+```
+**Response** (201 Created):
+```json
+{
+  "id": "uuid",
+  "licensePlate": "XYZ-789",
+  "status": "Active"
+}
+```
+
+#### Update Vehicle
+```
+PUT /api/v1/vehicles/{id}
+Content-Type: application/json
+
+{
+  "licensePlate": "XYZ-789",
+  "status": "InMaintenance",
+  "fuelLevel": 75.0
+}
+```
+**Response** (204 No Content)
+
+#### Delete Vehicle
+```
+DELETE /api/v1/vehicles/{id}
+```
+**Response** (204 No Content)
+
+### Location Endpoints
+
+#### Get Vehicle Locations
+```
+GET /api/v1/locations/vehicle/{vehicleId}
+?startDate=2024-05-01&endDate=2024-05-04&limit=1000
+```
+**Query Parameters**:
+- `startDate`: Filter from date (ISO 8601)
+- `endDate`: Filter to date (ISO 8601)
+- `limit`: Maximum number of locations (default: 100, max: 10000)
+
+**Response** (200 OK):
+```json
+{
+  "data": [
+    {
+      "id": "uuid",
+      "vehicleId": "uuid",
+      "latitude": 40.7128,
+      "longitude": -74.0060,
+      "accuracy": 5.0,
+      "altitude": 10.5,
+      "speed": 35.5,
+      "heading": 90,
+      "type": "GPS",
+      "timestamp": "2024-05-04T10:25:00Z"
+    }
+  ],
+  "count": 1000
+}
+```
+
+#### Record Location
+```
+POST /api/v1/locations
+Content-Type: application/json
+
+{
+  "vehicleId": "uuid",
+  "latitude": 40.7128,
+  "longitude": -74.0060,
+  "accuracy": 5.0,
+  "speed": 35.5,
+  "heading": 90,
+  "timestamp": "2024-05-04T10:25:00Z"
+}
+```
+**Response** (201 Created):
+```json
+{
+  "id": "uuid",
+  "vehicleId": "uuid",
+  "latitude": 40.7128,
+  "longitude": -74.0060
+}
+```
+
+#### Find Nearby Locations
+```
+GET /api/v1/locations/nearby
+?latitude=40.7128&longitude=-74.0060&radiusKm=5&limit=50
+```
+**Query Parameters**:
+- `latitude`: Center point latitude
+- `longitude`: Center point longitude
+- `radiusKm`: Search radius in kilometers (default: 1, max: 50)
+- `limit`: Maximum results (default: 20)
+
+**Response** (200 OK):
+```json
+{
+  "data": [
+    {
+      "id": "uuid",
+      "vehicleId": "uuid",
+      "latitude": 40.7180,
+      "longitude": -74.0050,
+      "distanceKm": 0.8,
+      "timestamp": "2024-05-04T10:25:00Z"
+    }
+  ],
+  "centerPoint": {
+    "latitude": 40.7128,
+    "longitude": -74.0060
   }
 }
 ```
 
-## Development
+### Route Endpoints
 
-### Applying Migrations
+#### List Routes
+```
+GET /api/v1/routes
+?status=Active&vehicleId=uuid&skip=0&take=20
+```
+
+#### Create Route
+```
+POST /api/v1/routes
+Content-Type: application/json
+
+{
+  "name": "Downtown Delivery",
+  "vehicleId": "uuid",
+  "waypoints": [
+    {
+      "order": 1,
+      "latitude": 40.7128,
+      "longitude": -74.0060,
+      "name": "Start Point",
+      "estimatedArrivalTime": "2024-05-04T10:30:00Z"
+    },
+    {
+      "order": 2,
+      "latitude": 40.7489,
+      "longitude": -73.9680,
+      "name": "Stop 1",
+      "estimatedArrivalTime": "2024-05-04T10:45:00Z"
+    }
+  ],
+  "estimatedDuration": 3600
+}
+```
+
+## Configuration Guide
+
+### appsettings.json Structure
+
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=YOUR_SERVER;Database=SignalRMapRealtimeDb;..."
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "AppSettings": {
+    "ApiVersion": "1.0.0",
+    "Environment": "Production",
+    "EnableSwagger": true,
+    "RequestTimeoutSeconds": 30
+  },
+  "Cors": {
+    "AllowedOrigins": ["http://localhost:3000", "http://localhost:5173"]
+  },
+  "Caching": {
+    "Enabled": true,
+    "DurationSeconds": 300
+  },
+  "RateLimiting": {
+    "Enabled": true,
+    "RequestsPerMinute": 100
+  },
+  "Notification": {
+    "Enabled": true,
+    "EmailNotifications": true
+  }
+}
+```
+
+### Environment Variables
+
 ```bash
-dotnet ef migrations add MigrationName
+# Database
+ASPNETCORE_CONNECTIONSTRINGS_DEFAULTCONNECTION=Server=...
+
+# Application
+ASPNETCORE_ENVIRONMENT=Production
+ASPNETCORE_URLS=https://0.0.0.0:5001
+
+# Logging
+ASPNETCORE_LOGGING_LOGLEVEL_DEFAULT=Information
+
+# SignalR
+SIGNALR_BACKPLANETYPE=Redis
+SIGNALR_REDIS_CONNECTIONSTRING=localhost:6379
+```
+
+### Docker Configuration
+
+See `docker-compose.yml` for complete multi-container setup with SQL Server and Redis.
+
+## Advanced Topics
+
+### SignalR Hub Methods
+
+#### Client-to-Server
+
+**SendLocationUpdate**
+```csharp
+await connection.InvokeAsync("SendLocationUpdate", new LocationDto {
+    VehicleId = "uuid",
+    Latitude = 40.7128,
+    Longitude = -74.0060,
+    Accuracy = 5.0,
+    Speed = 35.5,
+    Heading = 90
+});
+```
+
+**SubscribeToVehicle**
+```csharp
+await connection.InvokeAsync("SubscribeToVehicle", vehicleId);
+```
+
+**RequestVehicleLocation**
+```csharp
+await connection.InvokeAsync("RequestVehicleLocation", vehicleId);
+```
+
+#### Server-to-Client
+
+**LocationUpdated**: Broadcasted when a new location is recorded
+```javascript
+connection.on("LocationUpdated", (location) => {
+    // Handle location update
+});
+```
+
+**VehicleStatusChanged**: When vehicle status changes
+```javascript
+connection.on("VehicleStatusChanged", (vehicleId, status) => {
+    // Handle status change
+});
+```
+
+**Alert**: System alerts (geofence, speed, etc.)
+```javascript
+connection.on("Alert", (alert) => {
+    // Handle alert
+});
+```
+
+### Database Optimization
+
+#### Indexing Strategy
+- Vehicle.LicensePlate (unique)
+- Location.VehicleId + Location.Timestamp
+- User.Email (unique)
+- Route.VehicleId + Route.CreatedAt
+
+#### Query Performance
+- Use pagination (skip/take)
+- Filter by date range when possible
+- Cache frequently accessed data
+- Batch location inserts for bulk operations
+
+### Scaling Considerations
+
+1. **Database**: Use read replicas for reporting queries
+2. **SignalR**: Configure backplane (Redis/Service Bus) for multiple servers
+3. **Caching**: Implement Redis for session/location caching
+4. **API**: Use load balancer for horizontal scaling
+
+## Troubleshooting
+
+### Common Issues
+
+#### Q: Connection String Error
+**A**: Verify SQL Server is running:
+```bash
+# Windows
+sqlcmd -S (localdb)\mssqllocaldb
+
+# Or check SQL Server service status
+```
+
+#### Q: SignalR Connection Failed
+**A**: Check CORS configuration in `appsettings.json`:
+```json
+"Cors": {
+  "AllowedOrigins": ["http://your-client-url"]
+}
+```
+
+#### Q: Slow Location Queries
+**A**: Ensure indexes are created:
+```bash
 dotnet ef database update
 ```
 
-### Running Tests (Phase 2)
+#### Q: Port Already in Use
+**A**: Change port in `appsettings.json`:
 ```bash
-dotnet test
+dotnet run --urls "https://localhost:5002"
 ```
 
-### Building for Production
-```bash
-dotnet publish -c Release
+### Debugging
+
+Enable detailed logging:
+```json
+{
+  "Logging": {
+    "LogLevel": {
+      "SignalRMapRealtime": "Debug"
+    }
+  }
+}
 ```
 
-## Architecture Patterns
-
-- **Repository Pattern** - Data access abstraction
-- **Service Layer** - Business logic encapsulation
-- **Dependency Injection** - Loose coupling
-- **DTO Pattern** - API contract definition
-- **SignalR Hub Pattern** - Real-time communication
-- **Entity Framework Core** - ORM with migrations
-
-## Error Handling
-
-Custom exception hierarchy:
-- `LocationTrackingException` - Base exception
-- `VehicleNotFoundException` - Vehicle not found
-- `InvalidLocationException` - Invalid coordinates
-- `AssetNotFoundException` - Asset not found
-- `TrackingSessionNotFoundException` - Session not found
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Author
-
-**Vladyslav Zaiets**
-- Website: https://sarmkadan.com
-- Email: rutova2@gmail.com
-- GitHub: https://github.com/vladyslavzaiets
+View logs:
+```bash
+# Windows Event Viewer (if using Windows Hosting)
+# Or file logs in bin/Debug/net10.0/logs/
+```
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit pull requests or open issues for bugs and feature requests.
+Contributions are welcome! Please follow these steps:
 
-## Roadmap
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/your-feature`
+3. Commit changes: `git commit -am 'Add new feature'`
+4. Push to branch: `git push origin feature/your-feature`
+5. Submit Pull Request
 
-### Phase 1 (Current)
-- ✅ Core domain models
-- ✅ Database schema and migrations
-- ✅ Repository pattern implementation
-- ✅ Business services
-- ✅ SignalR hub setup
-- ✅ Configuration and DI
-- ✅ Project structure
+### Code Style Guidelines
 
-### Phase 2 (Planned)
-- API endpoints and controllers
-- Unit tests and integration tests
-- Authentication and authorization
-- Validation and error handling
-- Performance optimization
-- Frontend integration
+- Follow Microsoft C# Coding Conventions
+- Use meaningful variable and method names
+- Add XML documentation to public methods
+- Write unit tests for new features
+- Keep methods focused (Single Responsibility)
 
-### Phase 3 (Planned)
-- Advanced analytics and reporting
-- Machine learning for route optimization
-- Mobile app support
-- Advanced geofencing
-- Offline support
-- Push notifications
+### Pull Request Process
 
-## Support
+1. Update README.md with new features/changes
+2. Update CHANGELOG.md with version number
+3. Ensure all tests pass: `dotnet test`
+4. Request review from project maintainers
 
-For issues and questions, please open an issue on GitHub or contact the author.
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for complete details.
+
+## Support & Contact
+
+- **Issues**: [GitHub Issues](https://github.com/Sarmkadan/signalr-map-realtime/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/Sarmkadan/signalr-map-realtime/discussions)
 
 ---
 
-**SignalR Map Realtime** - Real-time location tracking made simple and scalable.
+**Built by [Vladyslav Zaiets](https://sarmkadan.com) - CTO & Software Architect**
+
+[Portfolio](https://sarmkadan.com) | [GitHub](https://github.com/Sarmkadan) | [Telegram](https://t.me/sarmkadan)
