@@ -1,0 +1,69 @@
+# Visual Studio
+.vs/
+.vscode/
+*.sln.DotSettings
+*.sln.DotSettings.user
+*.user
+*.suo
+*.VC.db
+
+# Build results
+bin/
+obj/
+packages/
+*.nupkg
+*.snupkg
+
+# NuGet
+.nuget/
+*.locks.json
+
+# ReSharper
+.resharper
+.resharper/
+ReSharperCache/
+_ReSharper*/
+*.resharper
+reSharper.Cache
+
+# Entity Framework
+Migrations/
+
+# Local database
+*.db
+*.db-shm
+*.db-wal
+
+# Environment
+.env
+.env.local
+.env.*.local
+appsettings.Development.json
+appsettings.local.json
+appsettings.Development.local.json
+
+# IDE
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Build artifacts
+publish/
+dist/
+build/
+
+# Node modules (if any frontend)
+node_modules/
+
+# Test Results
+TestResults/
+coverage/
