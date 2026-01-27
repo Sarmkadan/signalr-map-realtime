@@ -3,6 +3,8 @@
 // CTO & Software Architect
 // =============================================================================
 
+using System; // Added for Guid
+
 namespace SignalRMapRealtime.Data.Repositories;
 
 /// <summary>
@@ -14,7 +16,7 @@ public interface IRepository<T> where T : class
     /// <summary>
     /// Retrieves an entity by its primary key.
     /// </summary>
-    Task<T?> GetByIdAsync(int id, CancellationToken cancellationToken = default);
+    Task<T?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Retrieves all entities of type T.
@@ -59,7 +61,7 @@ public interface IRepository<T> where T : class
     /// <summary>
     /// Removes an entity by its primary key.
     /// </summary>
-    Task RemoveByIdAsync(int id, CancellationToken cancellationToken = default);
+    Task RemoveByIdAsync(Guid id, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Saves all changes made in this context to the database.
@@ -69,7 +71,7 @@ public interface IRepository<T> where T : class
     /// <summary>
     /// Checks if an entity with the specified key exists.
     /// </summary>
-    Task<bool> ExistsAsync(int id, CancellationToken cancellationToken = default);
+    Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets the total count of entities.
