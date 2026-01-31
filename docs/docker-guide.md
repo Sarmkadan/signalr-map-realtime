@@ -1,0 +1,1 @@
+This is a Docker guide for signalr-map-realtime.
