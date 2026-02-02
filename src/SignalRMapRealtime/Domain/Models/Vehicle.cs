@@ -1,3 +1,4 @@
+#nullable enable
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
@@ -95,7 +96,7 @@ public class Vehicle
     /// </summary>
     public bool HasExceededSpeedLimit()
     {
-        if (LastLocation?.Speed == null || MaxSpeed == null)
+        if (LastLocation?.Speed is null || MaxSpeed is null)
             return false;
         return LastLocation.Speed > MaxSpeed;
     }

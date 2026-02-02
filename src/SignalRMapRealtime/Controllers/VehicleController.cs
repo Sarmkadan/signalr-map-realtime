@@ -1,3 +1,4 @@
+#nullable enable
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
@@ -94,7 +95,7 @@ public class VehicleController : ControllerBase
                 async () => await _vehicleService.GetVehicleByIdAsync(id),
                 TimeSpan.FromSeconds(600));
 
-            if (vehicle == null)
+            if (vehicle is null)
                 return NotFound(ErrorResponse.NotFoundError($"Vehicle with ID {id} not found", HttpContext.TraceIdentifier));
 
             var response = ApiResponse<VehicleDto>.SuccessResponse(vehicle, "Vehicle retrieved successfully", 200, HttpContext.TraceIdentifier);
@@ -162,7 +163,7 @@ public class VehicleController : ControllerBase
         {
             var vehicle = await _vehicleService.UpdateVehicleAsync(id, updateVehicleDto);
 
-            if (vehicle == null)
+            if (vehicle is null)
                 return NotFound(ErrorResponse.NotFoundError($"Vehicle with ID {id} not found", HttpContext.TraceIdentifier));
 
             // Invalidate cache
@@ -218,7 +219,7 @@ public class VehicleController : ControllerBase
         {
             var vehicle = await _vehicleService.GetVehicleByIdAsync(id);
 
-            if (vehicle == null)
+            if (vehicle is null)
                 return NotFound(ErrorResponse.NotFoundError($"Vehicle with ID {id} not found", HttpContext.TraceIdentifier));
 
             var status = new

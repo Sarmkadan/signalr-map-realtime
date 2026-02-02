@@ -1,3 +1,4 @@
+#nullable enable
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
@@ -93,7 +94,7 @@ public class LocationUpdateSimulator
                 var doc = JsonDocument.Parse(result);
                 var vehicleId = doc.RootElement.GetProperty("id").GetString();
 
-                if (vehicleId != null)
+                if (vehicleId is not null)
                 {
                     vehicleIds.Add(vehicleId);
                     Console.WriteLine($"✓ Created {vehicle.licensePlate}");

@@ -1,3 +1,4 @@
+#nullable enable
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
@@ -23,7 +24,7 @@ namespace SignalRMapRealtime.IntegrationTests
                 var descriptor = services.SingleOrDefault(
                     d => d.ServiceType == typeof(DbContextOptions<ApplicationDbContext>));
 
-                if (descriptor != null)
+                if (descriptor is not null)
                 {
                     services.Remove(descriptor);
                 }

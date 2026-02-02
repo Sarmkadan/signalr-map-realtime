@@ -1,3 +1,4 @@
+#nullable enable
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
@@ -48,7 +49,7 @@ public class VehicleService : IVehicleService
         if (vehicleDto.DriverId.HasValue)
         {
             var driver = await _userRepository.GetByIdAsync(vehicleDto.DriverId.Value, cancellationToken);
-            if (driver == null)
+            if (driver is null)
                 throw new InvalidOperationException($"Driver with ID {vehicleDto.DriverId} not found.");
         }
 
@@ -80,7 +81,7 @@ public class VehicleService : IVehicleService
     public async Task<VehicleDto?> GetVehicleAsync(int vehicleId, CancellationToken cancellationToken = default)
     {
         var vehicle = await _vehicleRepository.GetVehicleWithTrackingDataAsync(vehicleId);
-        return vehicle == null ? null : _mapper.Map<VehicleDto>(vehicle);
+        return vehicle is null ? null : _mapper.Map<VehicleDto>(vehicle);
     }
 
     /// <summary>
@@ -125,7 +126,7 @@ public class VehicleService : IVehicleService
     public async Task<VehicleDto> UpdateVehicleAsync(int vehicleId, UpdateVehicleDto vehicleDto, CancellationToken cancellationToken = default)
     {
         var vehicle = await _vehicleRepository.GetByIdAsync(vehicleId, cancellationToken);
-        if (vehicle == null)
+        if (vehicle is null)
             throw new VehicleNotFoundException(vehicleId);
 
         if (!string.IsNullOrWhiteSpace(vehicleDto.Name))
@@ -152,7 +153,7 @@ public class VehicleService : IVehicleService
     public async Task<bool> SetVehicleOnlineStatusAsync(int vehicleId, bool isOnline, CancellationToken cancellationToken = default)
     {
         var vehicle = await _vehicleRepository.GetByIdAsync(vehicleId, cancellationToken);
-        if (vehicle == null)
+        if (vehicle is null)
             return false;
 
         vehicle.SetOnlineStatus(isOnline);
@@ -167,7 +168,7 @@ public class VehicleService : IVehicleService
     public async Task<bool> UpdateVehicleStatusAsync(int vehicleId, VehicleStatus newStatus, CancellationToken cancellationToken = default)
     {
         var vehicle = await _vehicleRepository.GetByIdAsync(vehicleId, cancellationToken);
-        if (vehicle == null)
+        if (vehicle is null)
             return false;
 
         vehicle.UpdateStatus(newStatus);
@@ -216,7 +217,7 @@ public class VehicleService : IVehicleService
     public async Task<bool> DeleteVehicleAsync(int vehicleId, CancellationToken cancellationToken = default)
     {
         var vehicle = await _vehicleRepository.GetByIdAsync(vehicleId, cancellationToken);
-        if (vehicle == null)
+        if (vehicle is null)
             return false;
 
         await _vehicleRepository.RemoveAsync(vehicle, cancellationToken);
