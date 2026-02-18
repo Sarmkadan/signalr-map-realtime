@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using System.Net.Http;
 using System.Net.Http.Json;
@@ -120,7 +121,7 @@ namespace SignalRMapRealtime.Examples.DockerDeployment
             catch (Exception ex)
             {
                 Console.WriteLine($"\n❌ Error during Docker example: {ex.Message}");
-                if (ex.InnerException != null)
+                if (ex.InnerException is not null)
                 {
                     Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
                 }

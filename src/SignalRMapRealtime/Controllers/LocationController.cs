@@ -1,3 +1,4 @@
+#nullable enable
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
@@ -98,7 +99,7 @@ public class LocationController : ControllerBase
                 async () => await _locationService.GetLocationByIdAsync(id),
                 TimeSpan.FromSeconds(30));
 
-            if (location == null)
+            if (location is null)
                 return NotFound(ErrorResponse.NotFoundError($"Location with ID {id} not found", HttpContext.TraceIdentifier));
 
             var response = ApiResponse<LocationDto>.SuccessResponse(location, "Location retrieved successfully", 200, HttpContext.TraceIdentifier);
@@ -173,7 +174,7 @@ public class LocationController : ControllerBase
         {
             var location = await _locationService.UpdateLocationAsync(id, updateLocationDto);
 
-            if (location == null)
+            if (location is null)
                 return NotFound(ErrorResponse.NotFoundError($"Location with ID {id} not found", HttpContext.TraceIdentifier));
 
             // Invalidate cache

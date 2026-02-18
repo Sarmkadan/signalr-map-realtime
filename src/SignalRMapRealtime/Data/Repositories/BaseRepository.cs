@@ -1,3 +1,4 @@
+#nullable enable
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
@@ -116,7 +117,7 @@ public class BaseRepository<T> : IRepository<T> where T : class
     public async Task RemoveByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var entity = await GetByIdAsync(id, cancellationToken);
-        if (entity != null)
+        if (entity is not null)
         {
             _dbSet.Remove(entity);
         }
@@ -135,7 +136,7 @@ public class BaseRepository<T> : IRepository<T> where T : class
     /// </summary>
     public async Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return await _dbSet.FindAsync(new object[] { id }, cancellationToken: cancellationToken) != null;
+        return await _dbSet.FindAsync(new object[] { id }, cancellationToken: cancellationToken) is not null;
     }
 
     /// <summary>

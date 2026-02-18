@@ -1,3 +1,4 @@
+#nullable enable
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
@@ -83,7 +84,7 @@ public class Geofence
     public IReadOnlyList<(double Latitude, double Longitude)> GetPolygonPoints()
     {
         if (string.IsNullOrWhiteSpace(PolygonCoordinates))
-            return Array.Empty<(double, double)>();
+            return new (double, double)[0];
 
         var points = new List<(double, double)>();
         foreach (var pair in PolygonCoordinates.Split(';', StringSplitOptions.RemoveEmptyEntries))
