@@ -9,6 +9,8 @@ namespace SignalRMapRealtime.Hubs;
 using Microsoft.AspNetCore.SignalR;
 using SignalRMapRealtime.DTOs;
 using SignalRMapRealtime.Services;
+using Microsoft.AspNetCore.Authorization; // Hotfix: Added for [Authorize] attribute
+using SignalRMapRealtime.Authentication; // Hotfix: Added for ApiKeyAuthenticationOptions
 
 /// <summary>
 /// SignalR hub that provides real-time route playback streaming and historical timeline interaction.
