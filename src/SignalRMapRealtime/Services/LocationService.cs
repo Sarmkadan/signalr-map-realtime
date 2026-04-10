@@ -11,7 +11,7 @@ using SignalRMapRealtime.Data.Repositories;
 using SignalRMapRealtime.Domain.Enums;
 using SignalRMapRealtime.Domain.Models;
 using SignalRMapRealtime.DTOs;
-using SignalRMapRealtime.Exceptions;
+using SignalRMapRealtime.Models;
 
 /// <summary>
 /// Service for managing location tracking operations.
@@ -78,7 +78,7 @@ public class LocationService : ILocationService
     /// <summary>
     /// Gets the latest location for a vehicle.
     /// </summary>
-    public async Task<LocationDto?> GetLatestLocationAsync(int vehicleId, CancellationToken cancellationToken = default)
+    public async Task<LocationDto?> GetLatestLocationAsync(Guid vehicleId, CancellationToken cancellationToken = default)
     {
         var location = await _locationRepository.GetLatestLocationByVehicleAsync(vehicleId);
         return location == null ? null : _mapper.Map<LocationDto>(location);
@@ -87,7 +87,7 @@ public class LocationService : ILocationService
     /// <summary>
     /// Gets location history for a vehicle within a time range.
     /// </summary>
-    public async Task<IEnumerable<LocationDto>> GetLocationHistoryAsync(int vehicleId, DateTime startTime, DateTime endTime, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<LocationDto>> GetLocationHistoryAsync(Guid vehicleId, DateTime startTime, DateTime endTime, CancellationToken cancellationToken = default)
     {
         var locations = await _locationRepository.GetLocationsByTimeRangeAsync(vehicleId, startTime, endTime);
         return _mapper.Map<IEnumerable<LocationDto>>(locations);
@@ -96,7 +96,7 @@ public class LocationService : ILocationService
     /// <summary>
     /// Gets locations in the last N hours.
     /// </summary>
-    public async Task<IEnumerable<LocationDto>> GetRecentLocationsAsync(int vehicleId, int hoursBack = 24, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<LocationDto>> GetRecentLocationsAsync(Guid vehicleId, int hoursBack = 24, CancellationToken cancellationToken = default)
     {
         var locations = await _locationRepository.GetRecentLocationsAsync(vehicleId, hoursBack);
         return _mapper.Map<IEnumerable<LocationDto>>(locations);
@@ -114,7 +114,7 @@ public class LocationService : ILocationService
     /// <summary>
     /// Gets location statistics for a vehicle.
     /// </summary>
-    public async Task<LocationStatsDto> GetLocationStatsAsync(int vehicleId, DateTime startTime, DateTime endTime, CancellationToken cancellationToken = default)
+    public async Task<LocationStatsDto> GetLocationStatsAsync(Guid vehicleId, DateTime startTime, DateTime endTime, CancellationToken cancellationToken = default)
     {
         var (count, minSpeed, maxSpeed, avgSpeed) = await _locationRepository.GetLocationStatsAsync(vehicleId, startTime, endTime);
 
@@ -149,7 +149,7 @@ public class LocationService : ILocationService
     /// <summary>
     /// Updates location information.
     /// </summary>
-    public async Task<LocationDto> UpdateLocationAsync(int locationId, UpdateLocationDto locationDto, CancellationToken cancellationToken = default)
+    public async Task<LocationDto> UpdateLocationAsync(Guid locationId, UpdateLocationDto locationDto, CancellationToken cancellationToken = default)
     {
         var location = await _locationRepository.GetByIdAsync(locationId, cancellationToken);
         if (location == null)
@@ -170,6 +170,34 @@ public class LocationService : ILocationService
         await _locationRepository.SaveChangesAsync(cancellationToken);
 
         return _mapper.Map<LocationDto>(location);
+    }
+
+    /// <summary>
+    /// Gets all locations.
+    /// </summary>
+    public async Task<PaginatedResponse<LocationDto>> GetLocationsAsync(int pageNumber, int pageSize, CancellationToken cancellationToken = default)
+    {
+        var locations = await _locationRepository.GetAllAsync(cancellationToken);
+        var locationDtos = _mapper.Map<IEnumerable<LocationDto>>(locations);
+        return PaginatedResponse<LocationDto>.FromList(locationDtos, pageNumber, pageSize);
+    }
+
+    /// <summary>
+    /// Gets a location by its ID.
+    /// </summary>
+    public async Task<LocationDto?> GetLocationByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var location = await _locationRepository.GetByIdAsync(id, cancellationToken);
+        return location == null ? null : _mapper.Map<LocationDto>(location);
+    }
+
+    /// <summary>
+    /// Deletes a location by its ID.
+    /// </summary>
+    public async Task DeleteLocationAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        await _locationRepository.RemoveByIdAsync(id, cancellationToken);
+        await _locationRepository.SaveChangesAsync(cancellationToken);
     }
 
     /// <summary>

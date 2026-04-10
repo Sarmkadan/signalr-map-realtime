@@ -3,6 +3,8 @@
 // CTO & Software Architect
 // =============================================================================
 
+using Microsoft.EntityFrameworkCore;
+
 namespace SignalRMapRealtime.Models;
 
 /// <summary>

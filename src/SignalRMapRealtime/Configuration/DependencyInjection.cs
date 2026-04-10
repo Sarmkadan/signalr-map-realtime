@@ -7,6 +7,7 @@ namespace SignalRMapRealtime.Configuration;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.OpenApi.Models; // Added this line
 using SignalRMapRealtime.Data;
 using SignalRMapRealtime.Data.Repositories;
 using SignalRMapRealtime.Services;

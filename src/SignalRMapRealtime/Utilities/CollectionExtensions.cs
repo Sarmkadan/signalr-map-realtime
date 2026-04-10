@@ -40,7 +40,7 @@ public static class CollectionExtensions
     /// </summary>
     public static void RemoveWhere<T>(this List<T> collection, Func<T, bool> predicate)
     {
-        collection.RemoveAll(predicate);
+        collection.RemoveAll(new Predicate<T>(predicate));
     }
 
     /// <summary>
