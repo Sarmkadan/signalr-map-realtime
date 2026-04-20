@@ -1,3 +1,4 @@
+#nullable enable
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
@@ -65,7 +66,7 @@ public class AssetRepository : BaseRepository<Asset>
     public async Task<IEnumerable<Asset>> GetUnassignedAssetsAsync()
     {
         return await _context.Assets
-            .Where(a => a.VehicleId == null)
+            .Where(a => a.VehicleId is null)
             .Include(a => a.CurrentLocation)
             .OrderByDescending(a => a.UpdatedAt)
             .ToListAsync();

@@ -1,3 +1,4 @@
+#nullable enable
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
@@ -75,7 +76,7 @@ public class AssetController : ControllerBase
         {
             var asset = await _assetRepository.GetByIdAsync(id);
 
-            if (asset == null)
+            if (asset is null)
                 return NotFound(ErrorResponse.NotFoundError($"Asset with ID {id} not found", HttpContext.TraceIdentifier));
 
             var response = ApiResponse<AssetDto>.SuccessResponse(
@@ -146,7 +147,7 @@ public class AssetController : ControllerBase
         {
             var asset = await _assetRepository.GetByIdAsync(id);
 
-            if (asset == null)
+            if (asset is null)
                 return NotFound(ErrorResponse.NotFoundError($"Asset with ID {id} not found", HttpContext.TraceIdentifier));
 
             asset.Name = updateAssetDto.Name;
@@ -180,7 +181,7 @@ public class AssetController : ControllerBase
         {
             var asset = await _assetRepository.GetByIdAsync(id);
 
-            if (asset == null)
+            if (asset is null)
                 return NotFound(ErrorResponse.NotFoundError($"Asset with ID {id} not found", HttpContext.TraceIdentifier));
 
             await _assetRepository.SaveChangesAsync();

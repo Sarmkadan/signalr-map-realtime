@@ -1,3 +1,4 @@
+#nullable enable
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
@@ -75,7 +76,7 @@ public class RouteController : ControllerBase
         {
             var route = await _routeRepository.GetByIdAsync(id);
 
-            if (route == null)
+            if (route is null)
                 return NotFound(ErrorResponse.NotFoundError($"Route with ID {id} not found", HttpContext.TraceIdentifier));
 
             var response = ApiResponse<RouteDto>.SuccessResponse(
@@ -154,7 +155,7 @@ public class RouteController : ControllerBase
         {
             var route = await _routeRepository.GetByIdAsync(id);
 
-            if (route == null)
+            if (route is null)
                 return NotFound(ErrorResponse.NotFoundError($"Route with ID {id} not found", HttpContext.TraceIdentifier));
 
             route.Name = updateRouteDto.Name;
@@ -189,7 +190,7 @@ public class RouteController : ControllerBase
         {
             var route = await _routeRepository.GetByIdAsync(id);
 
-            if (route == null)
+            if (route is null)
                 return NotFound(ErrorResponse.NotFoundError($"Route with ID {id} not found", HttpContext.TraceIdentifier));
 
             _routeRepository.Delete(route);
@@ -214,7 +215,7 @@ public class RouteController : ControllerBase
         {
             var route = await _routeRepository.GetByIdAsync(id);
 
-            if (route == null)
+            if (route is null)
                 return NotFound(ErrorResponse.NotFoundError($"Route with ID {id} not found", HttpContext.TraceIdentifier));
 
             // Placeholder calculation - in production would use actual waypoint coordinates

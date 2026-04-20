@@ -1,3 +1,4 @@
+#nullable enable
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
@@ -38,7 +39,7 @@ public class TrackingService : ITrackingService
     public async Task<int> StartTrackingSessionAsync(int vehicleId, string sessionName = "", int? routeId = null, CancellationToken cancellationToken = default)
     {
         var vehicle = await _vehicleRepository.GetByIdAsync(vehicleId, cancellationToken);
-        if (vehicle == null)
+        if (vehicle is null)
             throw new VehicleNotFoundException(vehicleId);
 
         var session = new TrackingSession
@@ -73,7 +74,7 @@ public class TrackingService : ITrackingService
     public async Task<bool> PauseSessionAsync(int sessionId, CancellationToken cancellationToken = default)
     {
         var session = await _sessionRepository.GetByIdAsync(sessionId, cancellationToken);
-        if (session == null || session.Status != SessionStatus.Active)
+        if (session is null || session.Status != SessionStatus.Active)
             return false;
 
         session.PauseSession();
@@ -88,7 +89,7 @@ public class TrackingService : ITrackingService
     public async Task<bool> ResumeSessionAsync(int sessionId, CancellationToken cancellationToken = default)
     {
         var session = await _sessionRepository.GetByIdAsync(sessionId, cancellationToken);
-        if (session == null || session.Status != SessionStatus.Paused)
+        if (session is null || session.Status != SessionStatus.Paused)
             return false;
 
         session.ResumeSession();
@@ -103,12 +104,12 @@ public class TrackingService : ITrackingService
     public async Task<bool> CompleteSessionAsync(int sessionId, CancellationToken cancellationToken = default)
     {
         var session = await _sessionRepository.GetSessionWithDetailsAsync(sessionId);
-        if (session == null || session.Status == SessionStatus.Completed)
+        if (session is null || session.Status == SessionStatus.Completed)
             return false;
 
         session.CompleteSession();
         var vehicle = await _vehicleRepository.GetByIdAsync(session.VehicleId, cancellationToken);
-        if (vehicle != null)
+        if (vehicle is not null)
         {
             vehicle.UpdateStatus(VehicleStatus.AtDepot);
             await _vehicleRepository.UpdateAsync(vehicle, cancellationToken);
@@ -126,12 +127,12 @@ public class TrackingService : ITrackingService
     public async Task<bool> CancelSessionAsync(int sessionId, string reason = "", CancellationToken cancellationToken = default)
     {
         var session = await _sessionRepository.GetByIdAsync(sessionId, cancellationToken);
-        if (session == null)
+        if (session is null)
             return false;
 
         session.CancelSession(reason);
         var vehicle = await _vehicleRepository.GetByIdAsync(session.VehicleId, cancellationToken);
-        if (vehicle != null)
+        if (vehicle is not null)
         {
             vehicle.UpdateStatus(VehicleStatus.Idle);
             await _vehicleRepository.UpdateAsync(vehicle, cancellationToken);

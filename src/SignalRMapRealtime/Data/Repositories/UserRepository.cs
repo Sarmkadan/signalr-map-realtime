@@ -1,3 +1,4 @@
+#nullable enable
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
@@ -109,7 +110,7 @@ public class UserRepository : BaseRepository<User>
     public async Task<bool> DeactivateUserAsync(int userId)
     {
         var user = await _context.Users.FindAsync(userId);
-        if (user == null)
+        if (user is null)
             return false;
         user.Deactivate();
         await SaveChangesAsync();

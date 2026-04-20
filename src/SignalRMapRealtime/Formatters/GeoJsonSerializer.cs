@@ -1,3 +1,4 @@
+#nullable enable
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
@@ -172,7 +173,7 @@ public class GeoJsonPoint
     public string Type { get; set; } = "Point";
 
     [JsonPropertyName("coordinates")]
-    public double[] Coordinates { get; set; } = Array.Empty<double>();
+    public double[] Coordinates { get; set; } = new double[0];
 }
 
 /// <summary>
@@ -184,5 +185,5 @@ public class GeoJsonLineString
     public string Type { get; set; } = "LineString";
 
     [JsonPropertyName("coordinates")]
-    public double[][] Coordinates { get; set; } = Array.Empty<double[]>();
+    public double[][] Coordinates { get; set; } = new double[][0];
 }
