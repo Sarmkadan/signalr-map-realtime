@@ -14,6 +14,8 @@ using SignalRMapRealtime.Middleware;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 
+#nullable enable
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Configuration
@@ -92,7 +94,7 @@ using (var scope = app.Services.CreateScope())
     }
     catch (Exception ex)
     {
-        app.Logger.LogError($"Error applying migrations: {ex.Message}");
+        app.Logger.LogError(ex, "Error applying migrations: {Message}", ex.Message);
     }
 }
 
