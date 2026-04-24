@@ -574,7 +574,7 @@ GET /health
 {
   "status": "Healthy",
   "timestamp": "2024-05-04T10:30:00Z",
-  "version": "1.0.0"
+  "version": "2.0.2"
 }
 ```
 
@@ -585,7 +585,7 @@ GET /api/info
 **Response** (200 OK):
 ```json
 {
-  "version": "1.0.0",
+  "version": "2.0.2",
   "title": "SignalR Map Realtime API",
   "environment": "Production"
 }
@@ -833,7 +833,7 @@ Content-Type: application/json
     }
   },
   "AppSettings": {
-    "ApiVersion": "1.0.0",
+    "ApiVersion": "2.0.2",
     "Environment": "Production",
     "EnableSwagger": true,
     "RequestTimeoutSeconds": 30
