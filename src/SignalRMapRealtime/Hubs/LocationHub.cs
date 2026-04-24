@@ -10,11 +10,14 @@ using Microsoft.AspNetCore.SignalR;
 using SignalRMapRealtime.DTOs;
 using SignalRMapRealtime.Services;
 using SignalRMapRealtime.Constants;
+using Microsoft.AspNetCore.Authorization; // Hotfix: Added for [Authorize] attribute
+using SignalRMapRealtime.Authentication; // Hotfix: Added for ApiKeyAuthenticationOptions
 
 /// <summary>
 /// SignalR hub for real-time location tracking and vehicle updates.
 /// Clients connect to receive live location updates, vehicle status changes, and route progress.
 /// </summary>
+[Authorize(AuthenticationSchemes = ApiKeyAuthenticationOptions.DefaultScheme)] // Hotfix: Require API Key authentication for this hub
 public class LocationHub : Hub
 {
     private readonly ILocationService _locationService;
