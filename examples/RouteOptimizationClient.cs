@@ -77,11 +77,11 @@ public class RouteOptimizationClient
         var content = new StringContent(json, Encoding.UTF8, "application/json");
         content.Headers.Add("X-API-Key", _apiKey);
 
-        var response = await _httpClient.PostAsync($"{_baseUrl}/api/v1/routes", content);
+        var response = await _httpClient.PostAsync($"{_baseUrl}/api/v1/routes", content).ConfigureAwait(false);
 
         if (response.IsSuccessStatusCode)
         {
-            var result = await response.Content.ReadAsStringAsync();
+            var result = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             var doc = JsonDocument.Parse(result);
             var routeId = doc.RootElement.GetProperty("id").GetString();
 
@@ -89,7 +89,7 @@ public class RouteOptimizationClient
             Console.WriteLine($"  Total Distance: {totalDistance:F2} km");
             Console.WriteLine($"  Estimated Duration: {route.estimatedDuration} minutes");
 
-            await GetRouteDetails(routeId ?? "");
+            await GetRouteDetails(routeId ?? "").ConfigureAwait(false);
         }
         else
         {
@@ -108,12 +108,12 @@ public class RouteOptimizationClient
         var request = new HttpRequestMessage(HttpMethod.Get, $"{_baseUrl}/api/v1/routes/{routeId}");
         request.Headers.Add("X-API-Key", _apiKey);
 
-        var response = await _httpClient.SendAsync(request);
+        var response = await _httpClient.SendAsync(request).ConfigureAwait(false);
 
         if (!response.IsSuccessStatusCode)
             return;
 
-        var result = await response.Content.ReadAsStringAsync();
+        var result = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
         var doc = JsonDocument.Parse(result);
         var route = doc.RootElement;
 
@@ -202,7 +202,7 @@ public class RouteOptimizationClient
         for (int i = 0; i < steps.Length; i++)
         {
             Console.WriteLine($"  [{steps[i]}%] {statuses[i]}");
-            await Task.Delay(1000);
+            await Task.Delay(1000).ConfigureAwait(false);
         }
 
         Console.WriteLine("\n✓ Route execution simulation completed");
@@ -215,7 +215,7 @@ public class RouteOptimizationClient
     {
         try
         {
-            await CreateDeliveryRoute(vehicleId);
+            await CreateDeliveryRoute(vehicleId).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -233,6 +233,6 @@ public class RouteOptimizationClient
         var vehicleId = args.Length > 2 ? args[2] : Guid.NewGuid().ToString();
 
         var client = new RouteOptimizationClient(baseUrl, apiKey);
-        await client.RunExample(vehicleId);
+        await client.RunExample(vehicleId).ConfigureAwait(false);
     }
 }

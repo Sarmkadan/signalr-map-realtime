@@ -126,10 +126,10 @@ public sealed class GeofenceService : IGeofenceService
         var alerts = new List<GeofenceAlertDto>();
 
         foreach (var id in currentIds.Except(previousIds).ToList())
-            await EmitAlertAsync(alerts, id, vehicleId, latitude, longitude, "Entered");
+            await EmitAlertAsync(alerts, id, vehicleId, latitude, longitude, "Entered").ConfigureAwait(false);
 
         foreach (var id in previousIds.Except(currentIds).ToList())
-            await EmitAlertAsync(alerts, id, vehicleId, latitude, longitude, "Exited");
+            await EmitAlertAsync(alerts, id, vehicleId, latitude, longitude, "Exited").ConfigureAwait(false);
 
         _presence[vehicleId] = currentIds;
 
