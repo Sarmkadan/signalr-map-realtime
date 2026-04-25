@@ -39,10 +39,10 @@ public class SessionCleanupWorker : BackgroundService
         {
             try
             {
-                await CleanupInactiveSessions(stoppingToken);
-                await ArchiveOldLocations(stoppingToken);
+                await CleanupInactiveSessions(stoppingToken).ConfigureAwait(false);
+                await ArchiveOldLocations(stoppingToken).ConfigureAwait(false);
 
-                await Task.Delay(_executionInterval, stoppingToken);
+                await Task.Delay(_executionInterval, stoppingToken).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
@@ -53,7 +53,7 @@ public class SessionCleanupWorker : BackgroundService
             {
                 _logger.LogError(ex, "Error in session cleanup worker");
                 // Continue on error to prevent worker from stopping
-                await Task.Delay(TimeSpan.FromSeconds(30), stoppingToken);
+                await Task.Delay(TimeSpan.FromSeconds(30), stoppingToken).ConfigureAwait(false);
             }
         }
 
@@ -89,7 +89,7 @@ public class SessionCleanupWorker : BackgroundService
             session.UpdatedAt = DateTime.UtcNow;
         }
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         _logger.LogInformation("Cleaned up {Count} inactive sessions", inactiveSessions.Count);
     }
 
@@ -118,7 +118,7 @@ public class SessionCleanupWorker : BackgroundService
 
         // In production, export to archive storage (e.g., Azure Blob, S3) before deleting
         dbContext.Locations.RemoveRange(oldLocations);
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         _logger.LogInformation("Archived {Count} old locations", oldLocations.Count);
     }

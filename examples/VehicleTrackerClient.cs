@@ -35,10 +35,10 @@ public class VehicleTrackerClient
 
         try
         {
-            var vehicleId = await CreateVehicle();
-            await RecordLocations(vehicleId);
-            await RetrieveLocationHistory(vehicleId);
-            await GetVehicleDetails(vehicleId);
+            var vehicleId = await CreateVehicle().ConfigureAwait(false);
+            await RecordLocations(vehicleId).ConfigureAwait(false);
+            await RetrieveLocationHistory(vehicleId).ConfigureAwait(false);
+            await GetVehicleDetails(vehicleId).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -66,15 +66,15 @@ public class VehicleTrackerClient
         var content = new StringContent(json, Encoding.UTF8, "application/json");
         content.Headers.Add("X-API-Key", _apiKey);
 
-        var response = await _httpClient.PostAsync($"{_baseUrl}/api/v1/vehicles", content);
+        var response = await _httpClient.PostAsync($"{_baseUrl}/api/v1/vehicles", content).ConfigureAwait(false);
 
         if (!response.IsSuccessStatusCode)
         {
-            var error = await response.Content.ReadAsStringAsync();
+            var error = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             throw new Exception($"Failed to create vehicle: {error}");
         }
 
-        var result = await response.Content.ReadAsStringAsync();
+        var result = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
         var doc = JsonDocument.Parse(result);
         var vehicleId = doc.RootElement.GetProperty("id").GetString();
 
@@ -115,14 +115,14 @@ public class VehicleTrackerClient
             var content = new StringContent(json, Encoding.UTF8, "application/json");
             content.Headers.Add("X-API-Key", _apiKey);
 
-            var response = await _httpClient.PostAsync($"{_baseUrl}/api/v1/locations", content);
+            var response = await _httpClient.PostAsync($"{_baseUrl}/api/v1/locations", content).ConfigureAwait(false);
 
             if (response.IsSuccessStatusCode)
             {
                 Console.WriteLine($"  ✓ Location recorded: ({lat}, {lon})");
             }
 
-            await Task.Delay(500); // Small delay between updates
+            await Task.Delay(500).ConfigureAwait(false); // Small delay between updates
         }
 
         Console.WriteLine();
@@ -141,7 +141,7 @@ public class VehicleTrackerClient
         );
         request.Headers.Add("X-API-Key", _apiKey);
 
-        var response = await _httpClient.SendAsync(request);
+        var response = await _httpClient.SendAsync(request).ConfigureAwait(false);
 
         if (!response.IsSuccessStatusCode)
         {
@@ -149,7 +149,7 @@ public class VehicleTrackerClient
             return;
         }
 
-        var result = await response.Content.ReadAsStringAsync();
+        var result = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
         var doc = JsonDocument.Parse(result);
         var data = doc.RootElement.GetProperty("data");
 
@@ -175,7 +175,7 @@ public class VehicleTrackerClient
         var request = new HttpRequestMessage(HttpMethod.Get, $"{_baseUrl}/api/v1/vehicles/{vehicleId}");
         request.Headers.Add("X-API-Key", _apiKey);
 
-        var response = await _httpClient.SendAsync(request);
+        var response = await _httpClient.SendAsync(request).ConfigureAwait(false);
 
         if (!response.IsSuccessStatusCode)
         {
@@ -183,7 +183,7 @@ public class VehicleTrackerClient
             return;
         }
 
-        var result = await response.Content.ReadAsStringAsync();
+        var result = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
         var doc = JsonDocument.Parse(result);
         var vehicle = doc.RootElement;
 
@@ -204,6 +204,6 @@ public class VehicleTrackerClient
         var apiKey = args.Length > 1 ? args[1] : "default-api-key";
 
         var client = new VehicleTrackerClient(baseUrl, apiKey);
-        await client.RunExample();
+        await client.RunExample().ConfigureAwait(false);
     }
 }

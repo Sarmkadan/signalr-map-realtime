@@ -155,7 +155,7 @@ public class InMemoryNotificationService : INotificationService
         if (includePush)
             tasks.Add(SendPushAsync(recipient, subject, body));
 
-        await Task.WhenAll(tasks);
+        await Task.WhenAll(tasks).ConfigureAwait(false);
     }
 
     /// <summary>
