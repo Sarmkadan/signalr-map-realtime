@@ -23,20 +23,23 @@ public class LocationHub : Hub
     private readonly ILocationService _locationService;
     private readonly IVehicleService _vehicleService;
     private readonly ITrackingService _trackingService;
+    private readonly LocationUpdateThrottler _throttler;
     private readonly ILogger<LocationHub> _logger;
 
     /// <summary>
     /// Initializes a new instance of LocationHub.
     /// </summary>
-    public LocationHub(ILocationService locationService, IVehicleService vehicleService, ITrackingService trackingService, ILogger<LocationHub> logger)
+    public LocationHub(ILocationService locationService, IVehicleService vehicleService, ITrackingService trackingService, LocationUpdateThrottler throttler, ILogger<LocationHub> logger)
     {
         ArgumentNullException.ThrowIfNull(locationService);
         ArgumentNullException.ThrowIfNull(vehicleService);
         ArgumentNullException.ThrowIfNull(trackingService);
+        ArgumentNullException.ThrowIfNull(throttler);
         ArgumentNullException.ThrowIfNull(logger);
         _locationService = locationService;
         _vehicleService = vehicleService;
         _trackingService = trackingService;
+        _throttler = throttler;
         _logger = logger;
     }
 
@@ -60,11 +63,20 @@ public class LocationHub : Hub
 
     /// <summary>
     /// Receives and broadcasts a location update for a vehicle in real-time.
+    /// Updates are subject to per-asset-type throttling configured in LocationThrottle settings.
     /// </summary>
     public async Task SendLocationUpdate(CreateLocationDto locationDto)
     {
         try
         {
+            // Apply per-asset-type throttle to reduce unnecessary SignalR traffic.
+            var vehicle = await _vehicleService.GetVehicleAsync(locationDto.VehicleId).ConfigureAwait(false);
+            if (vehicle is not null && _throttler.ShouldThrottle(locationDto.VehicleId, vehicle.AssetType))
+            {
+                _logger.LogDebug("Location update throttled for vehicle {VehicleId} (asset type: {AssetType})", locationDto.VehicleId, vehicle.AssetType);
+                return;
+            }
+
             var location = await _locationService.RecordLocationAsync(locationDto).ConfigureAwait(false);
 
             // Broadcast to all connected clients

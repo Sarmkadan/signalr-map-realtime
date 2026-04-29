@@ -60,6 +60,10 @@ public static class DependencyInjection
         services.AddScoped<IVehicleService, VehicleService>();
         services.AddScoped<ITrackingService, TrackingService>();
 
+        // Location update throttler (singleton so state is shared across hub instances)
+        services.Configure<ThrottleOptions>(configuration.GetSection(ThrottleOptions.SectionName));
+        services.AddSingleton<LocationUpdateThrottler>();
+
         // AutoMapper
         services.AddAutoMapper(typeof(AutoMapperProfile).Assembly);
 
