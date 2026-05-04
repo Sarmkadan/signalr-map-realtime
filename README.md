@@ -1,5 +1,41 @@
 // ... (rest of file remains unchanged)
 
+## Route
+
+The `Route` entity represents a planned path for a vehicle, including waypoints, scheduled times, and tracking information. It centralizes route management by linking vehicles, users, and tracking sessions, allowing for accurate monitoring of departures, arrivals, and distances.
+
+### Usage Example
+
+```csharp
+// Create a new planned route for a vehicle
+var route = new Route
+{
+    Id = 1,
+    Name = "Morning Delivery Route",
+    Description = "Route through downtown area for AM deliveries",
+    VehicleId = 5,
+    AssignedUserId = 10,
+    PlannedDepartureTime = DateTime.UtcNow.AddHours(1),
+    EstimatedArrivalTime = DateTime.UtcNow.AddHours(4),
+    Origin = "Warehouse A",
+    Destination = "Downtown Distribution Hub",
+    IsActive = true,
+    IsCompleted = false
+};
+
+// Access associated entities
+var vehicle = route.Vehicle;
+var assignedUser = route.AssignedUser;
+var trackingSession = route.TrackingSession;
+
+// Add waypoints to the route
+route.Waypoints.Add(new Waypoint { Id = 1, Sequence = 1, Name = "Stop 1" });
+
+// Update timing status
+route.ActualDepartureTime = DateTime.UtcNow.AddHours(1.1);
+route.TotalDistance = 15.5;
+```
+
 ## Waypoint
 
 The `Waypoint` class represents a specific location within a route that needs to be visited during navigation. It tracks sequencing information, timing constraints, estimated duration, completion status, and contact details for each waypoint in a route. Waypoints can be marked as completed and reset when needed.
