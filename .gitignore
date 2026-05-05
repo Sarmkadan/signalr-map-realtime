@@ -38,6 +38,7 @@ Migrations/
 .env
 .env.local
 .env.*.local
+appsettings.Development.json
 appsettings.local.json
 appsettings.Development.local.json
 
