@@ -202,10 +202,10 @@ public class AssetController : ControllerBase
     {
         return new AssetDto
         {
-            Id = asset.Id.ToString(),
+            Id = asset.Id,
             Name = asset.Name,
             AssetType = asset.AssetType,
-            Status = asset.Condition ?? "Unknown",
+            Condition = asset.Condition,
             CreatedAt = asset.CreatedAt,
             UpdatedAt = asset.UpdatedAt
         };

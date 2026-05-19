@@ -117,7 +117,7 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthentic
         Response.StatusCode = StatusCodes.Status401Unauthorized;
         Response.ContentType = "application/json";
         // Optionally, write a JSON error response body
-        return Response.WriteAsync("{"error":"Unauthorized","message":"Authentication required or failed."}", CancellationToken.None);
+        return Response.WriteAsync("{\"error\":\"Unauthorized\",\"message\":\"Authentication required or failed.\"}", CancellationToken.None);
     }
 
     /// <summary>
@@ -129,6 +129,6 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthentic
         Response.StatusCode = StatusCodes.Status403Forbidden;
         Response.ContentType = "application/json";
         // Optionally, write a JSON error response body
-        return Response.WriteAsync("{"error":"Forbidden","message":"You do not have permission to access this resource."}", CancellationToken.None);
+        return Response.WriteAsync("{\"error\":\"Forbidden\",\"message\":\"You do not have permission to access this resource.\"}", CancellationToken.None);
     }
 }

@@ -4,6 +4,7 @@
 // =============================================================================
 
 using SignalRMapRealtime.Configuration;
+using SignalRMapRealtime.Authentication;
 using SignalRMapRealtime.Data;
 using SignalRMapRealtime.Hubs;
 using SignalRMapRealtime.Services;
@@ -141,6 +142,7 @@ app.MapControllers();
 
 // SignalR hub mapping
 app.MapHub<LocationHub>("/hubs/location");
+app.MapHub<RoutePlaybackHub>("/hubs/playback");
 
 // Health check endpoint
 app.MapGet("/health", async () =>

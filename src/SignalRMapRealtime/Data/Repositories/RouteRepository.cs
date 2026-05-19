@@ -92,12 +92,13 @@ public class RouteRepository : BaseRepository<Route>
     /// </summary>
     public async Task<IEnumerable<Route>> GetLongestRoutesAsync(int topCount = 10)
     {
-        return await _context.Routes
-            .AsEnumerable()
-            .OrderByDescending(r => (r.EstimatedArrivalTime - r.PlannedDepartureTime).TotalHours)
+        var routes = await _context.Routes
             .Include(r => r.Vehicle)
-            .Take(topCount)
             .ToListAsync();
+        return routes
+            .OrderByDescending(r => (r.EstimatedArrivalTime - r.PlannedDepartureTime).TotalHours)
+            .Take(topCount)
+            .ToList();
     }
 
     /// <summary>
