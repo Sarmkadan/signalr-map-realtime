@@ -1258,6 +1258,227 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 ---
 
+## New Features
+
+### Clustering & Heatmap Layer
+
+Location points are automatically bucketed into geographic grid cells to render density overlays on the Leaflet map.
+
+#### Endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/clustering/clusters` | Returns location clusters with centroid and bounds |
+| `GET` | `/api/clustering/heatmap` | Returns normalised heatmap tiles (intensity 0.0–1.0) |
+
+Both endpoints accept the same query parameters:
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `vehicleId` | `int?` | — | Restrict to a single vehicle's history |
+| `from` | `DateTime?` | -24 h | Start of time window (UTC) |
+| `to` | `DateTime?` | now | End of time window (UTC) |
+| `gridCellKm` | `double` | 0.5 | Grid cell edge length in km |
+| `minLatitude` | `double?` | — | Southern bounding-box limit |
+| `maxLatitude` | `double?` | — | Northern bounding-box limit |
+| `minLongitude` | `double?` | — | Western bounding-box limit |
+| `maxLongitude` | `double?` | — | Eastern bounding-box limit |
+
+**Cluster response example:**
+```json
+{
+  "success": true,
+  "data": {
+    "clusters": [
+      {
+        "centerLatitude": 51.507,
+        "centerLongitude": -0.127,
+        "count": 42,
+        "minLatitude": 51.502,
+        "maxLatitude": 51.512,
+        "minLongitude": -0.132,
+        "maxLongitude": -0.122
+      }
+    ],
+    "totalPoints": 42,
+    "gridCellKm": 0.5,
+    "computedAt": "2024-05-04T10:30:00Z"
+  }
+}
+```
+
+**Heatmap response example:**
+```json
+{
+  "success": true,
+  "data": {
+    "points": [
+      { "latitude": 51.507, "longitude": -0.127, "intensity": 1.0, "count": 42 }
+    ],
+    "maxCount": 42,
+    "gridCellKm": 0.5,
+    "computedAt": "2024-05-04T10:30:00Z"
+  }
+}
+```
+
+**Leaflet integration:**
+```javascript
+// Heatmap
+const data = response.data.points.map(p => [p.latitude, p.longitude, p.intensity]);
+L.heatLayer(data, { radius: 25 }).addTo(map);
+
+// Clustering — draw rectangles for each cell
+response.data.clusters.forEach(c => {
+  const bounds = [[c.minLatitude, c.minLongitude], [c.maxLatitude, c.maxLongitude]];
+  L.rectangle(bounds, { color: '#ff7800', weight: 1 }).addTo(map)
+    .bindPopup(`${c.count} points`);
+});
+```
+
+---
+
+### Geofence Zones on Map
+
+Define polygonal or circular geographic zones. The system detects when tracked vehicles enter or exit a zone and raises domain events.
+
+#### Endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/geofence` | List all registered geofence zones |
+| `POST` | `/api/geofence` | Register a new geofence zone |
+| `DELETE` | `/api/geofence/{id}` | Remove a geofence zone |
+| `POST` | `/api/geofence/check` | Evaluate whether a position is inside any zone |
+
+**Register zone request:**
+```json
+{
+  "name": "Warehouse District",
+  "centerLatitude": 51.507,
+  "centerLongitude": -0.127,
+  "radiusMeters": 500,
+  "alertOnEnter": true,
+  "alertOnExit": true,
+  "description": "Main warehouse perimeter"
+}
+```
+
+**Check position request:**
+```json
+{
+  "vehicleId": 42,
+  "latitude": 51.507,
+  "longitude": -0.127
+}
+```
+
+**Check position response:**
+```json
+{
+  "success": true,
+  "data": {
+    "vehicleId": 42,
+    "latitude": 51.507,
+    "longitude": -0.127,
+    "violations": [
+      {
+        "zoneId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+        "zoneName": "Warehouse District",
+        "eventType": "Enter"
+      }
+    ],
+    "checkedAt": "2024-05-04T10:30:00Z"
+  }
+}
+```
+
+**Domain events** — subscribe via `IEventBus` for integration:
+- `GeofenceEnteredEvent` — raised when a vehicle enters a zone for the first time
+- `GeofenceExitedEvent` — raised when a vehicle exits a zone it was inside
+
+---
+
+### Historical Playback
+
+Replay recorded route sessions step by step via SignalR, with speed control and real-time position snapshots.
+
+#### REST Endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/api/playback/sessions` | Create a new playback session |
+| `GET` | `/api/playback/sessions` | List all active playback sessions |
+| `DELETE` | `/api/playback/sessions/{id}` | Stop and remove a playback session |
+| `GET` | `/api/playback/timeline/{id}` | Get the ordered list of location points |
+| `GET` | `/api/playback/snapshot/{id}` | Get the current playback position |
+| `GET` | `/api/playback/statistics/{id}` | Get distance, speed, and duration stats |
+
+**Create session request:**
+```json
+{
+  "vehicleId": 42,
+  "startTime": "2024-05-04T08:00:00Z",
+  "endTime":   "2024-05-04T09:00:00Z",
+  "playbackSpeed": 2.0
+}
+```
+
+**Snapshot response:**
+```json
+{
+  "success": true,
+  "data": {
+    "sessionId": "3fa85f64-...",
+    "currentIndex": 12,
+    "totalPoints": 120,
+    "progressPercent": 10.0,
+    "currentLocation": {
+      "latitude": 51.507,
+      "longitude": -0.127,
+      "speed": 45.2,
+      "recordedAt": "2024-05-04T08:06:00Z"
+    },
+    "isPlaying": true
+  }
+}
+```
+
+#### SignalR Hub — `/hubs/playback`
+
+Connect with the SignalR client and invoke:
+
+```javascript
+const connection = new signalR.HubConnectionBuilder()
+  .withUrl('/hubs/playback')
+  .build();
+
+// Receive position ticks during replay
+connection.on('PlaybackTick', (sessionId, location) => {
+  marker.setLatLng([location.latitude, location.longitude]);
+});
+
+connection.on('PlaybackCompleted', (sessionId) => {
+  console.log('Replay finished', sessionId);
+});
+
+await connection.start();
+
+// Start playback
+await connection.invoke('StartPlayback', sessionId);
+
+// Pause / resume / stop
+await connection.invoke('PausePlayback', sessionId);
+await connection.invoke('ResumePlayback', sessionId);
+await connection.invoke('StopPlayback', sessionId);
+
+// Join a session group to receive its events
+await connection.invoke('JoinPlaybackSession', sessionId);
+await connection.invoke('LeavePlaybackSession', sessionId);
+```
+
+---
+
 **Built by [Vladyslav Zaiets](https://sarmkadan.com) - CTO & Software Architect**
 
 [Portfolio](https://sarmkadan.com) | [GitHub](https://github.com/Sarmkadan) | [Telegram](https://t.me/sarmkadan)
