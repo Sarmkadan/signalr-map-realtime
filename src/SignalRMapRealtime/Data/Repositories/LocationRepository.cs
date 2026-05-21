@@ -124,7 +124,7 @@ public class LocationRepository : BaseRepository<Location>
             .ToListAsync();
 
         _context.Locations.RemoveRange(locationsToDelete);
-        return await _context.SaveChangesAsync();
+        return await _context.SaveChangesAsync().ConfigureAwait(false);
     }
 
     /// <summary>
