@@ -88,8 +88,16 @@ public class LocationService : ILocationService
     /// <summary>
     /// Gets location history for a vehicle within a time range.
     /// </summary>
+    /// <param name="vehicleId">The vehicle to query.</param>
+    /// <param name="startTime">Start of the time range (inclusive).</param>
+    /// <param name="endTime">End of the time range (inclusive). Must be after startTime.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <exception cref="ArgumentException">Thrown when endTime is before or equal to startTime.</exception>
     public async Task<IEnumerable<LocationDto>> GetLocationHistoryAsync(Guid vehicleId, DateTime startTime, DateTime endTime, CancellationToken cancellationToken = default)
     {
+        if (endTime <= startTime)
+            throw new ArgumentException($"endTime ({endTime:O}) must be after startTime ({startTime:O})", nameof(endTime));
+
         var locations = await _locationRepository.GetLocationsByTimeRangeAsync(vehicleId, startTime, endTime);
         return _mapper.Map<IEnumerable<LocationDto>>(locations);
     }
@@ -113,10 +121,14 @@ public class LocationService : ILocationService
     }
 
     /// <summary>
-    /// Gets location statistics for a vehicle.
+    /// Gets location statistics for a vehicle within a time range.
     /// </summary>
+    /// <exception cref="ArgumentException">Thrown when endTime is before or equal to startTime.</exception>
     public async Task<LocationStatsDto> GetLocationStatsAsync(Guid vehicleId, DateTime startTime, DateTime endTime, CancellationToken cancellationToken = default)
     {
+        if (endTime <= startTime)
+            throw new ArgumentException($"endTime ({endTime:O}) must be after startTime ({startTime:O})", nameof(endTime));
+
         var (count, minSpeed, maxSpeed, avgSpeed) = await _locationRepository.GetLocationStatsAsync(vehicleId, startTime, endTime);
 
         var locations = await _locationRepository.GetLocationsByTimeRangeAsync(vehicleId, startTime, endTime);
