@@ -24,7 +24,7 @@ public class LocationServiceTests
             .ReturnsAsync((LocationDto?)null);
 
         // Act
-        var result = await serviceMock.Object.GetLatestLocationAsync(99);
+        var result = await serviceMock.Object.GetLatestLocationAsync(99).ConfigureAwait(false);
 
         // Assert
         result.Should().BeNull();
@@ -50,7 +50,7 @@ public class LocationServiceTests
             .ReturnsAsync(expected);
 
         // Act
-        var result = await serviceMock.Object.GetLatestLocationAsync(5);
+        var result = await serviceMock.Object.GetLatestLocationAsync(5).ConfigureAwait(false);
 
         // Assert
         result.Should().NotBeNull();
@@ -81,7 +81,7 @@ public class LocationServiceTests
             .ReturnsAsync(expected);
 
         // Act
-        var stats = await serviceMock.Object.GetLocationStatsAsync(1, start, end);
+        var stats = await serviceMock.Object.GetLocationStatsAsync(1, start, end).ConfigureAwait(false);
 
         // Assert
         stats.PointCount.Should().Be(12);

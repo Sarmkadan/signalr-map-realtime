@@ -139,6 +139,6 @@ public class AssetRepository : BaseRepository<Asset>
     public async Task<int> CountByConditionAsync(string condition)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(condition);
-        return await _context.Assets.CountAsync(a => a.Condition == condition);
+        return await _context.Assets.CountAsync(a => a.Condition == condition).ConfigureAwait(false);
     }
 }

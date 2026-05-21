@@ -136,7 +136,7 @@ public class WebhookHandler : IWebhookHandler
             TriggeredBy = "WebhookService"
         };
 
-        await _eventBus.PublishAsync(locationEvent);
+        await _eventBus.PublishAsync(locationEvent).ConfigureAwait(false);
 
         return new WebhookProcessingResult { Success = true, ProcessedAt = DateTime.UtcNow };
     }
