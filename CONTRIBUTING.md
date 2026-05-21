@@ -34,19 +34,36 @@ To build and run this project, you need the following:
    ```
 7. **Submit a Pull Request (PR):** Open a PR from your fork's branch to the `main` branch of the original repository. Provide a clear description of the changes you've made.
 
+## Project Structure
+
+```
+src/SignalRMapRealtime/
+  Authentication/   - API key auth handler
+  Domain/Models/    - Core entities (Asset, Vehicle, Location, Route, etc.)
+  Hubs/             - SignalR hubs (LocationHub, RoutePlaybackHub)
+  Services/         - Business logic and data access
+  Middleware/       - Error handling, rate limiting
+  Events/           - Domain events and handlers
+  Models/           - API request/response DTOs
+tests/              - Unit and integration tests
+```
+
 ## Code Style
 
 When contributing code, please follow these guidelines:
 - **Follow existing conventions:** Match the style, formatting, and naming conventions already present in the codebase.
 - **XML Docs:** Use XML documentation comments for public classes, methods, and properties.
 - **Keep author headers:** DO NOT remove any existing author headers. Preserve all original author attributions in the source files.
+- **Async methods:** Use `async/await` with `CancellationToken` support for all I/O operations.
+- **SignalR hubs:** Keep hub methods thin - delegate business logic to services.
 
 ## Issues
 
 If you find a bug or have a feature request, please use **GitHub Issues**.
 - Provide clear and concise **reproduction steps** for bugs.
 - Include expected and actual behavior.
-- Mention your environment details if applicable.
+- Mention your .NET version and OS.
+- For SignalR issues, include the client library version (JavaScript/C#).
 
 ## License
 
