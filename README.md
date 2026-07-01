@@ -423,19 +423,97 @@ dotnet run --project src/SignalRMapRealtime
 
 ### Method 3: Docker
 
+The project includes comprehensive Docker support for containerized deployment.
+
+#### Quick Start with Docker Compose
+
 ```bash
 # Clone and navigate
 git clone https://github.com/Sarmkadan/signalr-map-realtime.git
 cd signalr-map-realtime
 
-# Build image
-docker build -t signalr-map-realtime:latest .
-
-# Run with compose (includes SQL Server)
+# Build and start all services (SQL Server, Redis, and API)
 docker-compose up -d
 
+# Apply database migrations
+# Note: Wait for SQL Server to be fully ready (health check will pass)
+docker-compose exec app dotnet ef database update --project src/SignalRMapRealtime/SignalRMapRealtime.csproj
+
+# Verify services are running
+curl http://localhost:5000/health
+
 # API available at http://localhost:5000
-# Swagger at http://localhost:5000/swagger
+# Swagger UI at http://localhost:5000/swagger
+```
+
+#### Build and Run with Docker
+
+```bash
+# Build the Docker image
+docker build -t signalr-map-realtime:latest .
+
+# Run the container
+# Note: You need to provide database connection details via environment variables
+docker run -d \
+  -p 8080:8080 \
+  -e ASPNETCORE_ENVIRONMENT=Production \
+  -e ASPNETCORE_URLS=http://+:8080 \
+  -e ConnectionStrings__DefaultConnection="Server=your-db-server;Database=SignalRMapRealtimeDb;User Id=sa;Password=your-password;" \
+  --name signalr-map-realtime-api \
+  signalr-map-realtime:latest
+
+# Access the API
+curl http://localhost:8080/health
+```
+
+#### Development with Hot Reload
+
+For development with automatic reloading on code changes:
+
+```bash
+# Use the development compose file
+docker-compose -f docker-compose.dev.yml up -d
+
+# The app service will automatically watch for changes
+# Access the API at http://localhost:5000
+```
+
+#### Environment Variables in Docker
+
+The following environment variables can be configured in your `docker-compose.yml` or when running with `docker run`:
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `ASPNETCORE_ENVIRONMENT` | Runtime environment | `Production` or `Development` |
+| `ASPNETCORE_URLS` | Listening addresses | `http://+:8080` |
+| `ConnectionStrings__DefaultConnection` | SQL Server connection string | `Server=sql-server,1433;Database=SignalRMapRealtimeDb;User Id=sa;Password=YourPassword123!` |
+| `Caching__RedisConnectionString` | Redis connection string | `redis:6379` |
+| `Logging__LogLevel__Default` | Default log level | `Information` or `Debug` |
+
+#### Customizing the Docker Setup
+
+1. **Change database credentials**: Edit the `SA_PASSWORD` in `docker-compose.yml`
+2. **Change ports**: Modify the port mapping in the `ports` section
+3. **Add custom configuration**: Mount additional configuration files as volumes
+4. **Enable SignalR backplane**: Uncomment and configure the Redis SignalR backplane in `Program.cs`
+
+#### Docker Health Checks
+
+The Docker configuration includes health checks for:
+- SQL Server container
+- Redis container  
+- Application container
+
+Health checks ensure that dependent services are ready before the application starts, preventing connection failures.
+
+#### Cleanup
+
+```bash
+# Stop and remove containers
+docker-compose down -v
+
+# Remove the built image
+docker rmi signalr-map-realtime:latest
 ```
 
 ## Quick Start
