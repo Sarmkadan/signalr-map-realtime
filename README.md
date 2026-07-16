@@ -91,6 +91,39 @@ Console.WriteLine($"Latitude: {locationDto.Latitude}, Longitude: {locationDto.Lo
 Console.WriteLine($"Speed: {locationDto.Speed} km/h, Bearing: {locationDto.Bearing} degrees");
 ```
 
+## PlaybackFrameDto
+
+The `PlaybackFrameDto` record represents a single rendered frame within a route playback stream. Each frame corresponds to one recorded location point in the session's history, containing all necessary data for visualizing vehicle movement on a map interface.
+
+### Usage Example
+
+```csharp
+// Create a playback frame DTO for a vehicle tracking session
+var frame = new PlaybackFrameDto(
+    PlaybackId: Guid.NewGuid(),
+    FrameIndex: 42,
+    TotalFrames: 1250,
+    Timestamp: new DateTime(2024, 7, 16, 14, 30, 15, DateTimeKind.Utc),
+    Latitude: 40.7306,
+    Longitude: -73.9352,
+    Speed: 65.2,
+    Bearing: 185.3,
+    Altitude: 12.5,
+    DistanceCoveredKm: 24.8,
+    CompletionPercentage: 78,
+    ElapsedTime: TimeSpan.FromMinutes(45).Add(TimeSpan.FromSeconds(15)),
+    Address: "456 Oak Ave, Brooklyn, NY"
+);
+
+// Access frame properties
+Console.WriteLine($"Frame {frame.FrameIndex}/{frame.TotalFrames} at {frame.Timestamp:HH:mm:ss}");
+Console.WriteLine($"Position: {frame.Latitude:F6}, {frame.Longitude:F6}");
+Console.WriteLine($"Speed: {frame.Speed?.ToString("F1") ?? "N/A"} km/h, Bearing: {frame.Bearing?.ToString("F1") ?? "N/A"}°");
+Console.WriteLine($"Distance: {frame.DistanceCoveredKm:F1} km ({frame.CompletionPercentage}% complete)");
+Console.WriteLine($"Altitude: {frame.Altitude?.ToString("F1") ?? "N/A"} m");
+Console.WriteLine($"Address: {frame.Address ?? "Unknown location"}");
+```
+
 ## RouteDto
 
 The `RouteDto` class represents a data transfer object for route information, providing essential details about planned and actual routes including vehicle assignments, timing, distances, and waypoints. It is commonly used for transmitting route data between layers of the application and tracking real-time vehicle movements.
