@@ -50,4 +50,32 @@ Console.WriteLine($"Is Active: {(polygonGeofenceDto.IsActive ? "Yes" : "No")}");
 Console.WriteLine($"Polygon Coordinates: {polygonGeofenceDto.PolygonCoordinates}");
 ```
 
+## UserDto
+
+The `UserDto` class is a data transfer object that encapsulates user information used throughout the API. It includes identification, contact details, employment data, status flags, and timestamps.
+
+### Usage Example
+
+```csharp
+using System;
+using SignalRMapRealtime.DTOs;
+
+var user = new UserDto
+{
+    Id = 1,
+    FullName = "Jane Doe",
+    Email = "jane.doe@example.com",
+    PhoneNumber = "+1-555-1234",
+    EmployeeId = "E12345",
+    JobTitle = "Software Engineer",
+    Department = "Engineering",
+    IsOnline = true,
+    IsActive = true,
+    LastLoginAt = DateTime.UtcNow,
+    CreatedAt = DateTime.UtcNow
+};
+
+Console.WriteLine($"User: {user.FullName} ({user.Email}) - Active: {user.IsActive}");
+```
+
 // ... (rest of file remains unchanged)
