@@ -197,6 +197,53 @@ Console.WriteLine($"Requires Special Handling: {assetDto.RequiresSpecialHandling
 Console.WriteLine($"Status: {assetDto.Status}, Condition: {assetDto.Condition}");
 ```
 
+## VehicleDto
+
+The `VehicleDto` class is a data transfer object representing vehicle information in the real-time tracking system. It provides essential properties for tracking vehicles including identification, operational status, location data, and performance metrics. This DTO is commonly used for transmitting vehicle information between system components and real-time visualization services.
+
+### Usage Example
+
+```csharp
+// Create a new vehicle DTO
+var vehicleDto = new VehicleDto
+{
+    Id = 5,
+    Name = "Delivery Van #5",
+    RegistrationNumber = "KA-123-AB",
+    Status = VehicleStatus.Active,
+    AssetType = AssetType.DeliveryVan,
+    DriverId = 10,
+    Manufacturer = "Mercedes-Benz",
+    ModelYear = 2023,
+    MaxSpeed = 120.0,
+    FuelLevel = 75.5,
+    IsOnline = true,
+    LastLocation = new LocationDto
+    {
+        Latitude = 40.7128,
+        Longitude = -74.0060,
+        Speed = 45.6,
+        Bearing = 125.3,
+        Accuracy = 3.2,
+        RecordedAt = DateTime.UtcNow
+    },
+    Make = "Mercedes-Benz",
+    Model = "Sprinter",
+    Year = 2023,
+    LicensePlate = "KA-123-AB",
+    CreatedAt = DateTime.UtcNow,
+    UpdatedAt = DateTime.UtcNow
+};
+
+// Access vehicle properties
+Console.WriteLine($"Vehicle: {vehicleDto.Name} (ID: {vehicleDto.Id})");
+Console.WriteLine($"Registration: {vehicleDto.RegistrationNumber}, Status: {vehicleDto.Status}");
+Console.WriteLine($"Driver: {vehicleDto.DriverId}, Type: {vehicleDto.AssetType}");
+Console.WriteLine($"Location: {vehicleDto.LastLocation?.Latitude:F6}, {vehicleDto.LastLocation?.Longitude:F6}");
+Console.WriteLine($"Fuel: {vehicleDto.FuelLevel}%, Speed: {vehicleDto.MaxSpeed} km/h");
+Console.WriteLine($"Online: {(vehicleDto.IsOnline ? "Yes" : "No")}");
+```
+
 // ... (rest of file remains unchanged)
 
 ## LocationClusterDto
