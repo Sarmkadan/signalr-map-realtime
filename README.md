@@ -164,6 +164,39 @@ Console.WriteLine($"Distance: {routeDto.TotalDistance?.ToString("F1") ?? "N/A"} 
 Console.WriteLine($"Departure: {routeDto.PlannedDepartureTime:g}, Arrival: {routeDto.EstimatedArrivalTime:g}");
 ```
 
+## AssetDto
+
+The `AssetDto` class is a data transfer object representing tracked asset information in the system, detailing properties such as serial numbers, asset types, condition status, and associated vehicle IDs. It is used to transfer comprehensive asset data between system components and real-time visualization services. This DTO supports various classifications like delivery vans, drones, and equipment to ensure precise inventory and tracking control.
+
+### Usage Example
+
+```csharp
+// Create a new asset DTO
+var assetDto = new AssetDto
+{
+    Id = 1,
+    Name = "Special High-Value Equipment",
+    SerialNumber = "SN-98765-XYZ",
+    AssetType = AssetType.Equipment,
+    Value = 12500.50m,
+    Description = "Precision tracking equipment for hazardous materials delivery.",
+    VehicleId = 5,
+    Condition = "Excellent",
+    RequiresSpecialHandling = true,
+    LastTrackedAt = DateTime.UtcNow,
+    CreatedAt = DateTime.UtcNow,
+    UpdatedAt = DateTime.UtcNow,
+    Type = AssetType.Equipment,
+    Status = "Active"
+};
+
+// Access asset properties
+Console.WriteLine($"Asset ID: {assetDto.Id}, Name: {assetDto.Name}");
+Console.WriteLine($"Serial: {assetDto.SerialNumber}, Value: {assetDto.Value:C}");
+Console.WriteLine($"Requires Special Handling: {assetDto.RequiresSpecialHandling}");
+Console.WriteLine($"Status: {assetDto.Status}, Condition: {assetDto.Condition}");
+```
+
 // ... (rest of file remains unchanged)
 
 ## LocationClusterDto
