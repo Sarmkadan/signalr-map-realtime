@@ -1,5 +1,65 @@
 // ... (rest of file remains unchanged)
 
+## LocationClusterDto
+
+The `LocationClusterDto` record represents a cluster of geographic coordinates that have been grouped together based on spatial proximity. It contains the centroid coordinates of the cluster along with the bounding box that encompasses all points in the cluster, making it ideal for visualizing dense location data on maps.
+
+### Usage Example
+
+```csharp
+// Create a new location cluster
+var cluster = new LocationClusterDto(
+    CenterLatitude: 40.7128,
+    CenterLongitude: -74.0060,
+    Count: 42,
+    MinLatitude: 40.6984,
+    MaxLatitude: 40.7272,
+    MinLongitude: -74.0201,
+    MaxLongitude: -73.9819
+);
+
+// Access cluster properties
+Console.WriteLine($"Cluster center: {cluster.CenterLatitude:F6}, {cluster.CenterLongitude:F6}");
+Console.WriteLine($"Points in cluster: {cluster.Count}");
+Console.WriteLine($"Bounding box: [{cluster.MinLatitude:F6}-{cluster.MaxLatitude:F6}, {cluster.MinLongitude:F6}-{cluster.MaxLongitude:F6}]");
+
+// Create a cluster response with multiple clusters
+var response = new ClusterResponseDto
+{
+    Clusters = new List<LocationClusterDto>
+    {
+        new LocationClusterDto(
+            CenterLatitude: 40.7128,
+            CenterLongitude: -74.0060,
+            Count: 42,
+            MinLatitude: 40.6984,
+            MaxLatitude: 40.7272,
+            MinLongitude: -74.0201,
+            MaxLongitude: -73.9819
+        ),
+        new LocationClusterDto(
+            CenterLatitude: 40.7306,
+            CenterLongitude: -73.9352,
+            Count: 28,
+            MinLatitude: 40.7189,
+            MaxLatitude: 40.7423,
+            MinLongitude: -73.9512,
+            MaxLongitude: -73.9192
+        )
+    },
+    TotalPoints = 70,
+    GridCellKm = 0.5,
+    ComputedAt = DateTime.UtcNow
+};
+
+// Access response properties
+Console.WriteLine($"Total clusters: {response.Clusters.Count}");
+Console.WriteLine($"Total points processed: {response.TotalPoints}");
+Console.WriteLine($"Grid cell size: {response.GridCellKm} km");
+```
+
+// ... (rest of file remains unchanged)
+
 ## LocationDto
 
 The `LocationDto` class represents a data transfer object for location information, providing essential details such as coordinates, speed, bearing, and metadata. It is commonly used for transmitting location data between layers of the application. 
@@ -102,6 +162,66 @@ Console.WriteLine($"Route: {routeDto.Name} (ID: {routeDto.Id})");
 Console.WriteLine($"Status: {(routeDto.IsActive ? "Active" : "Inactive")}, Completed: {(routeDto.IsCompleted ? "Yes" : "No")}");
 Console.WriteLine($"Distance: {routeDto.TotalDistance?.ToString("F1") ?? "N/A"} km planned, {routeDto.ActualDistance?.ToString("F1") ?? "N/A"} km actual");
 Console.WriteLine($"Departure: {routeDto.PlannedDepartureTime:g}, Arrival: {routeDto.EstimatedArrivalTime:g}");
+```
+
+// ... (rest of file remains unchanged)
+
+## LocationClusterDto
+
+The `LocationClusterDto` record represents a cluster of geographic coordinates that have been grouped together based on spatial proximity. It contains the centroid coordinates of the cluster along with the bounding box that encompasses all points in the cluster, making it ideal for visualizing dense location data on maps.
+
+### Usage Example
+
+```csharp
+// Create a new location cluster
+var cluster = new LocationClusterDto(
+    CenterLatitude: 40.7128,
+    CenterLongitude: -74.0060,
+    Count: 42,
+    MinLatitude: 40.6984,
+    MaxLatitude: 40.7272,
+    MinLongitude: -74.0201,
+    MaxLongitude: -73.9819
+);
+
+// Access cluster properties
+Console.WriteLine($"Cluster center: {cluster.CenterLatitude:F6}, {cluster.CenterLongitude:F6}");
+Console.WriteLine($"Points in cluster: {cluster.Count}");
+Console.WriteLine($"Bounding box: [{cluster.MinLatitude:F6}-{cluster.MaxLatitude:F6}, {cluster.MinLongitude:F6}-{cluster.MaxLongitude:F6}]");
+
+// Create a cluster response with multiple clusters
+var response = new ClusterResponseDto
+{
+    Clusters = new List<LocationClusterDto>
+    {
+        new LocationClusterDto(
+            CenterLatitude: 40.7128,
+            CenterLongitude: -74.0060,
+            Count: 42,
+            MinLatitude: 40.6984,
+            MaxLatitude: 40.7272,
+            MinLongitude: -74.0201,
+            MaxLongitude: -73.9819
+        ),
+        new LocationClusterDto(
+            CenterLatitude: 40.7306,
+            CenterLongitude: -73.9352,
+            Count: 28,
+            MinLatitude: 40.7189,
+            MaxLatitude: 40.7423,
+            MinLongitude: -73.9512,
+            MaxLongitude: -73.9192
+        )
+    },
+    TotalPoints = 70,
+    GridCellKm = 0.5,
+    ComputedAt = DateTime.UtcNow
+};
+
+// Access response properties
+Console.WriteLine($"Total clusters: {response.Clusters.Count}");
+Console.WriteLine($"Total points processed: {response.TotalPoints}");
+Console.WriteLine($"Grid cell size: {response.GridCellKm} km");
 ```
 
 // ... (rest of file remains unchanged)
