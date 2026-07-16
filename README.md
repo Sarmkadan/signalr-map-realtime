@@ -1,340 +1,53 @@
 // ... (rest of file remains unchanged)
 
-## LocationClusterDto
+## GeofenceDto
 
-The `LocationClusterDto` record represents a cluster of geographic coordinates that have been grouped together based on spatial proximity. It contains the centroid coordinates of the cluster along with the bounding box that encompasses all points in the cluster, making it ideal for visualizing dense location data on maps.
+The `GeofenceDto` class represents a data transfer object for geofence information, providing essential details about configured zones. It is used for transmitting geofence data between system components.
 
 ### Usage Example
 
 ```csharp
-// Create a new location cluster
-var cluster = new LocationClusterDto(
-    CenterLatitude: 40.7128,
-    CenterLongitude: -74.0060,
-    Count: 42,
-    MinLatitude: 40.6984,
-    MaxLatitude: 40.7272,
-    MinLongitude: -74.0201,
-    MaxLongitude: -73.9819
-);
-
-// Access cluster properties
-Console.WriteLine($"Cluster center: {cluster.CenterLatitude:F6}, {cluster.CenterLongitude:F6}");
-Console.WriteLine($"Points in cluster: {cluster.Count}");
-Console.WriteLine($"Bounding box: [{cluster.MinLatitude:F6}-{cluster.MaxLatitude:F6}, {cluster.MinLongitude:F6}-{cluster.MaxLongitude:F6}]");
-
-// Create a cluster response with multiple clusters
-var response = new ClusterResponseDto
+// Create a new geofence DTO
+var geofenceDto = new GeofenceDto
 {
-    Clusters = new List<LocationClusterDto>
-    {
-        new LocationClusterDto(
-            CenterLatitude: 40.7128,
-            CenterLongitude: -74.0060,
-            Count: 42,
-            MinLatitude: 40.6984,
-            MaxLatitude: 40.7272,
-            MinLongitude: -74.0201,
-            MaxLongitude: -73.9819
-        ),
-        new LocationClusterDto(
-            CenterLatitude: 40.7306,
-            CenterLongitude: -73.9352,
-            Count: 28,
-            MinLatitude: 40.7189,
-            MaxLatitude: 40.7423,
-            MinLongitude: -73.9512,
-            MaxLongitude: -73.9192
-        )
-    },
-    TotalPoints = 70,
-    GridCellKm = 0.5,
-    ComputedAt = DateTime.UtcNow
-};
-
-// Access response properties
-Console.WriteLine($"Total clusters: {response.Clusters.Count}");
-Console.WriteLine($"Total points processed: {response.TotalPoints}");
-Console.WriteLine($"Grid cell size: {response.GridCellKm} km");
-```
-
-// ... (rest of file remains unchanged)
-
-## LocationDto
-
-The `LocationDto` class represents a data transfer object for location information, providing essential details such as coordinates, speed, bearing, and metadata. It is commonly used for transmitting location data between layers of the application. 
-
-### Usage Example
-
-```csharp
-// Create a new location DTO
-var locationDto = new LocationDto
-{
-    Latitude = 40.7128,
-    Longitude = -74.0060,
-    Altitude = 10.5,
-    Accuracy = 3.2,
-    Speed = 45.6,
-    Bearing = 125.3,
-    LocationType = LocationType.TrackingPoint,
-    Address = "123 Main St, New York, NY",
-    Notes = "Sample location note",
-    VehicleId = 5,
-    RecordedAt = DateTime.UtcNow,
-    CreatedAt = DateTime.UtcNow,
-    Timestamp = DateTime.UtcNow,
-    Heading = 125.3
-};
-
-// Access location properties
-Console.WriteLine($"Latitude: {locationDto.Latitude}, Longitude: {locationDto.Longitude}");
-Console.WriteLine($"Speed: {locationDto.Speed} km/h, Bearing: {locationDto.Bearing} degrees");
-```
-
-## PlaybackFrameDto
-
-The `PlaybackFrameDto` record represents a single rendered frame within a route playback stream. Each frame corresponds to one recorded location point in the session's history, containing all necessary data for visualizing vehicle movement on a map interface.
-
-### Usage Example
-
-```csharp
-// Create a playback frame DTO for a vehicle tracking session
-var frame = new PlaybackFrameDto(
-    PlaybackId: Guid.NewGuid(),
-    FrameIndex: 42,
-    TotalFrames: 1250,
-    Timestamp: new DateTime(2024, 7, 16, 14, 30, 15, DateTimeKind.Utc),
-    Latitude: 40.7306,
-    Longitude: -73.9352,
-    Speed: 65.2,
-    Bearing: 185.3,
-    Altitude: 12.5,
-    DistanceCoveredKm: 24.8,
-    CompletionPercentage: 78,
-    ElapsedTime: TimeSpan.FromMinutes(45).Add(TimeSpan.FromSeconds(15)),
-    Address: "456 Oak Ave, Brooklyn, NY"
-);
-
-// Access frame properties
-Console.WriteLine($"Frame {frame.FrameIndex}/{frame.TotalFrames} at {frame.Timestamp:HH:mm:ss}");
-Console.WriteLine($"Position: {frame.Latitude:F6}, {frame.Longitude:F6}");
-Console.WriteLine($"Speed: {frame.Speed?.ToString("F1") ?? "N/A"} km/h, Bearing: {frame.Bearing?.ToString("F1") ?? "N/A"}°");
-Console.WriteLine($"Distance: {frame.DistanceCoveredKm:F1} km ({frame.CompletionPercentage}% complete)");
-Console.WriteLine($"Altitude: {frame.Altitude?.ToString("F1") ?? "N/A"} m");
-Console.WriteLine($"Address: {frame.Address ?? "Unknown location"}");
-```
-
-## RouteDto
-
-The `RouteDto` class represents a data transfer object for route information, providing essential details about planned and actual routes including vehicle assignments, timing, distances, and waypoints. It is commonly used for transmitting route data between layers of the application and tracking real-time vehicle movements.
-
-### Usage Example
-
-```csharp
-// Create a new route DTO
-var routeDto = new RouteDto
-{
-    Id = 1,
-    Name = "Morning Delivery Route",
-    Description = "Daily delivery route for downtown area",
-    VehicleId = 5,
-    Vehicle = new VehicleDto
-    {
-        Id = 5,
-        LicensePlate = "KA-123-AB",
-        Model = "Mercedes-Benz Sprinter",
-        DriverName = "John Smith"
-    },
-    AssignedUserId = 10,
-    AssignedUser = new UserDto
-    {
-        Id = 10,
-        Username = "delivery_driver_1",
-        FullName = "John Smith",
-        PhoneNumber = "+1-555-0123"
-    },
-    PlannedDepartureTime = new DateTime(2024, 7, 16, 8, 0, 0),
-    EstimatedArrivalTime = new DateTime(2024, 7, 16, 12, 0, 0),
-    TotalDistance = 45.5,
-    ActualDistance = 47.2,
+    Id = Guid.NewGuid(),
+    Name = "Downtown Area",
+    Description = "Geofence for monitoring downtown area",
+    Type = "Circle",
     IsActive = true,
-    IsCompleted = false,
-    Waypoints = new List<WaypointDto>
-    {
-        new WaypointDto
-        {
-            Id = 1,
-            Sequence = 1,
-            Name = "Warehouse",
-            Latitude = 40.7128,
-            Longitude = -74.0060,
-            Address = "123 Main St, New York, NY",
-            IsCompleted = true,
-            ContactName = "Warehouse Manager",
-            ContactPhone = "+1-555-0001"
-        },
-        new WaypointDto
-        {
-            Id = 2,
-            Sequence = 2,
-            Name = "Customer A",
-            Latitude = 40.7306,
-            Longitude = -73.9352,
-            Address = "456 Oak Ave, Brooklyn, NY",
-            IsCompleted = false,
-            ContactName = "Alice Johnson",
-            ContactPhone = "+1-555-0002"
-        }
-    },
-    CreatedAt = DateTime.UtcNow,
-    UpdatedAt = DateTime.UtcNow
-};
-
-// Access route properties
-Console.WriteLine($"Route: {routeDto.Name} (ID: {routeDto.Id})");
-Console.WriteLine($"Status: {(routeDto.IsActive ? "Active" : "Inactive")}, Completed: {(routeDto.IsCompleted ? "Yes" : "No")}");
-Console.WriteLine($"Distance: {routeDto.TotalDistance?.ToString("F1") ?? "N/A"} km planned, {routeDto.ActualDistance?.ToString("F1") ?? "N/A"} km actual");
-Console.WriteLine($"Departure: {routeDto.PlannedDepartureTime:g}, Arrival: {routeDto.EstimatedArrivalTime:g}");
-```
-
-## AssetDto
-
-The `AssetDto` class is a data transfer object representing tracked asset information in the system, detailing properties such as serial numbers, asset types, condition status, and associated vehicle IDs. It is used to transfer comprehensive asset data between system components and real-time visualization services. This DTO supports various classifications like delivery vans, drones, and equipment to ensure precise inventory and tracking control.
-
-### Usage Example
-
-```csharp
-// Create a new asset DTO
-var assetDto = new AssetDto
-{
-    Id = 1,
-    Name = "Special High-Value Equipment",
-    SerialNumber = "SN-98765-XYZ",
-    AssetType = AssetType.Equipment,
-    Value = 12500.50m,
-    Description = "Precision tracking equipment for hazardous materials delivery.",
-    VehicleId = 5,
-    Condition = "Excellent",
-    RequiresSpecialHandling = true,
-    LastTrackedAt = DateTime.UtcNow,
+    CenterLatitude = 40.7128,
+    CenterLongitude = -74.0060,
+    RadiusKm = 5.0,
     CreatedAt = DateTime.UtcNow,
     UpdatedAt = DateTime.UtcNow,
-    Type = AssetType.Equipment,
-    Status = "Active"
+    CreatedBy = "Admin"
 };
 
-// Access asset properties
-Console.WriteLine($"Asset ID: {assetDto.Id}, Name: {assetDto.Name}");
-Console.WriteLine($"Serial: {assetDto.SerialNumber}, Value: {assetDto.Value:C}");
-Console.WriteLine($"Requires Special Handling: {assetDto.RequiresSpecialHandling}");
-Console.WriteLine($"Status: {assetDto.Status}, Condition: {assetDto.Condition}");
-```
+// Access geofence properties
+Console.WriteLine($"Geofence ID: {geofenceDto.Id}");
+Console.WriteLine($"Name: {geofenceDto.Name}, Type: {geofenceDto.Type}");
+Console.WriteLine($"Is Active: {(geofenceDto.IsActive ? "Yes" : "No")}");
+Console.WriteLine($"Center: {geofenceDto.CenterLatitude:F6}, {geofenceDto.CenterLongitude:F6}, Radius: {geofenceDto.RadiusKm:F1} km");
 
-## VehicleDto
-
-The `VehicleDto` class is a data transfer object representing vehicle information in the real-time tracking system. It provides essential properties for tracking vehicles including identification, operational status, location data, and performance metrics. This DTO is commonly used for transmitting vehicle information between system components and real-time visualization services.
-
-### Usage Example
-
-```csharp
-// Create a new vehicle DTO
-var vehicleDto = new VehicleDto
+// Create a new geofence DTO for a polygon zone
+var polygonGeofenceDto = new GeofenceDto
 {
-    Id = 5,
-    Name = "Delivery Van #5",
-    RegistrationNumber = "KA-123-AB",
-    Status = VehicleStatus.Active,
-    AssetType = AssetType.DeliveryVan,
-    DriverId = 10,
-    Manufacturer = "Mercedes-Benz",
-    ModelYear = 2023,
-    MaxSpeed = 120.0,
-    FuelLevel = 75.5,
-    IsOnline = true,
-    LastLocation = new LocationDto
-    {
-        Latitude = 40.7128,
-        Longitude = -74.0060,
-        Speed = 45.6,
-        Bearing = 125.3,
-        Accuracy = 3.2,
-        RecordedAt = DateTime.UtcNow
-    },
-    Make = "Mercedes-Benz",
-    Model = "Sprinter",
-    Year = 2023,
-    LicensePlate = "KA-123-AB",
+    Id = Guid.NewGuid(),
+    Name = "Warehouse Perimeter",
+    Description = "Geofence for warehouse perimeter",
+    Type = "Polygon",
+    IsActive = true,
+    PolygonCoordinates = "40.7306,-73.9352;40.7189,-73.9512;40.7423,-73.9192",
     CreatedAt = DateTime.UtcNow,
-    UpdatedAt = DateTime.UtcNow
+    UpdatedAt = DateTime.UtcNow,
+    CreatedBy = "Admin"
 };
 
-// Access vehicle properties
-Console.WriteLine($"Vehicle: {vehicleDto.Name} (ID: {vehicleDto.Id})");
-Console.WriteLine($"Registration: {vehicleDto.RegistrationNumber}, Status: {vehicleDto.Status}");
-Console.WriteLine($"Driver: {vehicleDto.DriverId}, Type: {vehicleDto.AssetType}");
-Console.WriteLine($"Location: {vehicleDto.LastLocation?.Latitude:F6}, {vehicleDto.LastLocation?.Longitude:F6}");
-Console.WriteLine($"Fuel: {vehicleDto.FuelLevel}%, Speed: {vehicleDto.MaxSpeed} km/h");
-Console.WriteLine($"Online: {(vehicleDto.IsOnline ? "Yes" : "No")}");
-```
-
-// ... (rest of file remains unchanged)
-
-## LocationClusterDto
-
-The `LocationClusterDto` record represents a cluster of geographic coordinates that have been grouped together based on spatial proximity. It contains the centroid coordinates of the cluster along with the bounding box that encompasses all points in the cluster, making it ideal for visualizing dense location data on maps.
-
-### Usage Example
-
-```csharp
-// Create a new location cluster
-var cluster = new LocationClusterDto(
-    CenterLatitude: 40.7128,
-    CenterLongitude: -74.0060,
-    Count: 42,
-    MinLatitude: 40.6984,
-    MaxLatitude: 40.7272,
-    MinLongitude: -74.0201,
-    MaxLongitude: -73.9819
-);
-
-// Access cluster properties
-Console.WriteLine($"Cluster center: {cluster.CenterLatitude:F6}, {cluster.CenterLongitude:F6}");
-Console.WriteLine($"Points in cluster: {cluster.Count}");
-Console.WriteLine($"Bounding box: [{cluster.MinLatitude:F6}-{cluster.MaxLatitude:F6}, {cluster.MinLongitude:F6}-{cluster.MaxLongitude:F6}]");
-
-// Create a cluster response with multiple clusters
-var response = new ClusterResponseDto
-{
-    Clusters = new List<LocationClusterDto>
-    {
-        new LocationClusterDto(
-            CenterLatitude: 40.7128,
-            CenterLongitude: -74.0060,
-            Count: 42,
-            MinLatitude: 40.6984,
-            MaxLatitude: 40.7272,
-            MinLongitude: -74.0201,
-            MaxLongitude: -73.9819
-        ),
-        new LocationClusterDto(
-            CenterLatitude: 40.7306,
-            CenterLongitude: -73.9352,
-            Count: 28,
-            MinLatitude: 40.7189,
-            MaxLatitude: 40.7423,
-            MinLongitude: -73.9512,
-            MaxLongitude: -73.9192
-        )
-    },
-    TotalPoints = 70,
-    GridCellKm = 0.5,
-    ComputedAt = DateTime.UtcNow
-};
-
-// Access response properties
-Console.WriteLine($"Total clusters: {response.Clusters.Count}");
-Console.WriteLine($"Total points processed: {response.TotalPoints}");
-Console.WriteLine($"Grid cell size: {response.GridCellKm} km");
+// Access polygon geofence properties
+Console.WriteLine($"Geofence ID: {polygonGeofenceDto.Id}");
+Console.WriteLine($"Name: {polygonGeofenceDto.Name}, Type: {polygonGeofenceDto.Type}");
+Console.WriteLine($"Is Active: {(polygonGeofenceDto.IsActive ? "Yes" : "No")}");
+Console.WriteLine($"Polygon Coordinates: {polygonGeofenceDto.PolygonCoordinates}");
 ```
 
 // ... (rest of file remains unchanged)
