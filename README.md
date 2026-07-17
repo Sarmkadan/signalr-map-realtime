@@ -160,3 +160,52 @@ class Program
     }
 }
 ```
+
+## HttpContextExtensions
+
+`HttpContextExtensions` provides a collection of helper methods for working with `HttpContext` instances. It simplifies retrieving request information (such as client IP, user‑agent, URLs, and headers), checking request characteristics (secure, AJAX, JSON, form), and manipulating the response (setting headers, status codes, content type, and caching directives).
+
+### Usage Example
+
+```csharp
+using System;
+using Microsoft.AspNetCore.Http;
+using SignalRMapRealtime.Utilities;
+
+public class Example
+{
+    public void ProcessRequest(HttpContext context)
+    {
+        // Retrieve request information
+        string ip = context.GetClientIpAddress();
+        string userAgent = context.GetUserAgent();
+        string? referer = context.GetReferer();
+        string? origin = context.GetOrigin();
+        bool isSecure = context.IsSecure();
+        string fullUrl = context.GetFullUrl();
+        string baseUrl = context.GetBaseUrl();
+
+        // Header utilities
+        bool hasAuthHeader = context.HasHeader("Authorization");
+        string? authHeader = context.GetHeader("Authorization");
+        bool isAjax = context.IsAjaxRequest();
+
+        // Content‑type checks
+        string? contentType = context.GetContentType();
+        bool isJson = context.IsJsonRequest();
+        bool isForm = context.IsFormRequest();
+
+        // Method and query parameters
+        string method = context.GetMethod();
+        var parameters = context.GetParameters();
+
+        // Manipulate response
+        context.SetHeader("X-Custom-Header", "MyValue");
+        context.SetStatusCode(StatusCodes.Status200OK);
+        context.SetContentType("application/json");
+        context.DisableCaching();               // or context.SetCacheControl(60);
+
+        // Continue with response writing...
+    }
+}
+```
