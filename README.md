@@ -205,3 +205,35 @@ Console.WriteLine($"Active zones count: {activeZones.Count}");
 await geofenceService.RemoveZoneAsync(zoneDto.Id);
 ```
 
+## VehicleService
+
+The `VehicleService` provides a comprehensive API for managing vehicle entities, including creation, retrieval, updates, and status tracking. It facilitates fleet operations by allowing management of vehicle assignments, operational status, and monitoring of performance metrics such as fuel levels and speed violations.
+
+### Usage Example
+
+```csharp
+using SignalRMapRealtime.Services;
+using SignalRMapRealtime.DTOs;
+using SignalRMapRealtime.Domain.Enums;
+
+// Assuming vehicleService is injected
+// Retrieve a vehicle by ID
+var vehicle = await vehicleService.GetVehicleAsync(1);
+if (vehicle != null)
+{
+    Console.WriteLine($"Vehicle: {vehicle.Name} (Registration: {vehicle.RegistrationNumber})");
+    
+    // Update vehicle status
+    await vehicleService.UpdateVehicleStatusAsync(vehicle.Id, VehicleStatus.Active);
+    
+    // Set vehicle online
+    await vehicleService.SetVehicleOnlineStatusAsync(vehicle.Id, true);
+}
+
+// Get fleet statistics
+int onlineCount = await vehicleService.GetOnlineVehicleCountAsync();
+var speedingVehicles = await vehicleService.GetSpeedingVehiclesAsync();
+
+Console.WriteLine($"Fleet status: {onlineCount} online, {speedingVehicles.Count()} speeding.");
+```
+
