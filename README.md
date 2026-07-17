@@ -765,6 +765,33 @@ class Program
 }
 ```
 
+## DockerDeploymentExample
+
+`DockerDeploymentExample` demonstrates how to deploy and interact with the SignalR Map Realtime API when running in Docker containers. This example shows basic API operations including health checks, vehicle management, and location tracking through the Docker-deployed service.
+
+### Usage Example
+
+```csharp
+using System;
+using System.Threading.Tasks;
+using SignalRMapRealtime.Examples.DockerDeployment;
+
+class Program
+{
+    static async Task Main()
+    {
+        // Create a Docker deployment example instance
+        // Default URL is http://localhost:5000 (adjust if using Docker network)
+        var dockerExample = new DockerDeploymentExample("http://signalr-map-realtime:5000");
+        
+        // Run the complete Docker deployment example
+        await dockerExample.RunDockerExampleAsync();
+        
+        Console.WriteLine("\nExample completed. Docker containers are now running the API!");
+    }
+}
+```
+
 ## SessionAnalyticsReporter
 
 `SessionAnalyticsReporter` analyzes and reports on tracking session statistics. It generates comprehensive analytics reports for vehicles, including distance traveled, speed metrics, duration, and other key performance indicators. The reporter can display formatted console output and export data to CSV format for further analysis.
