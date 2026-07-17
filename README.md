@@ -325,6 +325,72 @@ class Program
 }
 ```
 
+## DomainModelBehaviorTests
+
+`DomainModelBehaviorTests` contains unit tests that verify the behavioral contracts of domain models in the SignalRMapRealtime application. This test class validates that domain entities like `Vehicle`, `TrackingSession`, and `Asset` behave correctly under various conditions, ensuring proper state transitions, validation rules, and business logic execution. The tests use FluentAssertions for clear, readable assertions and cover edge cases such as null configurations, invalid operations, and argument validation.
+
+### Usage Example
+
+```csharp
+using FluentAssertions;
+using SignalRMapRealtime.Domain.Models;
+
+class Program
+{
+    static void Main()
+    {
+        // Test Vehicle speed limit behavior
+        var vehicle = new Vehicle
+        {
+            MaxSpeed = 100.0,
+            LastLocation = new Location { Speed = 120.0 }
+        };
+        
+        bool exceeded = vehicle.HasExceededSpeedLimit();
+        Console.WriteLine($"Vehicle exceeded speed limit: {exceeded}"); // True
+        
+        // Test Vehicle with no speed limit configured
+        var vehicleNoLimit = new Vehicle
+        {
+            MaxSpeed = null,
+            LastLocation = new Location { Speed = 200.0 }
+        };
+        
+        bool exceededNoLimit = vehicleNoLimit.HasExceededSpeedLimit();
+        Console.WriteLine($"Vehicle with no limit exceeded: {exceededNoLimit}"); // False
+        
+        // Test TrackingSession state management
+        var session = new TrackingSession();
+        session.StartSession();
+        Console.WriteLine($"Session status: {session.Status}"); // Active
+        Console.WriteLine($"Session start time: {session.StartTime}");
+        
+        // Test that recording location throws when session is not active
+        try
+        {
+            session.RecordLocation(new Location { Latitude = 51.5074, Longitude = -0.1278 });
+            Console.WriteLine("ERROR: Should have thrown exception");
+        }
+        catch (InvalidOperationException ex)
+        {
+            Console.WriteLine($"Correctly threw exception: {ex.Message}");
+        }
+        
+        // Test Asset special handling validation
+        var asset = new Asset { Name = "Fragile Electronics" };
+        try
+        {
+            asset.EnableSpecialHandling(string.Empty);
+            Console.WriteLine("ERROR: Should have thrown exception");
+        }
+        catch (ArgumentException ex)
+        {
+            Console.WriteLine($"Correctly threw exception: {ex.Message}");
+        }
+    }
+}
+```
+
 ## PlaybackServiceTests
 
 `PlaybackServiceTests` contains unit tests for the `PlaybackService` class, which manages playback sessions for tracking data. The test class verifies functionality for retrieving playback states, building timelines from location data, obtaining playback statistics, and generating snapshots at specific timestamps. It ensures that the service correctly handles edge cases like unknown sessions, empty location data, and validates proper behavior across different scenarios.
