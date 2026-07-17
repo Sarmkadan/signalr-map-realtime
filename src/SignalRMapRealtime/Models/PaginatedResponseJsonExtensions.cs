@@ -15,9 +15,8 @@ public static class PaginatedResponseJsonExtensions
         WriteIndented = false
     };
 
-    private static JsonSerializerOptions GetJsonOptions(bool indented) => indented
-        ? new JsonSerializerOptions(_jsonOptions) { WriteIndented = true }
-        : _jsonOptions;
+    private static JsonSerializerOptions GetJsonOptions(bool indented) =>
+        indented ? new JsonSerializerOptions(_jsonOptions) { WriteIndented = true } : _jsonOptions;
 
     /// <summary>
     /// Serializes a <see cref="PaginatedResponse{T}"/> instance to a JSON string.
@@ -66,10 +65,16 @@ public static class PaginatedResponseJsonExtensions
     {
         ArgumentNullException.ThrowIfNull(json);
 
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            value = null;
+            return false;
+        }
+
         try
         {
             value = JsonSerializer.Deserialize<PaginatedResponse<T>>(json, _jsonOptions);
-            return true;
+            return value is not null;
         }
         catch (JsonException)
         {
