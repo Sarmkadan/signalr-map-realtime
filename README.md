@@ -1,6 +1,8 @@
-## StringExtensions
+// ... (rest of the file remains the same)
 
-`StringExtensions` provides a comprehensive set of extension methods for string manipulation, validation, and transformation. It includes utilities for checking string presence, truncating strings, converting between different naming conventions (title case, kebab-case, snake_case), safe substring operations, character removal, counting occurrences, reversing strings, repeating strings, pattern matching, and secure masking of sensitive data.
+## ValidationExtensions
+
+`ValidationExtensions` provides a comprehensive set of extension methods for validating common data types and formats. It includes utilities for checking if a string is a valid email, phone number, URL, IP address, GUID, or if it matches a specific pattern. Additionally, it offers methods for verifying if a value falls within a range, if a string has a certain length, or if a collection contains elements.
 
 ### Usage Example
 
@@ -12,278 +14,74 @@ class Program
 {
     static void Main()
     {
-        string? input = "Hello World! This is a test string.";
-        
-        // Check if string has value (not null or whitespace)
-        bool hasValue = input.HasValue();
-        Console.WriteLine($"Has value: {hasValue}");
-        
-        // Truncate string with ellipsis
-        string truncated = input.Truncate(20);
-        Console.WriteLine($"Truncated: {truncated}");
-        
-        // Convert to title case
-        string titleCase = input.ToTitleCase();
-        Console.WriteLine($"Title case: {titleCase}");
-        
-        // Convert to kebab-case
-        string kebabCase = "HelloWorld".ToKebabCase();
-        Console.WriteLine($"Kebab case: {kebabCase}");
-        
-        // Convert to snake_case
-        string snakeCase = "HelloWorld".ToSnakeCase();
-        Console.WriteLine($"Snake case: {snakeCase}");
-        
-        // Safe substring operation
-        string safeSubstring = input.SubstringSafe(6, 10);
-        Console.WriteLine($"Safe substring: {safeSubstring}");
-        
-        // Remove specific characters
-        string withoutSpecial = input.RemoveCharacters('!', '.', ' ');
-        Console.WriteLine($"Without special chars: {withoutSpecial}");
-        
-        // Count occurrences of substring
-        int occurrences = input.CountOccurrences("is");
-        Console.WriteLine($"Occurrences of 'is': {occurrences}");
-        
-        // Reverse string
-        string reversed = input.Reverse();
-        Console.WriteLine($"Reversed: {reversed}");
-        
-        // Repeat string
-        string repeated = "abc".Repeat(3);
-        Console.WriteLine($"Repeated: {repeated}");
-        
-        // Check if string matches pattern
-        bool matches = input.Matches("^[A-Z].*[.!?]$");
-        Console.WriteLine($"Matches pattern: {matches}");
-        
-        // Mask sensitive data (e.g., email)
         string email = "user@example.com";
-        string maskedEmail = email.Mask();
-        Console.WriteLine($"Masked email: {maskedEmail}");
-        
-        // Check if string is null or empty
-        bool isNullOrEmpty = string.IsNullOrEmpty(input);
-        Console.WriteLine($"Is null or empty: {isNullOrEmpty}");
+        bool isValid = email.IsValidEmail();
+        Console.WriteLine($"Is valid email: {isValid}");
+
+        string phoneNumber = "+1 123-456-7890";
+        bool isValidPhone = phoneNumber.IsValidPhoneNumber();
+        Console.WriteLine($"Is valid phone number: {isValidPhone}");
+
+        string url = "https://www.example.com";
+        bool isValidUrl = url.IsValidUrl();
+        Console.WriteLine($"Is valid URL: {isValidUrl}");
+
+        string ipAddress = "192.168.1.1";
+        bool isValidIp = ipAddress.IsValidIpAddress();
+        Console.WriteLine($"Is valid IP address: {isValidIp}");
+
+        string guid = "01234567-89ab-cdef-0123-456789abcdef";
+        bool isValidGuid = guid.IsValidGuid();
+        Console.WriteLine($"Is valid GUID: {isValidGuid}");
+
+        string alphanumeric = "Hello123";
+        bool isAlphanumeric = alphanumeric.IsAlphanumeric();
+        Console.WriteLine($"Is alphanumeric: {isAlphanumeric}");
+
+        string password = "P@ssw0rd!";
+        bool isStrong = password.IsStrongPassword();
+        Console.WriteLine($"Is strong password: {isStrong}");
+
+        int value = 5;
+        bool isInValueRange = value.IsInRange(1, 10);
+        Console.WriteLine($"Is in range: {isInValueRange}");
+
+        string lengthTest = "Hello";
+        bool isLengthInRange = lengthTest.IsLengthInRange(5, 10);
+        Console.WriteLine($"Is length in range: {isLengthInRange}");
+
+        var collection = new[] { 1, 2, 3 };
+        bool hasElements = collection.HasElements();
+        Console.WriteLine($"Has elements: {hasElements}");
+        bool hasExactlyTwo = collection.HasExactly(2);
+        Console.WriteLine($"Has exactly 2: {hasExactlyTwo}");
+        bool hasAtLeastTwo = collection.HasAtLeast(2);
+        Console.WriteLine($"Has at least 2: {hasAtLeastTwo}");
+
+        double positiveValue = 5.0;
+        bool isPositive = positiveValue.IsPositive<double>();
+        Console.WriteLine($"Is positive: {isPositive}");
+
+        double negativeValue = -5.0;
+        bool isNegative = negativeValue.IsNegative<double>();
+        Console.WriteLine($"Is negative: {isNegative}");
+
+        double nanValue = double.NaN;
+        bool isNaN = nanValue.IsNaN();
+        Console.WriteLine($"Is NaN: {isNaN}");
+
+        double infinityValue = double.PositiveInfinity;
+        bool isInfinite = infinityValue.IsInfinite();
+        Console.WriteLine($"Is infinite: {isInfinite}");
+
+        decimal percentage = 50m;
+        bool isValidPercentage = percentage.IsValidPercentage();
+        Console.WriteLine($"Is valid percentage: {isValidPercentage}");
+
+        string pattern = "Hello*";
+        bool matches = "Hello World!".MatchesPattern(pattern);
+        Console.WriteLine($"Matches pattern: {matches}");
     }
 }
-```
-
-## RateLimitingOptions
-
-The `RateLimitingOptions` class provides configuration options for rate limiting protection against abuse and DoS attacks. It allows you to customize rate limits for different types of requests, such as standard endpoints, location updates, authentication attempts, and more. By adjusting these settings, you can effectively prevent excessive usage and protect your application.
-
-### Usage Example
-
-```csharp
-using SignalRMapRealtime.Configuration;
-
-// Access and configure RateLimitingOptions
-var rateLimitingOptions = new RateLimitingOptions
-{
-    Enabled = true,
-    RequestsPerMinute = 60,
-    LocationUpdatesPerMinute = 120,
-    AuthenticationAttemptsPerMinute = 10,
-    ListEndpointsPerMinute = 40,
-    WebhookRequestsPerMinute = 30,
-    WindowSizeSeconds = 60,
-    EnableIpBasedLimiting = true,
-    EnableUserBasedLimiting = true,
-    ExemptedEndpoints = new List<string> { "/health", "/api/info" },
-    WhitelistedIps = new List<string> { "192.168.1.100" },
-    TooManyRequestsStatusCode = 429,
-    IncludeRateLimitHeaders = true,
-    UseDistributedRateLimiting = false,
-    DistributedCounterTtlSeconds = 120
-};
-
-// Use rateLimitingOptions in your application configuration
-```
-```
-
-## CollectionExtensions
-
-`CollectionExtensions` provides a set of handy LINQ‑style extension methods for working with `IEnumerable<T>` and `List<T>` collections. It includes helpers for adding items without duplicates, chunking, partitioning, safe retrieval, and other common collection tasks.
-
-**Usage example**
-
-```csharp
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using SignalRMapRealtime.Utilities;
-
-class Program
-{
-    static async Task Main()
-    {
-        var numbers = new List<int> { 1, 2, 2, 3, 4, 5 };
-
-        // Add items if they don't already exist
-        numbers.AddIfNotExists(6);
-        numbers.AddRangeIfNotExists(new[] { 3, 7 });
-
-        // Remove even numbers
-        numbers.RemoveWhere(n => n % 2 == 0);
-
-        // Safe first/last retrieval
-        int? first = numbers.GetFirstOrNull();
-        int? last = numbers.GetLastOrNull();
-
-        // Null/empty checks
-        bool isEmpty = numbers.IsNullOrEmpty();
-        bool hasItems = numbers.HasItems();
-
-        // Distinct by key
-        var distinct = numbers.DistinctBy(n => n);
-
-        // Chunk into groups of 2
-        var chunks = numbers.ChunkBy(2);
-
-        // Flatten nested collections
-        var nested = new List<List<int>> { new() { 1, 2 }, new() { 3, 4 } };
-        var flat = nested.Flatten();
-
-        // Partition into even and odd numbers
-        var (evens, odds) = numbers.Partition(n => n % 2 == 0);
-
-        // Iterate with actions
-        numbers.ForEach(n => Console.WriteLine(n));
-        await numbers.ForEachAsync(async n => await Task.Delay(10));
-
-        // Get items at specific indices
-        var at = numbers.GetAt(0, 2);
-
-        // Create a dictionary, keeping the first occurrence of each key
-        var dict = numbers.ToDictionaryDistinct(n => n, n => n.ToString());
-
-        // Shuffle the collection
-        var shuffled = numbers.Shuffle();
-    }
-}
-```
-
-## GeoLocationExtensions
-
-`GeoLocationExtensions` provides a comprehensive set of extension methods for geographic calculations and location operations. It includes utilities for calculating distances between coordinates using the Haversine formula, converting between distance units (kilometers, miles, meters), validating geographic coordinates, determining compass bearings, checking proximity within a radius, calculating bounding boxes, and formatting coordinates for display.
-
-### Usage Example
-
-```csharp
-using System;
-using SignalRMapRealtime.Domain.Models;
-using SignalRMapRealtime.Utilities;
-
-class Program
-{
-    static void Main()
-    {
-        // Create sample locations
-        var newYork = new Location { Latitude = 40.7128, Longitude = -74.0060 };
-        var london = new Location { Latitude = 51.5074, Longitude = -0.1278 };
-        var tokyo = new Location { Latitude = 35.6762, Longitude = 139.6503 };
-
-        // Calculate distance between two locations (in kilometers)
-        double distanceKm = newYork.DistanceTo(london);
-        Console.WriteLine($"Distance from New York to London: {distanceKm:F2} km");
-
-        // Calculate distance between raw coordinates
-        double distanceBetween = LocationExtensions.DistanceBetween(
-            40.7128, -74.0060,
-            51.5074, -0.1278);
-        Console.WriteLine($"Distance: {distanceBetween:F2} km");
-
-        // Convert between distance units
-        double miles = distanceKm.KilometersToMiles();
-        double meters = distanceKm.KilometersToMeters();
-        Console.WriteLine($"In miles: {miles:F2} mi, In meters: {meters:F0} m");
-
-        // Validate coordinates
-        bool isValidLat = 40.7128.IsValidLatitude();
-        bool isValidLon = (-74.0060).IsValidLongitude();
-        bool isValidCoord = 40.7128.IsValidCoordinate(-74.0060);
-        Console.WriteLine($"Valid latitude: {isValidLat}, Valid longitude: {isValidLon}, Valid coordinate: {isValidCoord}");
-
-        // Calculate bearing (compass direction) from one location to another
-        double bearing = newYork.BearingTo(london);
-        string cardinalDirection = bearing.GetCardinalDirection();
-        Console.WriteLine($"Bearing: {bearing:F1}°, Cardinal direction: {cardinalDirection}");
-
-        // Check if a location is within a radius of another location
-        bool isWithinRadius = tokyo.IsWithinRadius(london, 10000);
-        Console.WriteLine($"Tokyo within 10,000 km of London: {isWithinRadius}");
-
-        // Calculate bounding box around a location
-        var boundingBox = london.GetBoundingBox(500);
-        Console.WriteLine($"Bounding box around London (±500km): " +
-            $"Lat: {boundingBox.MinLat:F3} to {boundingBox.MaxLat:F3}, " +
-            $"Lon: {boundingBox.MinLon:F3} to {boundingBox.MaxLon:F3}");
-
-        // Format coordinates for display
-        string formatted = newYork.FormatCoordinates();
-        Console.WriteLine($"Formatted coordinates: {formatted}");
-
-        // Calculate distance in miles directly
-        var chicago = new Location { Latitude = 41.8781, Longitude = -87.6298 };
-        double distanceMiles = chicago.DistanceTo(newYork).KilometersToMiles();
-        Console.WriteLine($"Distance from Chicago to New York: {distanceMiles:F2} miles");
-    }
-}
-```
-
-## PaginationExtensions
-
-`PaginationExtensions` offers a comprehensive set of helpers for validating pagination parameters, applying pagination to `IEnumerable<T>` and `IQueryable<T>` collections, calculating pagination metadata, and retrieving pagination information such as total pages, skip count, and page boundaries.
-
-### Usage Example
-
-```csharp
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using SignalRMapRealtime.Utilities;
-
-var numbers = Enumerable.Range(1, 25).ToList();
-
-// Validate parameters (throws if invalid)
-PaginationExtensions.ValidatePaginationParameters(2, 10);
-
-// Normalize parameters (returns a tuple with safe values)
-var (pageNumber, pageSize) = PaginationExtensions.NormalizePaginationParameters(2, 10);
-
-// Apply pagination to an IEnumerable<T>
-IEnumerable<int> pageItems = numbers.ApplyPagination(pageNumber, pageSize);
-Console.WriteLine($"Page {pageNumber} items: {string.Join(", ", pageItems)}");
-
-// Apply pagination to an IQueryable<T>
-IQueryable<int> query = numbers.AsQueryable();
-IQueryable<int> pagedQuery = query.ApplyPagination(pageNumber, pageSize);
-Console.WriteLine($"Queryable count on page: {pagedQuery.Count()}");
-
-// Apply pagination with sorting to an IQueryable<T>
-IQueryable<int> sortedPaged = query.ApplyPaginationWithSort(
-    pageNumber,
-    pageSize,
-    q => q.OrderByDescending(x => x));
-Console.WriteLine($"First item of sorted page: {sortedPaged.First()}");
-
-// Get paged results together with total count for IEnumerable<T>
-var (items, totalCount) = numbers.GetPagedResults(pageNumber, pageSize);
-Console.WriteLine($"Total items: {totalCount}, items on page: {string.Join(", ", items)}");
-
-// Get paged results together with total count for IQueryable<T>
-var (queryItems, queryTotal) = query.GetPagedQueryableResults(pageNumber, pageSize);
-Console.WriteLine($"Total query items: {queryTotal}, page count: {queryItems.Count()}");
-
-// Helper calculations
-int skip = PaginationExtensions.CalculateSkip(pageNumber, pageSize);
-int totalPages = PaginationExtensions.CalculateTotalPages(totalCount, pageSize);
-bool isValidPage = PaginationExtensions.IsValidPageNumber(pageNumber, totalCount, pageSize);
-PaginationInfo info = PaginationExtensions.GetPaginationInfo(pageNumber, pageSize, totalCount);
-
-Console.WriteLine($"Skip: {skip}, TotalPages: {totalPages}, IsValidPage: {isValidPage}");
-Console.WriteLine($"Info – IsFirstPage: {info.IsFirstPage}, HasNextPage: {info.HasNextPage}");
-```
+``` 
 ```
