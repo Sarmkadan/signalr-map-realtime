@@ -333,6 +333,15 @@ class Program
 
 ```csharp
 using System;
+
+## VehicleControllerTests
+
+`VehicleControllerTests` contains integration tests for the `VehicleController` API controller, which manages CRUD operations for vehicles in the SignalRMapRealtime application. The test class verifies that the controller endpoints correctly handle creating, reading, updating, and deleting vehicles, including proper status codes, content types, and error handling. Tests cover scenarios like invalid model validation, non-existent resource lookups, and ID mismatch scenarios.
+
+### Usage Example
+
+```csharp
+using System;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -383,6 +392,80 @@ class Program
         // Delete an asset
         var deleteResponse = await client.DeleteAsync($"api/Asset/{createdAsset?.Data?.Id}");
         Console.WriteLine($"Delete status: {deleteResponse.StatusCode}");
+    }
+}
+```
+
+## VehicleControllerTests
+
+`VehicleControllerTests` contains integration tests for the `VehicleController` API controller, which manages CRUD operations for vehicles in the SignalRMapRealtime application. The test class verifies that the controller endpoints correctly handle creating, reading, updating, and deleting vehicles, including proper status codes, content types, and error handling. Tests cover scenarios like invalid model validation, non-existent resource lookups, and ID mismatch scenarios.
+
+### Usage Example
+
+```csharp
+using System;
+using System.Net;
+using System.Net.Http;
+using System.Text;
+using System.Threading.Tasks;
+using FluentAssertions;
+using Microsoft.AspNetCore.Mvc.Testing;
+using Newtonsoft.Json;
+using SignalRMapRealtime.DTOs;
+using SignalRMapRealtime.Models;
+using Xunit;
+
+class Program
+{
+    static async Task Main()
+    {
+        // Example using WebApplicationFactory for integration testing
+        var factory = new WebApplicationFactory<Program>();
+        var client = factory.CreateClient();
+
+        // Create a new vehicle
+        var newVehicle = new VehicleDto
+        {
+            Make = "Toyota",
+            Model = "Camry",
+            Year = 2022,
+            LicensePlate = "CAMRY2022",
+            Status = VehicleStatus.Available
+        };
+
+        var createResponse = await client.PostAsync("/api/Vehicle", 
+            new StringContent(JsonConvert.SerializeObject(newVehicle), Encoding.UTF8, "application/json"));
+        var createdVehicle = await createResponse.Content.ReadAsStringAsync();
+        Console.WriteLine($"Created vehicle response status: {createResponse.StatusCode}");
+
+        // Get all vehicles
+        var getAllResponse = await client.GetAsync("/api/Vehicle");
+        var allVehicles = await getAllResponse.Content.ReadAsStringAsync();
+        Console.WriteLine($"Get all vehicles response status: {getAllResponse.StatusCode}");
+
+        // Get a specific vehicle by ID
+        var vehicleId = JsonConvert.DeserializeObject<VehicleDto>(createdVehicle)?.Id ?? Guid.Empty;
+        var getByIdResponse = await client.GetAsync($"/api/Vehicle/{vehicleId}");
+        var singleVehicle = await getByIdResponse.Content.ReadAsStringAsync();
+        Console.WriteLine($"Get vehicle by ID response status: {getByIdResponse.StatusCode}");
+
+        // Update a vehicle
+        var updateVehicle = new VehicleDto
+        {
+            Id = vehicleId,
+            Make = "Toyota",
+            Model = "Camry LE",
+            Year = 2023,
+            LicensePlate = "CAMRY2022",
+            Status = VehicleStatus.InUse
+        };
+        var updateResponse = await client.PutAsync($"/api/Vehicle/{vehicleId}",
+            new StringContent(JsonConvert.SerializeObject(updateVehicle), Encoding.UTF8, "application/json"));
+        Console.WriteLine($"Update vehicle response status: {updateResponse.StatusCode}");
+
+        // Delete a vehicle
+        var deleteResponse = await client.DeleteAsync($"/api/Vehicle/{vehicleId}");
+        Console.WriteLine($"Delete vehicle response status: {deleteResponse.StatusCode}");
     }
 }
 ```
