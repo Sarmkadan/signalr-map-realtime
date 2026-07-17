@@ -1000,6 +1000,55 @@ class Program
 }
 ```
 
+## WaypointTests
+`WaypointTests` contains unit tests for the `Waypoint` class, which verifies the core functionality of waypoints in tracking routes. The test class validates waypoint completion logic, coordinate validation, time window handling, and state management. Tests cover scenarios like marking waypoints as completed with arrival/departure times, resetting waypoints to incomplete states, validating geographic coordinates, and checking for time window configurations.
+
+### Usage Example
+
+```csharp
+using System;
+using SignalRMapRealtime.Domain.Models;
+
+class Program
+{
+    static void Main()
+    {
+        // Create a new waypoint for a delivery route
+        var waypoint = new Waypoint
+        {
+            Order = 1,
+            Name = "Warehouse Pickup",
+            Latitude = 40.7128,
+            Longitude = -74.0060,
+            Address = "123 Main St, New York, NY",
+            ArrivalTimeStart = "2024-01-15T08:00:00",
+            ArrivalTimeEnd = "2024-01-15T10:00:00"
+        };
+
+        // Complete the waypoint with arrival and departure times
+        var arrivalTime = DateTime.Parse("2024-01-15T08:30:00");
+        var departureTime = DateTime.Parse("2024-01-15T08:45:00");
+        waypoint.CompleteWaypoint(arrivalTime, departureTime);
+
+        Console.WriteLine($"Waypoint completed: {waypoint.IsCompleted}");
+        Console.WriteLine($"Arrival: {waypoint.ActualArrivalTime}");
+        Console.WriteLine($"Departure: {waypoint.ActualDepartureTime}");
+
+        // Check if coordinates are valid
+        bool hasValidCoords = waypoint.HasValidCoordinates();
+        Console.WriteLine($"Valid coordinates: {hasValidCoords}");
+
+        // Check if time window is configured
+        bool hasTimeWindow = waypoint.HasTimeWindow();
+        Console.WriteLine($"Has time window: {hasTimeWindow}");
+
+        // Reset the waypoint to incomplete state
+        waypoint.Reset();
+        Console.WriteLine($"After reset - completed: {waypoint.IsCompleted}");
+    }
+}
+```
+
 ## LocationControllerTests
 
 `LocationControllerTests` contains integration tests for the `LocationController` API controller, which manages CRUD operations for location data in the SignalRMapRealtime application. The test class verifies that the controller endpoints correctly handle creating, reading, updating, and deleting locations, including proper status codes, content types, and error handling. Tests cover scenarios like invalid model validation, non-existent resource lookups, and ID mismatch scenarios.
