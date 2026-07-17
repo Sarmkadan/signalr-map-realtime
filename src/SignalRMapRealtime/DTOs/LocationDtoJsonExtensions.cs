@@ -3,7 +3,7 @@
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
-// =============================================================================
+// =====================================================================
 
 namespace SignalRMapRealtime.DTOs;
 
@@ -70,15 +70,20 @@ public static class LocationDtoJsonExtensions
     {
         ArgumentException.ThrowIfNullOrEmpty(json);
 
-        value = default;
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            value = default;
+            return false;
+        }
 
         try
         {
             value = JsonSerializer.Deserialize<LocationDto>(json, _jsonSerializerOptions);
-            return true;
+            return value is not null;
         }
         catch (JsonException)
         {
+            value = default;
             return false;
         }
     }
