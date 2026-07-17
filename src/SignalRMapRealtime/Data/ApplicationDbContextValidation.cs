@@ -71,17 +71,29 @@ public static class ApplicationDbContextValidation
         if (problems.Count > 0)
         {
             throw new ArgumentException(
-                $"ApplicationDbContext is invalid. Problems: {string.Join(" ", problems)}",
+                $"ApplicationDbContext is invalid. Problems: {string.Join("; ", problems)}",
                 nameof(value));
         }
     }
 
+    /// <summary>
+    /// Validates that a DbSet is properly initialized.
+    /// </summary>
+    /// <typeparam name="TEntity">The entity type.</typeparam>
+    /// <param name="dbSet">The DbSet to validate.</param>
+    /// <param name="propertyName">The name of the property containing the DbSet.</param>
+    /// <param name="problems">Collection to accumulate validation problems.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="problems"/> or <paramref name="propertyName"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="propertyName"/> is empty.</exception>
     private static void ValidateDbSet<TEntity>(
         Microsoft.EntityFrameworkCore.DbSet<TEntity> dbSet,
         string propertyName,
         ICollection<string> problems)
         where TEntity : class
     {
+        ArgumentNullException.ThrowIfNull(problems);
+        ArgumentException.ThrowIfNullOrEmpty(propertyName);
+
         if (dbSet is null)
         {
             problems.Add($"DbSet<{typeof(TEntity).Name}> {propertyName} is null.");
