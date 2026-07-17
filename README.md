@@ -15,6 +15,34 @@ limitations.
 
 Usage examples for selected DTOs follow.
 
+## ApplicationDbContext
+
+The `ApplicationDbContext` class represents the Entity Framework Core database context, serving as the central point for interacting with the database. It manages access to core system entities, including users, vehicles, locations, tracking sessions, routes, waypoints, and assets.
+
+### Usage Example
+
+```csharp
+using Microsoft.EntityFrameworkCore;
+using SignalRMapRealtime.Data;
+
+// Assuming options are configured in Startup/Program.cs
+var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+    .UseInMemoryDatabase("TestDb")
+    .Options;
+
+using (var context = new ApplicationDbContext(options))
+{
+    // Accessing DbSets
+    var vehicleCount = await context.Vehicles.CountAsync();
+    
+    // Adding a new entity
+    context.Users.Add(new User { FullName = "John Doe", Email = "john@example.com" });
+    await context.SaveChangesAsync();
+    
+    Console.WriteLine($"Database initialized. Total vehicles: {vehicleCount}");
+}
+```
+
 ## GeofenceDto
 
 The `GeofenceDto` class represents a data transfer object for geofence information, providing essential details about configured zones. It is used for transmitting geofence data between system components.
