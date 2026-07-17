@@ -213,6 +213,35 @@ Console.WriteLine($"Average speed: {stats.AverageSpeed} km/h");
 Console.WriteLine($"Total distance: {stats.TotalDistance} km");
 ```
 
+## LocationService
+
+The `LocationService` class is the concrete implementation of the `ILocationService` interface, providing the core business logic for tracking vehicle locations, managing history, and performing geographic calculations. It handles coordinate validation, persistence of location updates, and the aggregation of performance statistics for fleet monitoring.
+
+### Usage Example
+
+```csharp
+using SignalRMapRealtime.Services;
+using SignalRMapRealtime.DTOs;
+using SignalRMapRealtime.Domain.Enums;
+
+// Assuming locationService (LocationService) is injected
+// Record a new location update
+var location = await locationService.RecordLocationAsync(new CreateLocationDto {
+    VehicleId = 1,
+    Latitude = 40.7128,
+    Longitude = -74.0060,
+    Speed = 45.5,
+    LocationType = LocationType.Gps
+});
+
+// Check coordinate validity
+bool isValid = locationService.ValidateCoordinates(40.7128, -74.0060);
+
+// Calculate distance between points
+double distance = locationService.CalculateDistance(40.7128, -74.0060, 40.7130, -74.0062);
+Console.WriteLine($"Location {location.Id} recorded, isValid: {isValid}, distance: {distance:F4} km");
+```
+
 ## IGeofenceService
 
 The `IGeofenceService` manages configurable geofence zones and evaluates location-based boundary alerts for vehicles. It tracks vehicle presence within defined areas and publishes violation events when vehicles enter or exit these zones.
