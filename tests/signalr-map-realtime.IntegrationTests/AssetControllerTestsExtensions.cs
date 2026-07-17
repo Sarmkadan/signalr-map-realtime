@@ -3,7 +3,7 @@
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
-// =====================================================================
+// ====================================================================
 
 using System;
 using System.Collections.Generic;
@@ -29,10 +29,10 @@ namespace SignalRMapRealtime.IntegrationTests
         /// <summary>
         /// Verifies that the response is a successful OK response with JSON content type.
         /// </summary>
-        /// <param name="response">The HTTP response to verify.</param>
+        /// <param name="responseTask">The HTTP response to verify.</param>
         /// <param name="because">Optional reason for the assertion.</param>
         /// <returns>The response content as a string.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when <paramref name="response"/> is null.</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="responseTask"/> is null.</exception>
         public static async Task<string> ShouldBeSuccessfulJsonResponse(this Task<HttpResponseMessage> responseTask, string because = null)
         {
             ArgumentNullException.ThrowIfNull(responseTask);
@@ -49,6 +49,7 @@ namespace SignalRMapRealtime.IntegrationTests
         /// </summary>
         /// <param name="responseTask">The HTTP response to verify.</param>
         /// <param name="because">Optional reason for the assertion.</param>
+        /// <typeparam name="T">The type of resource being created.</typeparam>
         /// <returns>The deserialized resource of type <typeparamref name="T"/>.</returns>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="responseTask"/> is null.</exception>
         public static async Task<T> ShouldBeCreatedResource<T>(this Task<HttpResponseMessage> responseTask, string because = null)
@@ -152,25 +153,23 @@ namespace SignalRMapRealtime.IntegrationTests
         /// <summary>
         /// Creates a new asset DTO with default values for testing.
         /// </summary>
-        /// <param name="name">The asset name. Defaults to "Test Asset {id}".</param>
+        /// <param name="name">The asset name. Defaults to "Test Asset {id}" if null.</param>
         /// <param name="type">The asset type. Defaults to <see cref="AssetType.Equipment"/>.</param>
         /// <param name="status">The asset status. Defaults to "Active".</param>
         /// <returns>A new asset DTO.</returns>
         public static AssetDto CreateTestAssetDto(string name = null, AssetType type = AssetType.Equipment, string status = "Active")
-        {
-            return new AssetDto
+            => new AssetDto
             {
                 Name = name ?? $"Test Asset {Guid.NewGuid().ToString()[..8]}",
                 Type = type,
                 Status = status
             };
-        }
 
         /// <summary>
         /// Creates a new asset DTO with the specified ID for testing.
         /// </summary>
-        /// <param name="id">The asset ID.</param>
-        /// <param name="name">The asset name. Defaults to "Test Asset {id}".</param>
+        /// <param name="id">The asset ID (must be greater than 0).</param>
+        /// <param name="name">The asset name. Defaults to "Test Asset {id}" if null.</param>
         /// <param name="type">The asset type. Defaults to <see cref="AssetType.Equipment"/>.</param>
         /// <param name="status">The asset status. Defaults to "Active".</param>
         /// <returns>A new asset DTO with the specified ID.</returns>
