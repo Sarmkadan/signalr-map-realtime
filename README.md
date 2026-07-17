@@ -70,8 +70,6 @@ class Program
 }
 ```
 
-// ... (rest of the file remains unchanged)
-
 ## RateLimitingOptions
 
 The `RateLimitingOptions` class provides configuration options for rate limiting protection against abuse and DoS attacks. It allows you to customize rate limits for different types of requests, such as standard endpoints, location updates, authentication attempts, and more. By adjusting these settings, you can effectively prevent excessive usage and protect your application.
@@ -102,6 +100,7 @@ var rateLimitingOptions = new RateLimitingOptions
 };
 
 // Use rateLimitingOptions in your application configuration
+```
 ```
 
 ## CollectionExtensions
@@ -166,6 +165,74 @@ class Program
 }
 ```
 
+## GeoLocationExtensions
+
+`GeoLocationExtensions` provides a comprehensive set of extension methods for geographic calculations and location operations. It includes utilities for calculating distances between coordinates using the Haversine formula, converting between distance units (kilometers, miles, meters), validating geographic coordinates, determining compass bearings, checking proximity within a radius, calculating bounding boxes, and formatting coordinates for display.
+
+### Usage Example
+
+```csharp
+using System;
+using SignalRMapRealtime.Domain.Models;
+using SignalRMapRealtime.Utilities;
+
+class Program
+{
+    static void Main()
+    {
+        // Create sample locations
+        var newYork = new Location { Latitude = 40.7128, Longitude = -74.0060 };
+        var london = new Location { Latitude = 51.5074, Longitude = -0.1278 };
+        var tokyo = new Location { Latitude = 35.6762, Longitude = 139.6503 };
+
+        // Calculate distance between two locations (in kilometers)
+        double distanceKm = newYork.DistanceTo(london);
+        Console.WriteLine($"Distance from New York to London: {distanceKm:F2} km");
+
+        // Calculate distance between raw coordinates
+        double distanceBetween = LocationExtensions.DistanceBetween(
+            40.7128, -74.0060,
+            51.5074, -0.1278);
+        Console.WriteLine($"Distance: {distanceBetween:F2} km");
+
+        // Convert between distance units
+        double miles = distanceKm.KilometersToMiles();
+        double meters = distanceKm.KilometersToMeters();
+        Console.WriteLine($"In miles: {miles:F2} mi, In meters: {meters:F0} m");
+
+        // Validate coordinates
+        bool isValidLat = 40.7128.IsValidLatitude();
+        bool isValidLon = (-74.0060).IsValidLongitude();
+        bool isValidCoord = 40.7128.IsValidCoordinate(-74.0060);
+        Console.WriteLine($"Valid latitude: {isValidLat}, Valid longitude: {isValidLon}, Valid coordinate: {isValidCoord}");
+
+        // Calculate bearing (compass direction) from one location to another
+        double bearing = newYork.BearingTo(london);
+        string cardinalDirection = bearing.GetCardinalDirection();
+        Console.WriteLine($"Bearing: {bearing:F1}°, Cardinal direction: {cardinalDirection}");
+
+        // Check if a location is within a radius of another location
+        bool isWithinRadius = tokyo.IsWithinRadius(london, 10000);
+        Console.WriteLine($"Tokyo within 10,000 km of London: {isWithinRadius}");
+
+        // Calculate bounding box around a location
+        var boundingBox = london.GetBoundingBox(500);
+        Console.WriteLine($"Bounding box around London (±500km): " +
+            $"Lat: {boundingBox.MinLat:F3} to {boundingBox.MaxLat:F3}, " +
+            $"Lon: {boundingBox.MinLon:F3} to {boundingBox.MaxLon:F3}");
+
+        // Format coordinates for display
+        string formatted = newYork.FormatCoordinates();
+        Console.WriteLine($"Formatted coordinates: {formatted}");
+
+        // Calculate distance in miles directly
+        var chicago = new Location { Latitude = 41.8781, Longitude = -87.6298 };
+        double distanceMiles = chicago.DistanceTo(newYork).KilometersToMiles();
+        Console.WriteLine($"Distance from Chicago to New York: {distanceMiles:F2} miles");
+    }
+}
+```
+
 ## PaginationExtensions
 
 `PaginationExtensions` offers a comprehensive set of helpers for validating pagination parameters, applying pagination to `IEnumerable<T>` and `IQueryable<T>` collections, calculating pagination metadata, and retrieving pagination information such as total pages, skip count, and page boundaries.
@@ -219,77 +286,4 @@ PaginationInfo info = PaginationExtensions.GetPaginationInfo(pageNumber, pageSiz
 Console.WriteLine($"Skip: {skip}, TotalPages: {totalPages}, IsValidPage: {isValidPage}");
 Console.WriteLine($"Info – IsFirstPage: {info.IsFirstPage}, HasNextPage: {info.HasNextPage}");
 ```
-
-## StringExtensions
-
-`StringExtensions` provides a comprehensive set of extension methods for string manipulation, validation, and transformation. It includes utilities for checking string presence, truncating strings, converting between different naming conventions (title case, kebab-case, snake_case), safe substring operations, character removal, counting occurrences, reversing strings, repeating strings, pattern matching, and secure masking of sensitive data.
-
-### Usage Example
-
-```csharp
-using System;
-using SignalRMapRealtime.Utilities;
-
-class Program
-{
-    static void Main()
-    {
-        string? input = "Hello World! This is a test string.";
-        
-        // Check if string has value (not null or whitespace)
-        bool hasValue = input.HasValue();
-        Console.WriteLine($"Has value: {hasValue}");
-        
-        // Truncate string with ellipsis
-        string truncated = input.Truncate(20);
-        Console.WriteLine($"Truncated: {truncated}");
-        
-        // Convert to title case
-        string titleCase = input.ToTitleCase();
-        Console.WriteLine($"Title case: {titleCase}");
-        
-        // Convert to kebab-case
-        string kebabCase = "HelloWorld".ToKebabCase();
-        Console.WriteLine($"Kebab case: {kebabCase}");
-        
-        // Convert to snake_case
-        string snakeCase = "HelloWorld".ToSnakeCase();
-        Console.WriteLine($"Snake case: {snakeCase}");
-        
-        // Safe substring operation
-        string safeSubstring = input.SubstringSafe(6, 10);
-        Console.WriteLine($"Safe substring: {safeSubstring}");
-        
-        // Remove specific characters
-        string withoutSpecial = input.RemoveCharacters('!', '.', ' ');
-        Console.WriteLine($"Without special chars: {withoutSpecial}");
-        
-        // Count occurrences of substring
-        int occurrences = input.CountOccurrences("is");
-        Console.WriteLine($"Occurrences of 'is': {occurrences}");
-        
-        // Reverse string
-        string reversed = input.Reverse();
-        Console.WriteLine($"Reversed: {reversed}");
-        
-        // Repeat string
-        string repeated = "abc".Repeat(3);
-        Console.WriteLine($"Repeated: {repeated}");
-        
-        // Check if string matches pattern
-        bool matches = input.Matches("^[A-Z].*[.!?]$");
-        Console.WriteLine($"Matches pattern: {matches}");
-        
-        // Mask sensitive data (e.g., email)
-        string email = "user@example.com";
-        string maskedEmail = email.Mask();
-        Console.WriteLine($"Masked email: {maskedEmail}");
-        
-        // Check if string is null or empty
-        bool isNullOrEmpty = string.IsNullOrEmpty(input);
-        Console.WriteLine($"Is null or empty: {isNullOrEmpty}");
-    }
-}
 ```
-
-// ... (rest of the file remains unchanged)
