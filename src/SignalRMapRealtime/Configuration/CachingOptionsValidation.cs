@@ -2,11 +2,10 @@
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
-// =============================================================================
+// =====================================================================
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 
 namespace SignalRMapRealtime.Configuration;
 
@@ -102,18 +101,9 @@ public static class CachingOptionsValidation
     /// </summary>
     /// <param name="value">The caching options to check.</param>
     /// <returns>True if valid; otherwise, false.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is null.</exception>
     public static bool IsValid(this CachingOptions value)
-    {
-        try
-        {
-            _ = value.Validate();
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
-    }
+        => value.Validate().Count == 0;
 
     /// <summary>
     /// Ensures that the specified <see cref="CachingOptions"/> instance is valid, throwing an <see cref="ArgumentException"/>
@@ -137,6 +127,14 @@ public static class CachingOptionsValidation
                 string.Join($"{Environment.NewLine}- ", errors)}");
     }
 
+    /// <summary>
+    /// Validates that a duration value is at least the minimum required value.
+    /// </summary>
+    /// <param name="errors">The list of errors to add to if validation fails.</param>
+    /// <param name="propertyName">The name of the property being validated.</param>
+    /// <param name="value">The value to validate.</param>
+    /// <param name="minimumValue">The minimum allowed value.</param>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="errors"/> is null.</exception>
     private static void ValidatePositiveDuration(List<string> errors, string propertyName, int value, int minimumValue)
     {
         if (value < minimumValue)
