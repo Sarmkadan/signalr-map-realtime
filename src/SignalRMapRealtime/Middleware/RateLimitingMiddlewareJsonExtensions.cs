@@ -3,7 +3,7 @@
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
-// =============================================================================
+// =====================================================================
 
 namespace SignalRMapRealtime.Middleware;
 
@@ -70,9 +70,11 @@ public static class RateLimitingMiddlewareJsonExtensions
     /// <param name="value">Receives the deserialized instance if successful, otherwise null.</param>
     /// <returns>True if deserialization succeeds; otherwise, false.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is empty or whitespace.</exception>
     public static bool TryFromJson(string json, out RateLimitingMiddleware? value)
     {
         ArgumentNullException.ThrowIfNull(json);
+        ArgumentException.ThrowIfNullOrWhiteSpace(json, nameof(json));
 
         try
         {
