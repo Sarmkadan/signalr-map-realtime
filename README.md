@@ -618,6 +618,74 @@ class Program
 }
 ```
 
+## RouteControllerTests
+
+`RouteControllerTests` contains integration tests for the `RouteController` API controller, which manages CRUD operations for routes in the SignalRMapRealtime application. The test class verifies that the controller endpoints correctly handle creating, reading, updating, and deleting routes, including proper status codes, content types, and error handling. Tests cover scenarios like invalid model validation, non-existent resource lookups, and ID mismatch scenarios.
+
+### Usage Example
+
+```csharp
+using System;
+using System.Net;
+using System.Net.Http;
+using System.Text;
+using System.Threading.Tasks;
+using FluentAssertions;
+using Microsoft.AspNetCore.Mvc.Testing;
+using Newtonsoft.Json;
+using SignalRMapRealtime.DTOs;
+using SignalRMapRealtime.Models;
+using Xunit;
+
+class Program
+{
+    static async Task Main()
+    {
+        // Example using WebApplicationFactory for integration testing
+        var factory = new WebApplicationFactory<Program>();
+        var client = factory.CreateClient();
+
+        // Create a new route
+        var newRoute = new RouteDto
+        {
+            Name = "Downtown to Airport",
+            Description = "Delivery route from downtown to airport"
+        };
+
+        var createResponse = await client.PostAsync("/api/Route",
+            new StringContent(JsonConvert.SerializeObject(newRoute), Encoding.UTF8, "application/json"));
+        var createdRoute = await createResponse.Content.ReadAsStringAsync();
+        Console.WriteLine($"Created route response status: {createResponse.StatusCode}");
+
+        // Get all routes with pagination
+        var getAllResponse = await client.GetAsync("/api/Route?pageNumber=1&pageSize=20");
+        var allRoutes = await getAllResponse.Content.ReadAsStringAsync();
+        Console.WriteLine($"Get all routes response status: {getAllResponse.StatusCode}");
+
+        // Get a specific route by ID
+        var routeId = JsonConvert.DeserializeObject<RouteDto>(createdRoute)?.Id ?? Guid.Empty;
+        var getByIdResponse = await client.GetAsync($"/api/Route/{routeId}");
+        var singleRoute = await getByIdResponse.Content.ReadAsStringAsync();
+        Console.WriteLine($"Get route by ID response status: {getByIdResponse.StatusCode}");
+
+        // Update a route
+        var updateRoute = new RouteDto
+        {
+            Id = routeId,
+            Name = "Downtown to Airport - Updated",
+            Description = "Updated delivery route description"
+        };
+        var updateResponse = await client.PutAsync($"/api/Route/{routeId}",
+            new StringContent(JsonConvert.SerializeObject(updateRoute), Encoding.UTF8, "application/json"));
+        Console.WriteLine($"Update route response status: {updateResponse.StatusCode}");
+
+        // Delete a route
+        var deleteResponse = await client.DeleteAsync($"/api/Route/{routeId}");
+        Console.WriteLine($"Delete route response status: {deleteResponse.StatusCode}");
+    }
+}
+```
+
 ## DomainModelBehaviorTests
 
 `DomainModelBehaviorTests` contains unit tests that verify the behavioral contracts of domain models in the SignalRMapRealtime application. This test class validates that domain entities like `Vehicle`, `TrackingSession`, and `Asset` behave correctly under various conditions, ensuring proper state transitions, validation rules, and business logic execution. The tests use FluentAssertions for clear, readable assertions and cover edge cases such as null configurations, invalid operations, and argument validation.
