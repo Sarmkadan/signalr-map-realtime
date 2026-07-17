@@ -463,6 +463,69 @@ int deletedCount = await locationRepository.DeleteOldLocationsAsync(90);
 Console.WriteLine($"Deleted {deletedCount} old location records");
 ```
 
+## AssetRepository
+
+The `AssetRepository` class provides data access operations for asset entities in the system. It extends the `BaseRepository<Asset>` with asset-specific methods for querying assets by serial number, type, vehicle assignment, tracking status, and special handling requirements. The repository includes methods for retrieving asset values, tracking history, and filtering by various conditions.
+
+### Usage Example
+
+```csharp
+using SignalRMapRealtime.Data.Repositories;
+using SignalRMapRealtime.Data;
+using SignalRMapRealtime.Domain.Models;
+using SignalRMapRealtime.Domain.Enums;
+using Microsoft.EntityFrameworkCore;
+
+// Assuming dbContext is injected
+var assetRepository = new AssetRepository(dbContext);
+
+// 1. Get asset by serial number
+var assetBySerial = await assetRepository.GetBySerialNumberAsync("SN123456789");
+if (assetBySerial != null)
+{
+    Console.WriteLine($"Found asset: {assetBySerial.Name} (Serial: {assetBySerial.SerialNumber})");
+}
+
+// 2. Get all GPS tracking devices
+var gpsAssets = await assetRepository.GetAssetsByTypeAsync(AssetType.GpsTrackingDevice);
+Console.WriteLine($"Found {gpsAssets.Count()} GPS tracking devices");
+
+// 3. Get assets assigned to vehicle 1
+var vehicleAssets = await assetRepository.GetAssetsByVehicleAsync(1);
+Console.WriteLine($"Found {vehicleAssets.Count()} assets assigned to vehicle 1");
+
+// 4. Get unassigned assets
+var unassignedAssets = await assetRepository.GetUnassignedAssetsAsync();
+Console.WriteLine($"Found {unassignedAssets.Count()} unassigned assets");
+
+// 5. Get assets requiring special handling
+var specialAssets = await assetRepository.GetSpecialHandlingAssetsAsync();
+Console.WriteLine($"Found {specialAssets.Count()} assets requiring special handling");
+
+// 6. Get asset with full tracking history
+var assetWithHistory = await assetRepository.GetAssetWithHistoryAsync(1);
+if (assetWithHistory != null)
+{
+    Console.WriteLine($"Asset {assetWithHistory.Name} has {assetWithHistory.LocationHistory?.Count ?? 0} location history records");
+}
+
+// 7. Get recently tracked assets (last 30 minutes)
+var recentAssets = await assetRepository.GetRecentlyTrackedAssetsAsync(30);
+Console.WriteLine($"Found {recentAssets.Count()} assets tracked in last 30 minutes");
+
+// 8. Get total value of all trailers
+var totalTrailerValue = await assetRepository.GetTotalValueByTypeAsync(AssetType.Trailer);
+Console.WriteLine($"Total trailer value: {totalTrailerValue:C}");
+
+// 9. Get assets not tracked in last 24 hours
+var staleAssets = await assetRepository.GetNotRecentlyTrackedAsync(24);
+Console.WriteLine($"Found {staleAssets.Count()} assets not tracked in last 24 hours");
+
+// 10. Count assets in "Excellent" condition
+var excellentCount = await assetRepository.CountByConditionAsync("Excellent");
+Console.WriteLine($"Found {excellentCount} assets in Excellent condition");
+```
+
 ## VehicleService
 
 The `VehicleService` provides a comprehensive API for managing vehicle entities, including creation, retrieval, updates, and status tracking. It facilitates fleet operations by allowing management of vehicle assignments, operational status, and monitoring of performance metrics such as fuel levels and speed violations.
