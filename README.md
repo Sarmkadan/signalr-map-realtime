@@ -961,6 +961,85 @@ class Program
 }
 ```
 
+## VehicleDtoExtensions
+
+`VehicleDtoExtensions` provides extension methods for `VehicleDto` to facilitate common vehicle operations including online status checking, status comparisons, status string formatting, location details extraction, basic information formatting, and attention requirement determination. These methods simplify working with vehicle data and provide convenient utility functions for vehicle management.
+
+### Usage Example
+
+```csharp
+using System;
+using SignalRMapRealtime.DTOs;
+using SignalRMapRealtime.Domain.Enums;
+
+class Program
+{
+    static void Main()
+    {
+        // Create a sample vehicle
+        var vehicle = new VehicleDto
+        {
+            Id = Guid.NewGuid(),
+            Name = "Delivery Truck #42",
+            RegistrationNumber = "TRK-42-ABC",
+            Make = "Ford",
+            Model = "F-150",
+            Year = 2023,
+            Status = VehicleStatus.Available,
+            IsOnline = true,
+            LastLocation = new LocationDto
+            {
+                Latitude = 40.7128,
+                Longitude = -74.0060,
+                Timestamp = DateTime.UtcNow,
+                Accuracy = 5.2,
+                Speed = 45.5
+            }
+        };
+
+        // Check if vehicle is online
+        bool isOnline = vehicle.IsOnline();
+        Console.WriteLine($"Vehicle online: {isOnline}"); // True
+
+        // Check if vehicle is in a specific status
+        bool isAvailable = vehicle.IsInStatus(VehicleStatus.Available);
+        Console.WriteLine($"Vehicle is available: {isAvailable}"); // True
+
+        // Get human-readable status string
+        string statusString = vehicle.GetStatusString();
+        Console.WriteLine($"Vehicle status: {statusString}"); // "Available"
+
+        // Get location details
+        string? locationDetails = vehicle.GetLocationDetails();
+        Console.WriteLine($"Location: {locationDetails}");
+        // Output: Location: Lat: 40.712800, Lng: -74.006000
+
+        // Get formatted vehicle information
+        string infoString = vehicle.GetInfoString();
+        Console.WriteLine($"Vehicle info: {infoString}");
+        // Output: Vehicle info: [guid-here] TRK-42-ABC - Delivery Truck #42 (Available)
+
+        // Check if vehicle requires attention
+        bool requiresAttention = vehicle.RequiresAttention();
+        Console.WriteLine($"Vehicle requires attention: {requiresAttention}"); // False
+
+        // Create a maintenance vehicle
+        var maintenanceVehicle = new VehicleDto
+        {
+            Id = Guid.NewGuid(),
+            Name = "Service Van #7",
+            RegistrationNumber = "VAN-07-XYZ",
+            Status = VehicleStatus.Maintenance,
+            IsOnline = false
+        };
+
+        // Check attention requirement for maintenance vehicle
+        bool maintenanceNeedsAttention = maintenanceVehicle.RequiresAttention();
+        Console.WriteLine($"Maintenance vehicle requires attention: {maintenanceNeedsAttention}"); // True
+    }
+}
+```
+
 ## LocationTrackingExceptionExtensions
 
 `LocationTrackingExceptionExtensions` provides extension methods for handling and extracting information from location tracking exceptions. This utility class helps extract contextual information from specific exception types like `VehicleNotFoundException`, `AssetNotFoundException`, `TrackingSessionNotFoundException`, and `InvalidLocationException`, and provides helper methods to determine error types and format error messages.
