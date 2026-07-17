@@ -119,3 +119,27 @@ Console.WriteLine($"Session {sessionId} stats: Distance={distance}km, AvgSpeed={
 await trackingService.CompleteSessionAsync(sessionId);
 ```
 
+## INotificationService
+
+The `INotificationService` provides a unified interface for sending notifications across multiple channels, including email, SMS, and push notifications. It supports queuing notifications for asynchronous processing, allowing applications to remain responsive while handling background delivery tasks.
+
+### Usage Example
+
+```csharp
+using SignalRMapRealtime.Services;
+
+// Assuming notificationService is injected (e.g., as InMemoryNotificationService)
+await notificationService.SendEmailAsync("admin@example.com", "Alert", "Vehicle tracker triggered.");
+await notificationService.SendPushAsync("user123", "Traffic Alert", "Heavy traffic on route.");
+
+// Multi-channel notification
+await notificationService.SendMultiChannelAsync("user123@example.com", "Update", "Session complete.", includeEmail: true, includePush: true);
+
+// Access pending notifications (e.g., for background processing)
+var pending = InMemoryNotificationService.GetPendingNotifications(maxCount: 5);
+foreach (var item in pending)
+{
+    Console.WriteLine($"Notification {item.Id}: {item.Type} to {item.Recipient} - Status: {item.Status}");
+}
+```
+
