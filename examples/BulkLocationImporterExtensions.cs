@@ -6,6 +6,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Diagnostics.CodeAnalysis;
 
 namespace SignalRMapRealtime.Examples;
 
@@ -19,10 +20,10 @@ public static class BulkLocationImporterExtensions
     /// Validates a CSV file for import without actually importing it.
     /// Checks file existence, format, and basic data integrity.
     /// </summary>
-    /// <param name="importer">The importer instance (not used but required for extension method syntax)</param>
+    /// <param name="importer">The importer instance</param>
     /// <param name="csvFilePath">Path to the CSV file to validate</param>
     /// <returns>True if the file is valid for import; otherwise false</returns>
-    /// <exception cref="ArgumentNullException">Thrown if csvFilePath is null or empty</exception>
+    /// <exception cref="ArgumentException">Thrown if <paramref name="csvFilePath"/> is null or empty</exception>
     public static bool ValidateCsvForImport(this BulkLocationImporter importer, string csvFilePath)
     {
         ArgumentException.ThrowIfNullOrEmpty(csvFilePath);
@@ -84,7 +85,7 @@ public static class BulkLocationImporterExtensions
                         }
 
                         validCount++;
-                        lineNumber++;
+                                lineNumber++;
                     }
                     catch (Exception ex)
                     {
@@ -107,10 +108,11 @@ public static class BulkLocationImporterExtensions
     /// <summary>
     /// Gets statistics about a CSV file without importing it.
     /// </summary>
-    /// <param name="importer">The importer instance (not used but required for extension method syntax)</param>
+    /// <param name="importer">The importer instance</param>
     /// <param name="csvFilePath">Path to the CSV file</param>
     /// <returns>Location statistics including count, date range, and bounding box</returns>
-    /// <exception cref="ArgumentNullException">Thrown if csvFilePath is null or empty</exception>
+    /// <exception cref="ArgumentException">Thrown if <paramref name="csvFilePath"/> is null or empty</exception>
+    /// <exception cref="FileNotFoundException">Thrown if <paramref name="csvFilePath"/> does not exist</exception>
     public static LocationImportStatistics GetCsvStatistics(this BulkLocationImporter importer, string csvFilePath)
     {
         ArgumentException.ThrowIfNullOrEmpty(csvFilePath);
@@ -190,7 +192,7 @@ public static class BulkLocationImporterExtensions
                         stats.ErrorMessage = ex.Message;
                     }
 
-                    lineNumber++;
+                            lineNumber++;
                 }
 
                 if (stats.TotalLocations > 0)
@@ -215,7 +217,8 @@ public static class BulkLocationImporterExtensions
     /// <param name="importer">The importer instance</param>
     /// <param name="csvFilePaths">Collection of CSV file paths to import</param>
     /// <returns>Task representing the asynchronous operation</returns>
-    /// <exception cref="ArgumentNullException">Thrown if csvFilePaths is null</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="csvFilePaths"/> is null</exception>
+    /// <exception cref="InvalidOperationException">Thrown if any import fails</exception>
     public static async Task ImportFromMultipleCsvFiles(this BulkLocationImporter importer, IEnumerable<string> csvFilePaths)
     {
         ArgumentNullException.ThrowIfNull(csvFilePaths);
@@ -229,7 +232,7 @@ public static class BulkLocationImporterExtensions
 
         Console.WriteLine($"=== Importing from {files.Count} CSV file(s) ===\n");
 
-        int totalLocations = 0;
+        int filesProcessed = 0;
         int totalSuccess = 0;
         int totalFailures = 0;
 
@@ -246,7 +249,8 @@ public static class BulkLocationImporterExtensions
             try
             {
                 await importer.ImportFromCsv(filePath).ConfigureAwait(false);
-                totalLocations++;
+                totalSuccess++;
+                filesProcessed++;
             }
             catch (Exception ex)
             {
@@ -256,9 +260,14 @@ public static class BulkLocationImporterExtensions
         }
 
         Console.WriteLine($"\n=== Import Summary ===");
-        Console.WriteLine($"Files processed: {totalLocations}");
+        Console.WriteLine($"Files processed: {filesProcessed}");
         Console.WriteLine($"Successful imports: {totalSuccess}");
         Console.WriteLine($"Failed imports: {totalFailures}");
+
+        if (totalFailures > 0)
+        {
+            throw new InvalidOperationException($"Failed to import {totalFailures} file(s)");
+        }
     }
 
     /// <summary>
@@ -269,8 +278,8 @@ public static class BulkLocationImporterExtensions
     /// <param name="startDate">Start date for filtering (inclusive)</param>
     /// <param name="endDate">End date for filtering (inclusive)</param>
     /// <returns>Task representing the asynchronous operation</returns>
-    /// <exception cref="ArgumentNullException">Thrown if csvFilePath is null</exception>
-    /// <exception cref="ArgumentOutOfRangeException">Thrown if startDate is after endDate</exception>
+    /// <exception cref="ArgumentException">Thrown if <paramref name="csvFilePath"/> is null or empty</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="startDate"/> is after <paramref name="endDate"/></exception>
     public static async Task ImportFromCsvWithDateFilter(
         this BulkLocationImporter importer,
         string csvFilePath,
@@ -316,16 +325,16 @@ public static class BulkLocationImporterExtensions
                                     double.TryParse(parts[1], NumberStyles.Float, CultureInfo.InvariantCulture, out var latitude) &&
                                     double.TryParse(parts[2], NumberStyles.Float, CultureInfo.InvariantCulture, out var longitude))
                                 {
-                                    var location = new
+                                    var location = new LocationData
                                     {
-                                        vehicleId = vehicleId.ToString(),
-                                        latitude,
-                                        longitude,
-                                        accuracy = double.TryParse(parts[5], NumberStyles.Float, CultureInfo.InvariantCulture, out var acc) ? acc : 10.0,
-                                        speed = double.TryParse(parts[3], NumberStyles.Float, CultureInfo.InvariantCulture, out var spd) ? spd : 0,
-                                        heading = int.TryParse(parts[4], out var hdg) ? hdg : 0,
-                                        type = "GPS",
-                                        timestamp
+                                        VehicleId = vehicleId,
+                                        Latitude = latitude,
+                                        Longitude = longitude,
+                                        Accuracy = double.TryParse(parts[5], NumberStyles.Float, CultureInfo.InvariantCulture, out var acc) ? acc : 10.0,
+                                        Speed = double.TryParse(parts[3], NumberStyles.Float, CultureInfo.InvariantCulture, out var spd) ? spd : 0,
+                                        Heading = int.TryParse(parts[4], out var hdg) ? hdg : 0,
+                                        Type = "GPS",
+                                        Timestamp = timestamp
                                     };
                                     locations.Add(location);
                                 }
@@ -337,12 +346,15 @@ public static class BulkLocationImporterExtensions
                         Console.WriteLine($"Warning: Error parsing line {lineNumber}: {ex.Message}");
                     }
 
-                    lineNumber++;
+                            lineNumber++;
                 }
             }
 
             Console.WriteLine($"Loaded {locations.Count} locations within date range");
-            await importer.ImportFromCsv(csvFilePath).ConfigureAwait(false); // Reuse existing method for actual import
+            if (locations.Count > 0)
+        {
+            await importer.ImportLocations(locations).ConfigureAwait(false);
+        }
         }
         catch (Exception ex)
         {
@@ -354,7 +366,7 @@ public static class BulkLocationImporterExtensions
 /// <summary>
 /// Statistics about a location import operation.
 /// </summary>
-public class LocationImportStatistics
+public sealed class LocationImportStatistics
 {
     /// <summary>Gets or sets the file path that was analyzed</summary>
     public string? FilePath { get; set; }
