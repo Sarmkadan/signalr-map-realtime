@@ -307,6 +307,45 @@ Console.WriteLine($"Active zones count: {activeZones.Count}");
 await geofenceService.RemoveZoneAsync(zoneDto.Id);
 ```
 
+## TrackingSessionRepository
+
+The `TrackingSessionRepository` class is the data access layer for tracking sessions. It provides methods to query tracking sessions, including active sessions, history by vehicle, status, date ranges, and performance statistics.
+
+### Usage Example
+
+```csharp
+using SignalRMapRealtime.Data.Repositories;
+using SignalRMapRealtime.Data;
+using SignalRMapRealtime.Domain.Enums;
+using Microsoft.EntityFrameworkCore;
+
+// Assuming dbContext is injected
+var repository = new TrackingSessionRepository(dbContext);
+
+// 1. Get active session for a vehicle
+var activeSession = await repository.GetActiveSessionByVehicleAsync(1);
+if (activeSession != null)
+{
+    Console.WriteLine($"Active session found: {activeSession.Id}, Start: {activeSession.StartTime}");
+}
+
+// 2. Get session history by vehicle
+var vehicleSessions = await repository.GetSessionsByVehicleAsync(1);
+Console.WriteLine($"Found {vehicleSessions.Count()} sessions for vehicle 1.");
+
+// 3. Get high speed sessions
+var highSpeedSessions = await repository.GetHighSpeedSessionsAsync(speedThreshold: 90.0);
+Console.WriteLine($"Found {highSpeedSessions.Count()} sessions exceeding 90 km/h.");
+
+// 4. Get active session count
+int activeCount = await repository.GetActiveSessionCountAsync();
+Console.WriteLine($"Total active sessions: {activeCount}");
+
+// 5. Get total distance for a vehicle
+double totalDistance = await repository.GetTotalDistanceTraveledAsync(1);
+Console.WriteLine($"Total distance traveled by vehicle 1: {totalDistance:F2} km");
+```
+
 ## VehicleService
 
 The `VehicleService` provides a comprehensive API for managing vehicle entities, including creation, retrieval, updates, and status tracking. It facilitates fleet operations by allowing management of vehicle assignments, operational status, and monitoring of performance metrics such as fuel levels and speed violations.
