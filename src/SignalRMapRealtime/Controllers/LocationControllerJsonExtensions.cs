@@ -3,7 +3,7 @@
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
-// =============================================================================
+// =====================================================================
 
 namespace SignalRMapRealtime.Controllers;
 
@@ -14,6 +14,9 @@ using System.Text.Json.Serialization;
 /// Provides System.Text.Json serialization extensions for <see cref="LocationController"/>.
 /// Enables JSON serialization/deserialization of LocationController instances.
 /// </summary>
+/// <remarks>
+/// This class is static as it contains only extension methods.
+/// </remarks>
 public static class LocationControllerJsonExtensions
 {
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new(JsonSerializerDefaults.Web)
@@ -46,13 +49,18 @@ public static class LocationControllerJsonExtensions
     /// <summary>
     /// Deserializes a JSON string to a <see cref="LocationController"/> instance.
     /// </summary>
-    /// <param name="json">The JSON string to deserialize</param>
-    /// <returns>The deserialized LocationController instance, or null if JSON is empty</returns>
-    /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is null or empty</exception>
-    /// <exception cref="JsonException">Thrown when the JSON is invalid or cannot be deserialized</exception>
+    /// <param name="json">The JSON string to deserialize. Must not be null, empty, or whitespace-only.</param>
+    /// <returns>The deserialized LocationController instance, or null if the JSON represents a null value.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is null, empty, or consists only of whitespace.</exception>
+    /// <exception cref="JsonException">Thrown when the JSON is invalid or cannot be deserialized into a LocationController.</exception>
     public static LocationController? FromJson(string json)
     {
         ArgumentException.ThrowIfNullOrEmpty(json);
+
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            return null;
+        }
 
         return JsonSerializer.Deserialize<LocationController>(json, _jsonSerializerOptions);
     }
@@ -60,10 +68,10 @@ public static class LocationControllerJsonExtensions
     /// <summary>
     /// Attempts to deserialize a JSON string to a <see cref="LocationController"/> instance.
     /// </summary>
-    /// <param name="json">The JSON string to deserialize</param>
-    /// <param name="value">The resulting LocationController instance, or null if deserialization fails</param>
-    /// <returns>True if deserialization succeeds; otherwise, false</returns>
-    /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is null or empty</exception>
+    /// <param name="json">The JSON string to deserialize.</param>
+    /// <param name="value">The resulting LocationController instance, or null if deserialization fails.</param>
+    /// <returns>True if deserialization succeeds; otherwise, false.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is null or empty.</exception>
     public static bool TryFromJson(string json, out LocationController? value)
     {
         ArgumentException.ThrowIfNullOrEmpty(json);
