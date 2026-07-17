@@ -627,8 +627,8 @@ class Program
 }
 ```
 
-## AssetControllerTestsExtensions
-`AssetControllerTestsExtensions` provides extension methods for `AssetControllerTests` to simplify integration test assertions for asset controller endpoints. It offers reusable assertion methods that verify HTTP response status codes, content types, and deserialize response data into strongly-typed objects, reducing boilerplate code in integration tests.
+## BulkLocationImporterExtensions
+`BulkLocationImporterExtensions` provides extension methods for `BulkLocationImporter` that simplify working with bulk location data imports from CSV files. These methods offer validation, statistics gathering, and filtered import capabilities without requiring direct file manipulation. The extensions support single and multiple file imports, date filtering, and comprehensive statistics collection including vehicle counts, geographic bounds, and speed metrics.
 
 ### Usage Example
 
@@ -928,8 +928,8 @@ class Program
 }
 ```
 
-## AssetControllerTestsExtensions
-`AssetControllerTestsExtensions` provides extension methods for `AssetControllerTests` to simplify integration test assertions for asset controller endpoints. It offers reusable assertion methods that verify HTTP response status codes, content types, and deserialize response data into strongly-typed objects, reducing boilerplate code in integration tests.
+## BulkLocationImporterExtensions
+`BulkLocationImporterExtensions` provides extension methods for `BulkLocationImporter` that simplify working with bulk location data imports from CSV files. These methods offer validation, statistics gathering, and filtered import capabilities without requiring direct file manipulation. The extensions support single and multiple file imports, date filtering, and comprehensive statistics collection including vehicle counts, geographic bounds, and speed metrics.
 
 ### Usage Example
 
