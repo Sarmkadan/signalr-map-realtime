@@ -44,7 +44,11 @@ public interface IEventBus
 public class InMemoryEventBus : IEventBus
 {
     private readonly ILogger<InMemoryEventBus> _logger;
-    private readonly Dictionary<Type, List<Delegate>> _subscribers = new();
+
+    // Registered as a singleton, so subscription state is shared across requests and
+    // hub invocations; use a concurrent map with immutable handler lists so Subscribe/
+    // Unsubscribe can race safely with PublishAsync.
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<Type, List<Delegate>> _subscribers = new();
 
     public InMemoryEventBus(ILogger<InMemoryEventBus> logger)
     {
@@ -71,15 +75,17 @@ public class InMemoryEventBus : IEventBus
             @event.EventId,
             handlers.Count);
 
-        var tasks = handlers.Select(handler =>
+        // Wrap each handler so that both synchronous throws and faulted returned tasks
+        // are caught and logged; otherwise Task.WhenAll would rethrow out of PublishAsync
+        // and one failing subscriber would break the publisher and skip error isolation.
+        var tasks = handlers.Select(async handler =>
         {
             try
             {
                 if (handler is EventHandler<T> typedHandler)
                 {
-                    return typedHandler(@event);
+                    await typedHandler(@event).ConfigureAwait(false);
                 }
-                return Task.CompletedTask;
             }
             catch (Exception ex)
             {
@@ -89,7 +95,6 @@ public class InMemoryEventBus : IEventBus
                     @event.EventName,
                     @event.EventId,
                     handler.GetType().Name);
-                return Task.CompletedTask;
             }
         });
 
@@ -110,12 +115,17 @@ public class InMemoryEventBus : IEventBus
 
         var eventType = typeof(T);
 
-        if (!_subscribers.ContainsKey(eventType))
-        {
-            _subscribers[eventType] = new List<Delegate>();
-        }
+        // Copy-on-write: publishers iterate the list without locking, so never mutate
+        // a list that may be concurrently enumerated.
+        _subscribers.AddOrUpdate(
+            eventType,
+            _ => new List<Delegate> { handler },
+            (_, existing) =>
+            {
+                var copy = new List<Delegate>(existing) { handler };
+                return copy;
+            });
 
-        _subscribers[eventType].Add(handler);
         _logger.LogInformation("Handler subscribed for event type {EventType}", eventType.Name);
     }
 
@@ -130,8 +140,13 @@ public class InMemoryEventBus : IEventBus
 
         if (_subscribers.TryGetValue(eventType, out var handlers))
         {
-            handlers.Remove(handler);
-            _logger.LogInformation("Handler unsubscribed from event type {EventType}", eventType.Name);
+            // Copy-on-write removal for the same reason as Subscribe.
+            var copy = new List<Delegate>(handlers);
+            if (copy.Remove(handler))
+            {
+                _subscribers[eventType] = copy;
+                _logger.LogInformation("Handler unsubscribed from event type {EventType}", eventType.Name);
+            }
         }
     }
 }
