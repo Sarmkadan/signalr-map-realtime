@@ -1,3 +1,75 @@
+## StringExtensions
+
+`StringExtensions` provides a comprehensive set of extension methods for string manipulation, validation, and transformation. It includes utilities for checking string presence, truncating strings, converting between different naming conventions (title case, kebab-case, snake_case), safe substring operations, character removal, counting occurrences, reversing strings, repeating strings, pattern matching, and secure masking of sensitive data.
+
+### Usage Example
+
+```csharp
+using System;
+using SignalRMapRealtime.Utilities;
+
+class Program
+{
+    static void Main()
+    {
+        string? input = "Hello World! This is a test string.";
+        
+        // Check if string has value (not null or whitespace)
+        bool hasValue = input.HasValue();
+        Console.WriteLine($"Has value: {hasValue}");
+        
+        // Truncate string with ellipsis
+        string truncated = input.Truncate(20);
+        Console.WriteLine($"Truncated: {truncated}");
+        
+        // Convert to title case
+        string titleCase = input.ToTitleCase();
+        Console.WriteLine($"Title case: {titleCase}");
+        
+        // Convert to kebab-case
+        string kebabCase = "HelloWorld".ToKebabCase();
+        Console.WriteLine($"Kebab case: {kebabCase}");
+        
+        // Convert to snake_case
+        string snakeCase = "HelloWorld".ToSnakeCase();
+        Console.WriteLine($"Snake case: {snakeCase}");
+        
+        // Safe substring operation
+        string safeSubstring = input.SubstringSafe(6, 10);
+        Console.WriteLine($"Safe substring: {safeSubstring}");
+        
+        // Remove specific characters
+        string withoutSpecial = input.RemoveCharacters('!', '.', ' ');
+        Console.WriteLine($"Without special chars: {withoutSpecial}");
+        
+        // Count occurrences of substring
+        int occurrences = input.CountOccurrences("is");
+        Console.WriteLine($"Occurrences of 'is': {occurrences}");
+        
+        // Reverse string
+        string reversed = input.Reverse();
+        Console.WriteLine($"Reversed: {reversed}");
+        
+        // Repeat string
+        string repeated = "abc".Repeat(3);
+        Console.WriteLine($"Repeated: {repeated}");
+        
+        // Check if string matches pattern
+        bool matches = input.Matches("^[A-Z].*[.!?]$");
+        Console.WriteLine($"Matches pattern: {matches}");
+        
+        // Mask sensitive data (e.g., email)
+        string email = "user@example.com";
+        string maskedEmail = email.Mask();
+        Console.WriteLine($"Masked email: {maskedEmail}");
+        
+        // Check if string is null or empty
+        bool isNullOrEmpty = string.IsNullOrEmpty(input);
+        Console.WriteLine($"Is null or empty: {isNullOrEmpty}");
+    }
+}
+```
+
 // ... (rest of the file remains unchanged)
 
 ## RateLimitingOptions
@@ -146,6 +218,78 @@ PaginationInfo info = PaginationExtensions.GetPaginationInfo(pageNumber, pageSiz
 
 Console.WriteLine($"Skip: {skip}, TotalPages: {totalPages}, IsValidPage: {isValidPage}");
 Console.WriteLine($"Info – IsFirstPage: {info.IsFirstPage}, HasNextPage: {info.HasNextPage}");
+```
+
+## StringExtensions
+
+`StringExtensions` provides a comprehensive set of extension methods for string manipulation, validation, and transformation. It includes utilities for checking string presence, truncating strings, converting between different naming conventions (title case, kebab-case, snake_case), safe substring operations, character removal, counting occurrences, reversing strings, repeating strings, pattern matching, and secure masking of sensitive data.
+
+### Usage Example
+
+```csharp
+using System;
+using SignalRMapRealtime.Utilities;
+
+class Program
+{
+    static void Main()
+    {
+        string? input = "Hello World! This is a test string.";
+        
+        // Check if string has value (not null or whitespace)
+        bool hasValue = input.HasValue();
+        Console.WriteLine($"Has value: {hasValue}");
+        
+        // Truncate string with ellipsis
+        string truncated = input.Truncate(20);
+        Console.WriteLine($"Truncated: {truncated}");
+        
+        // Convert to title case
+        string titleCase = input.ToTitleCase();
+        Console.WriteLine($"Title case: {titleCase}");
+        
+        // Convert to kebab-case
+        string kebabCase = "HelloWorld".ToKebabCase();
+        Console.WriteLine($"Kebab case: {kebabCase}");
+        
+        // Convert to snake_case
+        string snakeCase = "HelloWorld".ToSnakeCase();
+        Console.WriteLine($"Snake case: {snakeCase}");
+        
+        // Safe substring operation
+        string safeSubstring = input.SubstringSafe(6, 10);
+        Console.WriteLine($"Safe substring: {safeSubstring}");
+        
+        // Remove specific characters
+        string withoutSpecial = input.RemoveCharacters('!', '.', ' ');
+        Console.WriteLine($"Without special chars: {withoutSpecial}");
+        
+        // Count occurrences of substring
+        int occurrences = input.CountOccurrences("is");
+        Console.WriteLine($"Occurrences of 'is': {occurrences}");
+        
+        // Reverse string
+        string reversed = input.Reverse();
+        Console.WriteLine($"Reversed: {reversed}");
+        
+        // Repeat string
+        string repeated = "abc".Repeat(3);
+        Console.WriteLine($"Repeated: {repeated}");
+        
+        // Check if string matches pattern
+        bool matches = input.Matches("^[A-Z].*[.!?]$");
+        Console.WriteLine($"Matches pattern: {matches}");
+        
+        // Mask sensitive data (e.g., email)
+        string email = "user@example.com";
+        string maskedEmail = email.Mask();
+        Console.WriteLine($"Masked email: {maskedEmail}");
+        
+        // Check if string is null or empty
+        bool isNullOrEmpty = string.IsNullOrEmpty(input);
+        Console.WriteLine($"Is null or empty: {isNullOrEmpty}");
+    }
+}
 ```
 
 // ... (rest of the file remains unchanged)
