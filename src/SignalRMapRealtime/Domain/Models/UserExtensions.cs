@@ -15,11 +15,11 @@ public static class UserExtensions
     {
         ArgumentNullException.ThrowIfNull(user);
 
-        // Assuming certain job titles and departments are eligible
+        // Users with Driver or Manager job titles in Transportation or Logistics departments are eligible
         var eligibleJobTitles = new[] { "Driver", "Manager" };
         var eligibleDepartments = new[] { "Transportation", "Logistics" };
 
-        return eligibleJobTitles.Contains(user.JobTitle, StringComparer.OrdinalIgnoreCase) 
+        return eligibleJobTitles.Contains(user.JobTitle, StringComparer.OrdinalIgnoreCase)
             && eligibleDepartments.Contains(user.Department, StringComparer.OrdinalIgnoreCase);
     }
 
@@ -33,12 +33,12 @@ public static class UserExtensions
     {
         ArgumentNullException.ThrowIfNull(user);
 
-        var lastLocation = user.LastLocation != null 
-            ? $"Last location: {user.LastLocation}"
+        var lastLocation = user.LastLocation != null
+            ? $"Last location: {user.LastLocation.Latitude:F6}, {user.LastLocation.Longitude:F6}"
             : "No last location";
 
-        var assignedVehicles = user.AssignedVehicles.Any() 
-            ? $"Assigned vehicles: {string.Join(", ", user.AssignedVehicles.Select(v => v.ToString()))}"
+        var assignedVehicles = user.AssignedVehicles.Any()
+            ? $"Assigned vehicles: {string.Join(", ", user.AssignedVehicles.Select(v => v.Name))}"
             : "No assigned vehicles";
 
         return $"{user.FullName} - {user.Email} - {lastLocation} - {assignedVehicles}";
