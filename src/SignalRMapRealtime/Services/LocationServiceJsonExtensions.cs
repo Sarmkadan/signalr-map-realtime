@@ -46,6 +46,8 @@ public static class LocationServiceJsonExtensions
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
     /// <returns>The deserialized <see cref="LocationService"/> instance, or null if the JSON is invalid.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is null or empty.</exception>
+    /// <exception cref="JsonException">Thrown when the JSON is invalid or cannot be deserialized.</exception>
     public static LocationService? FromJson(string json)
     {
         ArgumentException.ThrowIfNullOrEmpty(json);
@@ -66,6 +68,7 @@ public static class LocationServiceJsonExtensions
     /// <param name="json">The JSON string to deserialize.</param>
     /// <param name="value">Receives the deserialized instance if successful.</param>
     /// <returns>True if deserialization succeeded; otherwise, false.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is null or empty.</exception>
     public static bool TryFromJson(string json, out LocationService? value)
     {
         ArgumentException.ThrowIfNullOrEmpty(json);
