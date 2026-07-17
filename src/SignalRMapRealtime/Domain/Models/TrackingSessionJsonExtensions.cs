@@ -31,16 +31,8 @@ public static class TrackingSessionJsonExtensions
     /// <param name="indented">Whether to format the JSON with indentation for readability.</param>
     /// <returns>A JSON string representation of the tracking session.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
-    public static string ToJson(this TrackingSession value, bool indented = false)
-    {
-        ArgumentNullException.ThrowIfNull(value);
-
-        var options = indented
-            ? new JsonSerializerOptions(_jsonOptions) { WriteIndented = true }
-            : _jsonOptions;
-
-        return JsonSerializer.Serialize(value, options);
-    }
+    public static string ToJson(this TrackingSession value, bool indented = false) =>
+        JsonSerializer.Serialize(value, indented ? new JsonSerializerOptions(_jsonOptions) { WriteIndented = true } : _jsonOptions);
 
     /// <summary>
     /// Parses a JSON string into a <see cref="TrackingSession"/> instance.
@@ -69,6 +61,7 @@ public static class TrackingSessionJsonExtensions
     /// <param name="value">Receives the deserialized tracking session if successful.</param>
     /// <returns>True if parsing succeeded; otherwise, false.</returns>
     /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is null or empty.</exception>
+    /// <exception cref="JsonException">Thrown when the JSON is malformed.</exception>
     public static bool TryFromJson(string json, out TrackingSession? value)
     {
         ArgumentException.ThrowIfNullOrEmpty(json);
