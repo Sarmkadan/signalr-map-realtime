@@ -64,6 +64,67 @@ class Program
 }
 ```
 
+## AssetController
+
+`AssetController` is an API controller that manages asset tracking data, providing endpoints for CRUD operations on assets with status tracking. Assets represent trackable items like packages, equipment, or parcels that can be monitored on the map. The controller supports pagination, returns asset data in a standardized API response format, and includes proper error handling and logging.
+
+### Usage Example
+
+```csharp
+using System;
+using System.Net.Http.Json;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc.Testing;
+using SignalRMapRealtime.DTOs;
+using SignalRMapRealtime.Models;
+
+class Program
+{
+    static async Task Main()
+    {
+        var factory = new WebApplicationFactory<Program>();
+        var client = factory.CreateClient();
+
+        // Create a new asset
+        var newAsset = new AssetDto
+        {
+            Name = "Package #12345",
+            AssetType = "Package",
+            Condition = "New"
+        };
+
+        var createResponse = await client.PostAsJsonAsync("api/Asset", newAsset);
+        var createdAsset = await createResponse.Content.ReadFromJsonAsync<ApiResponse<AssetDto>>();
+        Console.WriteLine($"Created asset: {createdAsset?.Data?.Id}");
+
+        // Get all assets with pagination
+        var getAllResponse = await client.GetAsync("api/Asset?pageNumber=1&pageSize=20");
+        var allAssets = await getAllResponse.Content.ReadFromJsonAsync<ApiResponse<PaginatedResponse<AssetDto>>>();
+        Console.WriteLine($"Total assets: {allAssets?.Data?.TotalCount}");
+
+        // Get a specific asset by ID
+        var getByIdResponse = await client.GetAsync($"api/Asset/{createdAsset?.Data?.Id}");
+        var singleAsset = await getByIdResponse.Content.ReadFromJsonAsync<ApiResponse<AssetDto>>();
+        Console.WriteLine($"Asset: {singleAsset?.Data?.Name}");
+
+        // Update an asset
+        var updateAsset = new AssetDto
+        {
+            Name = "Package #12345 - Updated",
+            AssetType = "Package",
+            Condition = "Good"
+        };
+        var updateResponse = await client.PutAsJsonAsync($"api/Asset/{createdAsset?.Data?.Id}", updateAsset);
+        var updatedAsset = await updateResponse.Content.ReadFromJsonAsync<ApiResponse<AssetDto>>();
+        Console.WriteLine($"Updated asset: {updatedAsset?.Data?.Name}");
+
+        // Delete an asset
+        var deleteResponse = await client.DeleteAsync($"api/Asset/{createdAsset?.Data?.Id}");
+        Console.WriteLine($"Delete status: {deleteResponse.StatusCode}");
+    }
+}
+```
+
 ## PlaybackController
 
 `PlaybackController` provides REST endpoints for managing historical route playback sessions, retrieving timelines, snapshots, and statistics. It enables clients to start a playback session, query active sessions, obtain the state of a specific session, stop a session, and fetch detailed timeline or snapshot data for a tracking session.
