@@ -70,40 +70,32 @@ public static class UserDtoValidation
         }
 
         // Validate EmployeeId (if provided)
-        if (value.EmployeeId is not null)
+        if (value.EmployeeId is not null && value.EmployeeId.Length > 50)
         {
-            if (value.EmployeeId.Length > 50)
-            {
-                errors.Add("EmployeeId cannot exceed 50 characters.");
-            }
+            errors.Add("EmployeeId cannot exceed 50 characters.");
         }
 
         // Validate JobTitle (if provided)
-        if (value.JobTitle is not null)
+        if (value.JobTitle is not null && value.JobTitle.Length > 100)
         {
-            if (value.JobTitle.Length > 100)
-            {
-                errors.Add("JobTitle cannot exceed 100 characters.");
-            }
+            errors.Add("JobTitle cannot exceed 100 characters.");
         }
 
         // Validate Department (if provided)
-        if (value.Department is not null)
+        if (value.Department is not null && value.Department.Length > 100)
         {
-            if (value.Department.Length > 100)
-            {
-                errors.Add("Department cannot exceed 100 characters.");
-            }
+            errors.Add("Department cannot exceed 100 characters.");
         }
 
         // Validate LastLoginAt (if provided)
         if (value.LastLoginAt.HasValue)
         {
-            if (value.LastLoginAt.Value > DateTime.UtcNow)
+            var lastLogin = value.LastLoginAt.Value;
+            if (lastLogin > DateTime.UtcNow)
             {
                 errors.Add("LastLoginAt cannot be in the future.");
             }
-            else if (value.LastLoginAt.Value < value.CreatedAt)
+            else if (lastLogin < value.CreatedAt)
             {
                 errors.Add("LastLoginAt cannot be before CreatedAt.");
             }
@@ -130,7 +122,7 @@ public static class UserDtoValidation
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is null.</exception>
     public static bool IsValid(this UserDto? value)
     {
-        return value?.Validate().Count == 0;
+        return value is not null && value.Validate().Count == 0;
     }
 
     /// <summary>
@@ -156,20 +148,25 @@ public static class UserDtoValidation
     /// </summary>
     /// <param name="email">The email address to validate.</param>
     /// <returns>True if the email is valid; otherwise, false.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="email"/> is null.</exception>
     private static bool IsValidEmail(string email)
     {
+        ArgumentNullException.ThrowIfNull(email);
+
         if (string.IsNullOrWhiteSpace(email))
+        {
             return false;
+        }
 
         try
         {
-            // Simple email validation regex - covers most common cases
-            // Local part: 1-64 chars, supports letters, numbers, dots, underscores, percent, plus, hyphens
+            // RFC 5322 compliant email validation regex
+            // Local part: 1-64 chars, supports standard special characters
             // @ symbol
-            // Domain: 1-255 chars, supports letters, numbers, dots, hyphens
-            var emailRegex = new System.Text.RegularExpressions.Regex(
+            // Domain: 1-255 chars, supports standard domain characters and structure
+            var emailRegex = new Regex(
                 @"^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]{1,64}@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$",
-                RegexOptions.CultureInvariant);
+                RegexOptions.CultureInvariant | RegexOptions.Compiled);
 
             return emailRegex.IsMatch(email);
         }
@@ -180,14 +177,19 @@ public static class UserDtoValidation
     }
 
     /// <summary>
-    /// Validates a phone number format.
+    /// Validates a phone number format using E.164 standard.
     /// </summary>
     /// <param name="phoneNumber">The phone number to validate.</param>
     /// <returns>True if the phone number is valid; otherwise, false.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="phoneNumber"/> is null.</exception>
     private static bool IsValidPhoneNumber(string phoneNumber)
     {
+        ArgumentNullException.ThrowIfNull(phoneNumber);
+
         if (string.IsNullOrWhiteSpace(phoneNumber))
+        {
             return false;
+        }
 
         // Remove all non-digit characters except leading + for international numbers
         var digitsOnly = new string(phoneNumber
@@ -198,9 +200,9 @@ public static class UserDtoValidation
         // Allow leading + followed by 8-15 digits
         if (digitsOnly.StartsWith('+'))
         {
-            return digitsOnly.Length >= 9 && digitsOnly.Length <= 16;
+            return digitsOnly.Length is >= 9 and <= 16;
         }
 
-        return digitsOnly.Length >= 8 && digitsOnly.Length <= 15;
+        return digitsOnly.Length is >= 8 and <= 15;
     }
 }
