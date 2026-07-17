@@ -8,12 +8,13 @@
 namespace SignalRMapRealtime.Tests;
 
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
 
 /// <summary>
-/// Provides JSON serialization and deserialization extensions for <see cref="PlaybackServiceTests"/>.
+/// Provides JSON serialization and deserialization extensions for test data transfer objects.
 /// </summary>
-public static class PlaybackServiceTestsJsonExtensions
+public static class JsonExtensions
 {
     private static readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web)
     {
@@ -23,13 +24,14 @@ public static class PlaybackServiceTestsJsonExtensions
     };
 
     /// <summary>
-    /// Serializes the <see cref="PlaybackServiceTests"/> instance to a JSON string.
+    /// Serializes the specified instance to a JSON string.
     /// </summary>
+    /// <typeparam name="T">The type of the instance to serialize.</typeparam>
     /// <param name="value">The instance to serialize.</param>
     /// <param name="indented">Whether to format the JSON with indentation for readability.</param>
     /// <returns>A JSON string representation of the instance.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
-    public static string ToJson(this PlaybackServiceTests value, bool indented = false)
+    public static string ToJson<T>(this T value, bool indented = false)
     {
         ArgumentNullException.ThrowIfNull(value);
 
@@ -41,28 +43,30 @@ public static class PlaybackServiceTestsJsonExtensions
     }
 
     /// <summary>
-    /// Deserializes a JSON string to a <see cref="PlaybackServiceTests"/> instance.
+    /// Deserializes a JSON string to an instance of the specified type.
     /// </summary>
+    /// <typeparam name="T">The type to deserialize to.</typeparam>
     /// <param name="json">The JSON string to deserialize.</param>
     /// <returns>The deserialized instance, or null if the JSON is null or empty.</returns>
     /// <exception cref="JsonException">Thrown when the JSON is invalid or cannot be deserialized.</exception>
-    public static PlaybackServiceTests? FromJson(string json)
+    public static T? FromJson<T>(string json)
     {
         if (string.IsNullOrEmpty(json))
         {
-            return null;
+            return default;
         }
 
-        return JsonSerializer.Deserialize<PlaybackServiceTests>(json, _jsonOptions);
+        return JsonSerializer.Deserialize<T>(json, _jsonOptions);
     }
 
     /// <summary>
-    /// Attempts to deserialize a JSON string to a <see cref="PlaybackServiceTests"/> instance.
+    /// Attempts to deserialize a JSON string to an instance of the specified type.
     /// </summary>
+    /// <typeparam name="T">The type to deserialize to.</typeparam>
     /// <param name="json">The JSON string to deserialize.</param>
     /// <param name="value">Receives the deserialized instance if successful.</param>
     /// <returns>True if deserialization succeeded; otherwise, false.</returns>
-    public static bool TryFromJson(string json, out PlaybackServiceTests? value)
+    public static bool TryFromJson<T>(string json, out T? value)
     {
         value = default;
 
@@ -73,7 +77,7 @@ public static class PlaybackServiceTestsJsonExtensions
 
         try
         {
-            value = JsonSerializer.Deserialize<PlaybackServiceTests>(json, _jsonOptions);
+            value = JsonSerializer.Deserialize<T>(json, _jsonOptions);
             return true;
         }
         catch (JsonException)
