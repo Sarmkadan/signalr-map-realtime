@@ -143,3 +143,28 @@ foreach (var item in pending)
 }
 ```
 
+## ILocationService
+
+The `ILocationService` interface provides comprehensive functionality for managing location-based operations, including recording location updates, querying location history, and performing geofencing calculations. It also facilitates retrieving aggregated performance statistics for vehicles over specific time intervals.
+
+### Usage Example
+
+```csharp
+using SignalRMapRealtime.Services;
+using SignalRMapRealtime.DTOs;
+
+// Assuming locationService is injected
+var vehicleId = 1;
+var startTime = DateTime.UtcNow.AddHours(-24);
+var endTime = DateTime.UtcNow;
+
+// Retrieve location statistics for the vehicle
+LocationStatsDto stats = await locationService.GetLocationStatsAsync(vehicleId, startTime, endTime);
+
+// Access the statistics
+Console.WriteLine($"Points recorded: {stats.PointCount}");
+Console.WriteLine($"Speed range: {stats.MinSpeed} - {stats.MaxSpeed} km/h");
+Console.WriteLine($"Average speed: {stats.AverageSpeed} km/h");
+Console.WriteLine($"Total distance: {stats.TotalDistance} km");
+```
+
