@@ -699,6 +699,99 @@ class Program
                 Console.WriteLine($"Validation error: {result.ErrorMessage}");
             }
         }
+    }
+}
+```
+
+## GeoLocationBenchmarks
+
+`GeoLocationBenchmarks` is a benchmark suite that measures the performance of geo-location related operations such as distance calculation, cardinal direction determination, bounding box calculation, and coordinate validation. It uses BenchmarkDotNet to provide detailed performance metrics including execution time, memory allocation, and other diagnostic information. This benchmark class helps identify performance bottlenecks in location-based calculations used throughout the application.
+
+### Usage Example
+
+```csharp
+using BenchmarkDotNet.Running;
+using SignalRMapRealtime.Utilities;
+using SignalRMapRealtime.Domain.Models;
+
+class Program
+{
+    static void Main()
+    {
+        // Create test locations
+        var location1 = new Location { Latitude = 40.7128, Longitude = -74.0060 }; // New York
+        var location2 = new Location { Latitude = 34.0522, Longitude = -118.2437 }; // Los Angeles
+        
+        // Calculate distance between two points (benchmark method)
+        double distance = GeoLocationExtensions.DistanceBetween(
+            location1.Latitude, location1.Longitude,
+            location2.Latitude, location2.Longitude
+        );
+        Console.WriteLine($"Distance: {distance:F2} km");
+        
+        // Get cardinal direction from an angle
+        string direction = GeoLocationExtensions.GetCardinalDirection(45.0); // NE
+        Console.WriteLine($"Cardinal direction: {direction}");
+        
+        // Calculate bounding box for a location with radius
+        var boundingBox = location1.GetBoundingBox(10.0); // 10km radius
+        Console.WriteLine($"Bounding box: MinLat={boundingBox.Item1:F6}, MaxLat={boundingBox.Item2:F6}, " +
+                         $"MinLng={boundingBox.Item3:F6}, MaxLng={boundingBox.Item4:F6}");
+        
+        // Validate coordinates
+        bool isValid = location1.Latitude.IsValidCoordinate(location1.Longitude);
+        Console.WriteLine($"Coordinates valid: {isValid}");
+        
+        // Run all benchmarks
+        BenchmarkRunner.Run<GeoLocationBenchmarks>();
+    }
+}
+```
+using SignalRMapRealtime.Configuration;
+
+class Program
+{
+    static void Main()
+    {
+        // Create valid configuration
+        var validConfig = new SignalrMapRealtimeOptions
+        {
+            AppInfo = new SignalrMapRealtimeOptions.AppInfoOptions
+            {
+                ApiVersion = "2.0.0",
+                ApiTitle = "SignalR Map Realtime API",
+                Environment = "Production",
+                RequestTimeoutSeconds = 30,
+                LocationUpdateIntervalSeconds = 60
+            },
+            HealthChecks = new SignalrMapRealtimeOptions.HealthCheckOptions { Enabled = true },
+            ApiKeyAuthentication = new SignalrMapRealtimeOptions.ApiKeyAuthenticationOptions { Enabled = true },
+            Performance = new SignalrMapRealtimeOptions.PerformanceOptions
+            {
+                EnableDetailedMetrics = true,
+                MaxConcurrentConnections = 1000,
+                MaxConnectionsPerHub = 50000
+            },
+            SignalRHubs = new SignalrMapRealtimeOptions.SignalRHubOptions
+            {
+                Enabled = true,
+                MaxConnectionsPerHub = 1000
+            },
+            WebSockets = new SignalrMapRealtimeOptions.WebSocketOptions { Enabled = true },
+            BackgroundJobs = new SignalrMapRealtimeOptions.BackgroundJobsOptions { Enabled = true },
+            Security = new SignalrMapRealtimeOptions.SecurityOptions { EnableRateLimiting = true }
+        };
+
+        // Validate configuration
+        bool isValid = validConfig.Validate(out var validationResults);
+        Console.WriteLine($"Valid configuration: {isValid}");
+        if (!isValid)
+        {
+            foreach (var result in validationResults)
+            {
+                Console.WriteLine($"Validation error: {result.ErrorMessage}");
+            }
+        }
 
         // Create invalid configuration (out of range values)
         var invalidConfig = new SignalrMapRealtimeOptions
