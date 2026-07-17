@@ -401,6 +401,68 @@ int vehicleCount = await repository.CountAsync();
 Console.WriteLine($"Total vehicles in database: {vehicleCount}");
 ```
 
+## LocationRepository
+
+The `LocationRepository` class provides specialized data access operations for location entities, enabling efficient querying of vehicle location history, spatial queries, and location statistics. It extends the `BaseRepository<Location>` with location-specific methods for retrieving the latest positions, filtering by time ranges, session tracking, and geographic proximity searches.
+
+### Usage Example
+
+```csharp
+using SignalRMapRealtime.Data.Repositories;
+using SignalRMapRealtime.Data;
+using SignalRMapRealtime.Domain.Models;
+using SignalRMapRealtime.Domain.Enums;
+using Microsoft.EntityFrameworkCore;
+
+// Assuming dbContext is injected
+var locationRepository = new LocationRepository(dbContext);
+
+// 1. Get the latest location for a vehicle
+var latestLocation = await locationRepository.GetLatestLocationByVehicleAsync(1);
+if (latestLocation != null)
+{
+    Console.WriteLine($"Latest location for vehicle 1: Lat={latestLocation.Latitude:F6}, Lng={latestLocation.Longitude:F6}, Speed={latestLocation.Speed} km/h");
+}
+
+// 2. Get locations recorded in the last 24 hours
+var recentLocations = await locationRepository.GetRecentLocationsAsync(1);
+Console.WriteLine($"Found {recentLocations.Count()} recent locations for vehicle 1");
+
+// 3. Get locations within a time range
+var timeRangeLocations = await locationRepository.GetLocationsByTimeRangeAsync(
+    1, 
+    DateTime.UtcNow.AddHours(-24),
+    DateTime.UtcNow
+);
+Console.WriteLine($"Found {timeRangeLocations.Count()} locations in time range");
+
+// 4. Get locations for a tracking session
+var sessionLocations = await locationRepository.GetLocationsBySessionAsync(101);
+Console.WriteLine($"Found {sessionLocations.Count()} locations in session 101");
+
+// 5. Get locations by type
+var gpsLocations = await locationRepository.GetLocationsByTypeAsync(LocationType.Gps);
+Console.WriteLine($"Found {gpsLocations.Count()} GPS locations");
+
+// 6. Find locations within 5km of a point
+var nearbyLocations = await locationRepository.GetLocationsNearbyAsync(40.7128, -74.0060, 5.0);
+Console.WriteLine($"Found {nearbyLocations.Count()} locations within 5km radius");
+
+// 7. Get location statistics for a vehicle
+var stats = await locationRepository.GetLocationStatsAsync(
+    1,
+    DateTime.UtcNow.AddDays(-7),
+    DateTime.UtcNow
+);
+Console.WriteLine($"Location stats: {stats.count} points, " +
+    $"Speed range: {stats.minSpeed:F1}-{stats.maxSpeed:F1} km/h, " +
+    $"Average: {stats.avgSpeed:F1} km/h");
+
+// 8. Delete old locations (older than 90 days)
+int deletedCount = await locationRepository.DeleteOldLocationsAsync(90);
+Console.WriteLine($"Deleted {deletedCount} old location records");
+```
+
 ## VehicleService
 
 The `VehicleService` provides a comprehensive API for managing vehicle entities, including creation, retrieval, updates, and status tracking. It facilitates fleet operations by allowing management of vehicle assignments, operational status, and monitoring of performance metrics such as fuel levels and speed violations.
