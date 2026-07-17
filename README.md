@@ -596,6 +596,89 @@ The `VehicleRepository` class provides specialized data access operations for ve
 
 ```csharp
 using SignalRMapRealtime.Data.Repositories;
+
+// Assuming dbContext is injected
+var vehicleRepository = new VehicleRepository(dbContext);
+
+// 1. Get vehicles by status
+var activeVehicles = await vehicleRepository.GetVehiclesByStatusAsync(VehicleStatus.Active);
+Console.WriteLine($"Found {activeVehicles.Count()} active vehicles");
+
+// 2. Get online vehicles
+var onlineVehicles = await vehicleRepository.GetOnlineVehiclesAsync();
+Console.WriteLine($"Found {onlineVehicles.Count()} online vehicles");
+```
+
+## UserRepository
+
+The `UserRepository` class provides data access operations for user entities in the system. It extends the `BaseRepository<User>` with user-specific methods for querying users by email, employee ID, department, job title, online status, and activity state. The repository includes methods for retrieving users with their assigned vehicles/routes, counting online users, and managing user deactivation.
+
+### Usage Example
+
+```csharp
+using SignalRMapRealtime.Data.Repositories;
+using SignalRMapRealtime.Data;
+using SignalRMapRealtime.Domain.Models;
+using Microsoft.EntityFrameworkCore;
+
+// Assuming dbContext is injected
+var userRepository = new UserRepository(dbContext);
+
+// 1. Get user by email
+var userByEmail = await userRepository.GetByEmailAsync("john.doe@example.com");
+if (userByEmail != null)
+{
+    Console.WriteLine($"Found user: {userByEmail.FullName} (Email: {userByEmail.Email})");
+}
+
+// 2. Get user by employee ID
+var userByEmployeeId = await userRepository.GetByEmployeeIdAsync("E12345");
+if (userByEmployeeId != null)
+{
+    Console.WriteLine($"Found user: {userByEmployeeId.FullName} (Employee ID: {userByEmployeeId.EmployeeId})");
+}
+
+// 3. Get online users
+var onlineUsers = await userRepository.GetOnlineUsersAsync();
+Console.WriteLine($"Found {onlineUsers.Count()} online users");
+
+// 4. Get active users
+var activeUsers = await userRepository.GetActiveUsersAsync();
+Console.WriteLine($"Found {activeUsers.Count()} active users");
+
+// 5. Get users by department
+var engineeringUsers = await userRepository.GetUsersByDepartmentAsync("Engineering");
+Console.WriteLine($"Found {engineeringUsers.Count()} users in Engineering department");
+
+// 6. Get drivers with vehicles
+var driversWithVehicles = await userRepository.GetDriversWithVehiclesAsync();
+Console.WriteLine($"Found {driversWithVehicles.Count()} drivers with assigned vehicles");
+
+// 7. Get recently logged in users (last 7 days)
+var recentUsers = await userRepository.GetRecentlyLoggedInUsersAsync();
+Console.WriteLine($"Found {recentUsers.Count()} users logged in recently");
+
+// 8. Get users by job title
+var managers = await userRepository.GetUsersByJobTitleAsync("Manager");
+Console.WriteLine($"Found {managers.Count()} managers");
+
+// 9. Get online user count
+int onlineCount = await userRepository.GetOnlineUserCountAsync();
+Console.WriteLine($"Total online users: {onlineCount}");
+
+// 10. Deactivate a user
+bool deactivated = await userRepository.DeactivateUserAsync(1);
+Console.WriteLine($"User deactivation {(deactivated ? "succeeded" : "failed")}");
+```
+
+## VehicleRepository
+
+The `VehicleRepository` class provides specialized data access operations for vehicle entities in the system. It extends the `BaseRepository<Vehicle>` with vehicle-specific methods for querying vehicles by status, online state, registration number, driver assignment, asset type, and operational conditions like fuel levels and speed violations. The repository includes methods for retrieving vehicles with complete tracking data and counting online vehicles.
+
+### Usage Example
+
+```csharp
+using SignalRMapRealtime.Data.Repositories;
 using SignalRMapRealtime.Data;
 using SignalRMapRealtime.Domain.Models;
 using SignalRMapRealtime.Domain.Enums;
