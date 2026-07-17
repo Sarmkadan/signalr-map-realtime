@@ -588,3 +588,62 @@ Console.WriteLine($"Playback covered {stats?.TotalDistance} km");
 await routePlaybackService.StopPlaybackAsync(playbackId);
 ```
 
+## VehicleRepository
+
+The `VehicleRepository` class provides specialized data access operations for vehicle entities in the system. It extends the `BaseRepository<Vehicle>` with vehicle-specific methods for querying vehicles by status, online state, registration number, driver assignment, asset type, and operational conditions like fuel levels and speed violations. The repository includes methods for retrieving vehicles with complete tracking data and counting online vehicles.
+
+### Usage Example
+
+```csharp
+using SignalRMapRealtime.Data.Repositories;
+using SignalRMapRealtime.Data;
+using SignalRMapRealtime.Domain.Models;
+using SignalRMapRealtime.Domain.Enums;
+using Microsoft.EntityFrameworkCore;
+
+// Assuming dbContext is injected
+var vehicleRepository = new VehicleRepository(dbContext);
+
+// 1. Get vehicles by status
+var activeVehicles = await vehicleRepository.GetVehiclesByStatusAsync(VehicleStatus.Active);
+Console.WriteLine($"Found {activeVehicles.Count()} active vehicles");
+
+// 2. Get online vehicles
+var onlineVehicles = await vehicleRepository.GetOnlineVehiclesAsync();
+Console.WriteLine($"Found {onlineVehicles.Count()} online vehicles");
+
+// 3. Get vehicle by registration number
+var vehicleByReg = await vehicleRepository.GetByRegistrationNumberAsync("ABC123");
+if (vehicleByReg != null)
+{
+    Console.WriteLine($"Found vehicle: {vehicleByReg.Name} (Reg: {vehicleByReg.RegistrationNumber})");
+}
+
+// 4. Get vehicles by driver
+var driverVehicles = await vehicleRepository.GetVehiclesByDriverAsync(1);
+Console.WriteLine($"Found {driverVehicles.Count()} vehicles assigned to driver 1");
+
+// 5. Get vehicles by asset type
+var truckVehicles = await vehicleRepository.GetVehiclesByAssetTypeAsync(AssetType.Truck);
+Console.WriteLine($"Found {truckVehicles.Count()} trucks");
+
+// 6. Get low fuel vehicles (fuel < 20%)
+var lowFuelVehicles = await vehicleRepository.GetLowFuelVehiclesAsync(20.0);
+Console.WriteLine($"Found {lowFuelVehicles.Count()} vehicles with low fuel");
+
+// 7. Get speeding vehicles
+var speedingVehicles = await vehicleRepository.GetSpeedingVehiclesAsync();
+Console.WriteLine($"Found {speedingVehicles.Count()} speeding vehicles");
+
+// 8. Get online vehicle count
+int onlineCount = await vehicleRepository.GetOnlineVehicleCountAsync();
+Console.WriteLine($"Total online vehicles: {onlineCount}");
+
+// 9. Get vehicle with complete tracking data
+var vehicleWithTracking = await vehicleRepository.GetVehicleWithTrackingDataAsync(1);
+if (vehicleWithTracking != null)
+{
+    Console.WriteLine($"Vehicle {vehicleWithTracking.Name} has {vehicleWithTracking.Locations?.Count ?? 0} location records");
+}
+```
+
