@@ -167,6 +167,72 @@ class Program
 
 ### Usage Example
 
+## RouteController
+
+`RouteController` is an API controller that manages route entities for vehicle tracking and delivery path optimization. It provides endpoints for creating, reading, updating, and deleting routes, as well as calculating route metrics like distance and estimated travel time. Routes consist of sequences of waypoints that vehicles follow to complete deliveries or service calls.
+
+### Usage Example
+
+```csharp
+using System;
+using System.Net.Http.Json;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc.Testing;
+using SignalRMapRealtime.DTOs;
+
+class Program
+{
+    static async Task Main()
+    {
+        // Example using WebApplicationFactory for integration testing
+        var factory = new WebApplicationFactory<Program>();
+        var client = factory.CreateClient();
+
+        // Create a new route
+        var newRoute = new RouteDto
+        {
+            Name = "Downtown Delivery Route",
+            Description = "Delivery route through city center"
+        };
+
+        var createResponse = await client.PostAsJsonAsync("api/route", newRoute);
+        var createdRoute = await createResponse.Content.ReadFromJsonAsync<ApiResponse<RouteDto>>();
+        Console.WriteLine($"Created route: {createdRoute?.Data?.Name} with ID: {createdRoute?.Data?.Id}");
+
+        // Get all routes with pagination
+        var getAllResponse = await client.GetAsync("api/route?pageNumber=1&pageSize=10");
+        var allRoutes = await getAllResponse.Content.ReadFromJsonAsync<ApiResponse<PaginatedResponse<RouteDto>>>();
+        Console.WriteLine($"Total routes: {allRoutes?.Data?.TotalCount}");
+
+        // Get a specific route by ID
+        var getByIdResponse = await client.GetAsync("api/route/1");
+        var singleRoute = await getByIdResponse.Content.ReadFromJsonAsync<ApiResponse<RouteDto>>();
+        Console.WriteLine($"Route: {singleRoute?.Data?.Name}");
+
+        // Update a route
+        var updateRoute = new RouteDto
+        {
+            Name = "Updated Downtown Delivery Route",
+            Description = "Updated delivery route description"
+        };
+        var updateResponse = await client.PutAsJsonAsync("api/route/1", updateRoute);
+        var updatedRoute = await updateResponse.Content.ReadFromJsonAsync<ApiResponse<RouteDto>>();
+        Console.WriteLine($"Updated route: {updatedRoute?.Data?.Name}");
+
+        // Calculate route metrics
+        var calculateResponse = await client.PostAsync("api/route/1/calculate", null);
+        var routeMetrics = await calculateResponse.Content.ReadFromJsonAsync<ApiResponse<object>>();
+        Console.WriteLine($"Route calculation: {routeMetrics?.Message}");
+
+        // Delete a route
+        var deleteResponse = await client.DeleteAsync("api/route/1");
+        Console.WriteLine($"Delete status: {deleteResponse.StatusCode}");
+    }
+}
+```
+
+## HttpContextExtensions
+
 ```csharp
 using System;
 using Microsoft.AspNetCore.Http;
