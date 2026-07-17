@@ -168,3 +168,40 @@ Console.WriteLine($"Average speed: {stats.AverageSpeed} km/h");
 Console.WriteLine($"Total distance: {stats.TotalDistance} km");
 ```
 
+## IGeofenceService
+
+The `IGeofenceService` manages configurable geofence zones and evaluates location-based boundary alerts for vehicles. It tracks vehicle presence within defined areas and publishes violation events when vehicles enter or exit these zones.
+
+### Usage Example
+
+```csharp
+using SignalRMapRealtime.Services;
+using SignalRMapRealtime.DTOs;
+
+// Register the service in DI
+// services.AddGeofencing();
+
+// Assuming geofenceService is injected
+var zoneDto = await geofenceService.RegisterZoneAsync(new CreateGeofenceDto {
+    Name = "Warehouse",
+    IsActive = true,
+    CenterLatitude = 40.7128,
+    CenterLongitude = -74.0060,
+    RadiusKm = 1.0
+});
+
+// Check a vehicle's position
+var alerts = await geofenceService.CheckLocationAsync(Guid.NewGuid(), 40.7129, -74.0061);
+foreach (var alert in alerts)
+{
+    Console.WriteLine($"Alert: {alert.ViolationType} {alert.GeofenceName}");
+}
+
+// Get active zones
+var activeZones = await geofenceService.GetActiveZonesAsync();
+Console.WriteLine($"Active zones count: {activeZones.Count}");
+
+// Remove a zone
+await geofenceService.RemoveZoneAsync(zoneDto.Id);
+```
+
