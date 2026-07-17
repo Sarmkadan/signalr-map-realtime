@@ -3,6 +3,9 @@ using System.Text.Json.Serialization;
 
 namespace SignalRMapRealtime.Exceptions;
 
+/// <summary>
+/// Provides JSON serialization and deserialization extensions for <see cref="ValidationException"/>.
+/// </summary>
 public static class ValidationExceptionJsonExtensions
 {
     private static readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web)
@@ -35,8 +38,9 @@ public static class ValidationExceptionJsonExtensions
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
     /// <returns>The deserialized validation exception, or null if the JSON is null or empty.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="json"/> is null.</exception>
     /// <exception cref="JsonException">Thrown if the JSON is invalid or cannot be deserialized.</exception>
-    public static ValidationException? FromJson(string json)
+    public static ValidationException? FromJson(string? json)
     {
         if (string.IsNullOrEmpty(json))
         {
@@ -52,8 +56,11 @@ public static class ValidationExceptionJsonExtensions
     /// <param name="json">The JSON string to deserialize.</param>
     /// <param name="value">Receives the deserialized validation exception if successful.</param>
     /// <returns>True if deserialization succeeded; otherwise, false.</returns>
-    public static bool TryFromJson(string json, out ValidationException? value)
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="json"/> is null.</exception>
+    public static bool TryFromJson(string? json, out ValidationException? value)
     {
+        ArgumentNullException.ThrowIfNull(json);
+
         try
         {
             value = FromJson(json);
