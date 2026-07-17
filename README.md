@@ -775,6 +775,99 @@ class Program
 }
 ```
 
+## LocationControllerTestsValidation
+
+`LocationControllerTestsValidation` provides validation helpers for `LocationControllerTests` and related location DTOs (`LocationDto`, `CreateLocationDto`, `UpdateLocationDto`). It offers extension methods to validate location instances, check validity, and ensure valid state with detailed error messages. The validation methods return lists of human-readable error messages, making it easy to provide user feedback when invalid data is encountered.
+
+### Usage Example
+
+```csharp
+using System;
+using System.Linq;
+using SignalRMapRealtime.DTOs;
+using SignalRMapRealtime.IntegrationTests;
+
+class Program
+{
+    static void Main()
+    {
+        // Validate a LocationDto instance
+        var validLocation = new LocationDto
+        {
+            Latitude = 40.7128,
+            Longitude = -74.0060,
+            Timestamp = DateTime.UtcNow,
+            Accuracy = 5.2,
+            Speed = 45.5,
+            Heading = 90
+        };
+
+        var validationErrors = validLocation.Validate();
+        Console.WriteLine($"Valid LocationDto has {validationErrors.Count} errors"); // 0
+
+        // Validate an invalid LocationDto instance
+        var invalidLocation = new LocationDto
+        {
+            Latitude = 200.0, // Invalid latitude (> 90)
+            Longitude = -300.0, // Invalid longitude (< -180)
+            Timestamp = DateTime.MinValue, // Invalid timestamp
+            Accuracy = -1.0 // Negative accuracy
+        };
+
+        var invalidErrors = invalidLocation.Validate();
+        Console.WriteLine($"Invalid LocationDto has {invalidErrors.Count} errors:");
+        foreach (var error in invalidErrors)
+        {
+            Console.WriteLine($"- {error}");
+        }
+        // Output:
+        // - Latitude must be between -90 and 90 degrees.
+        // - Longitude must be between -180 and 180 degrees.
+        // - Timestamp must be a valid date.
+        // - Accuracy must be non-negative.
+
+        // Check if a LocationDto is valid
+        bool isValid = invalidLocation.IsValid();
+        Console.WriteLine($"Is invalid LocationDto valid? {isValid}"); // False
+
+        // Ensure a valid LocationDto (throws if invalid)
+        try
+        {
+            validLocation.EnsureValid();
+            Console.WriteLine("Valid LocationDto passed EnsureValid successfully");
+        }
+        catch (ArgumentException ex)
+        {
+            Console.WriteLine($"ERROR: {ex.Message}");
+        }
+
+        // Validate a CreateLocationDto instance
+        var createLocation = new CreateLocationDto
+        {
+            Latitude = 40.7484,
+            Longitude = -73.9857,
+            Accuracy = 6.1,
+            Speed = 55.0,
+            Heading = 180
+        };
+
+        var createErrors = createLocation.Validate();
+        Console.WriteLine($"CreateLocationDto validation errors: {createErrors.Count}"); // 0
+
+        // Validate an UpdateLocationDto instance
+        var updateLocation = new UpdateLocationDto
+        {
+            Latitude = 40.7580,
+            Longitude = -73.9855,
+            Accuracy = 7.2
+        };
+
+        var updateErrors = updateLocation.Validate();
+        Console.WriteLine($"UpdateLocationDto validation errors: {updateErrors.Count}"); // 0
+    }
+}
+```
+
 ## VehicleControllerTests
 
 ### Usage Example
@@ -979,6 +1072,99 @@ class Program
         // Delete a location
         var deleteResponse = await client.DeleteAsync($"/api/Location/{locationId}");
         Console.WriteLine($"Delete location response status: {deleteResponse.StatusCode}");
+    }
+}
+```
+
+## LocationControllerTestsValidation
+
+`LocationControllerTestsValidation` provides validation helpers for `LocationControllerTests` and related location DTOs (`LocationDto`, `CreateLocationDto`, `UpdateLocationDto`). It offers extension methods to validate location instances, check validity, and ensure valid state with detailed error messages. The validation methods return lists of human-readable error messages, making it easy to provide user feedback when invalid data is encountered.
+
+### Usage Example
+
+```csharp
+using System;
+using System.Linq;
+using SignalRMapRealtime.DTOs;
+using SignalRMapRealtime.IntegrationTests;
+
+class Program
+{
+    static void Main()
+    {
+        // Validate a LocationDto instance
+        var validLocation = new LocationDto
+        {
+            Latitude = 40.7128,
+            Longitude = -74.0060,
+            Timestamp = DateTime.UtcNow,
+            Accuracy = 5.2,
+            Speed = 45.5,
+            Heading = 90
+        };
+
+        var validationErrors = validLocation.Validate();
+        Console.WriteLine($"Valid LocationDto has {validationErrors.Count} errors"); // 0
+
+        // Validate an invalid LocationDto instance
+        var invalidLocation = new LocationDto
+        {
+            Latitude = 200.0, // Invalid latitude (> 90)
+            Longitude = -300.0, // Invalid longitude (< -180)
+            Timestamp = DateTime.MinValue, // Invalid timestamp
+            Accuracy = -1.0 // Negative accuracy
+        };
+
+        var invalidErrors = invalidLocation.Validate();
+        Console.WriteLine($"Invalid LocationDto has {invalidErrors.Count} errors:");
+        foreach (var error in invalidErrors)
+        {
+            Console.WriteLine($"- {error}");
+        }
+        // Output:
+        // - Latitude must be between -90 and 90 degrees.
+        // - Longitude must be between -180 and 180 degrees.
+        // - Timestamp must be a valid date.
+        // - Accuracy must be non-negative.
+
+        // Check if a LocationDto is valid
+        bool isValid = invalidLocation.IsValid();
+        Console.WriteLine($"Is invalid LocationDto valid? {isValid}"); // False
+
+        // Ensure a valid LocationDto (throws if invalid)
+        try
+        {
+            validLocation.EnsureValid();
+            Console.WriteLine("Valid LocationDto passed EnsureValid successfully");
+        }
+        catch (ArgumentException ex)
+        {
+            Console.WriteLine($"ERROR: {ex.Message}");
+        }
+
+        // Validate a CreateLocationDto instance
+        var createLocation = new CreateLocationDto
+        {
+            Latitude = 40.7484,
+            Longitude = -73.9857,
+            Accuracy = 6.1,
+            Speed = 55.0,
+            Heading = 180
+        };
+
+        var createErrors = createLocation.Validate();
+        Console.WriteLine($"CreateLocationDto validation errors: {createErrors.Count}"); // 0
+
+        // Validate an UpdateLocationDto instance
+        var updateLocation = new UpdateLocationDto
+        {
+            Latitude = 40.7580,
+            Longitude = -73.9855,
+            Accuracy = 7.2
+        };
+
+        var updateErrors = updateLocation.Validate();
+        Console.WriteLine($"UpdateLocationDto validation errors: {updateErrors.Count}"); // 0
     }
 }
 ```
