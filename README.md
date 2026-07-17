@@ -237,3 +237,33 @@ var speedingVehicles = await vehicleService.GetSpeedingVehiclesAsync();
 Console.WriteLine($"Fleet status: {onlineCount} online, {speedingVehicles.Count()} speeding.");
 ```
 
+## RoutePlaybackService
+
+The `RoutePlaybackService` provides functionality to manage and simulate the playback of recorded vehicle routes. It supports starting, pausing, resuming, and stopping playback sessions, while also allowing seeking to specific timestamps, adjusting playback speed, and retrieving playback statistics and snapshots.
+
+### Usage Example
+
+```csharp
+using SignalRMapRealtime.Services;
+using SignalRMapRealtime.DTOs;
+
+// Assuming routePlaybackService is injected
+// Start a playback session
+Guid playbackId = await routePlaybackService.StartPlaybackAsync(trackingSessionId: 101, loop: true);
+
+// Get current state
+var state = await routePlaybackService.GetPlaybackStateAsync(playbackId);
+Console.WriteLine($"Playback {playbackId} active: {state?.IsPlaying}");
+
+// Adjust playback settings
+await routePlaybackService.SetPlaybackSpeedAsync(playbackId, 2.0);
+await routePlaybackService.SeekToTimestampAsync(playbackId, DateTime.UtcNow.AddMinutes(-5));
+
+// Retrieve statistics
+var stats = await routePlaybackService.GetPlaybackStatisticsAsync(playbackId);
+Console.WriteLine($"Playback covered {stats?.TotalDistance} km");
+
+// Cleanup
+await routePlaybackService.StopPlaybackAsync(playbackId);
+```
+
