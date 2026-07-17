@@ -24,6 +24,11 @@ public static class ClusteringControllerJsonExtensions
     };
 
     /// <summary>
+    /// Gets the JSON serializer options used by the extension methods.
+    /// </summary>
+    public static JsonSerializerOptions JsonSerializerOptions => _jsonSerializerOptions;
+
+    /// <summary>
     /// Serializes the <see cref="ClusteringController"/> instance to a JSON string.
     /// </summary>
     /// <param name="value">The controller instance to serialize.</param>
@@ -46,10 +51,10 @@ public static class ClusteringControllerJsonExtensions
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
     /// <returns>The deserialized <see cref="ClusteringController"/> instance, or null if deserialization fails.</returns>
-    /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is null or empty.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
     public static ClusteringController? FromJson(string json)
     {
-        ArgumentException.ThrowIfNullOrEmpty(json);
+        ArgumentNullException.ThrowIfNull(json);
 
         return JsonSerializer.Deserialize<ClusteringController>(json, _jsonSerializerOptions);
     }
@@ -60,10 +65,10 @@ public static class ClusteringControllerJsonExtensions
     /// <param name="json">The JSON string to deserialize.</param>
     /// <param name="value">Receives the deserialized instance if successful, otherwise null.</param>
     /// <returns>True if deserialization succeeds; otherwise, false.</returns>
-    /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is null or empty.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
     public static bool TryFromJson(string json, out ClusteringController? value)
     {
-        ArgumentException.ThrowIfNullOrEmpty(json);
+        ArgumentNullException.ThrowIfNull(json);
 
         try
         {
