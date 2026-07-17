@@ -180,6 +180,70 @@ class Program
 }
 ```
 
+## GeofenceDtoExtensions
+`GeofenceDtoExtensions` provides extension methods for `GeofenceDto` to facilitate common geofence operations including point-in-zone testing, polygon parsing, distance calculations, and geofence type identification. These methods simplify working with both circular and polygonal geofence zones.
+
+### Usage Example
+
+```csharp
+using System;
+using SignalRMapRealtime.DTOs;
+
+class Program
+{
+    static void Main()
+    {
+        // Create a circular geofence (500m radius around a warehouse)
+        var circleGeofence = new GeofenceDto
+        {
+            Id = Guid.NewGuid(),
+            Name = "Warehouse Zone",
+            Type = nameof(GeofenceType.Circle),
+            CenterLatitude = 40.7484,
+            CenterLongitude = -73.9857,
+            RadiusKm = 0.5, // 500 meters
+            PolygonCoordinates = null
+        };
+
+        // Test if a point is inside the circular geofence
+        bool isInsideCircle = circleGeofence.ContainsPoint(40.7484, -73.9857);
+        Console.WriteLine($"Point inside circle: {isInsideCircle}"); // True
+
+        // Calculate distance from center to a point
+        double? distance = circleGeofence.DistanceTo(40.7485, -73.9858);
+        Console.WriteLine($"Distance from center: {distance:F3} km");
+
+        // Check if it's a circle geofence
+        bool isCircle = circleGeofence.IsCircle();
+        Console.WriteLine($"Is circle geofence: {isCircle}"); // True
+
+        // Check if it's a polygon geofence
+        bool isPolygon = circleGeofence.IsPolygon();
+        Console.WriteLine($"Is polygon geofence: {isPolygon}"); // False
+
+        // Create a polygonal geofence (warehouse perimeter)
+        var polygonGeofence = new GeofenceDto
+        {
+            Id = Guid.NewGuid(),
+            Name = "Warehouse Perimeter",
+            Type = nameof(GeofenceType.Polygon),
+            CenterLatitude = null,
+            CenterLongitude = null,
+            RadiusKm = null,
+            PolygonCoordinates = "40.7480,-73.9860;40.7480,-73.9850;40.7490,-73.9850;40.7490,-73.9860"
+        };
+
+        // Get polygon points
+        var polygonPoints = polygonGeofence.GetPolygonPoints();
+        Console.WriteLine($"Polygon has {polygonPoints.Count} points");
+
+        // Test if a point is inside the polygonal geofence
+        bool isInsidePolygon = polygonGeofence.ContainsPoint(40.7485, -73.9855);
+        Console.WriteLine($"Point inside polygon: {isInsidePolygon}");
+    }
+}
+```
+
 ## GeoJsonSerializer
 
 `GeoJsonSerializer` converts location data, routes, and geofences to GeoJSON format, a standardized geographic data format used by mapping libraries like Leaflet and Mapbox. It provides static methods to serialize single locations, collections of locations, routes, and geofence circles into valid GeoJSON strings with proper coordinate ordering and camelCase property naming.
