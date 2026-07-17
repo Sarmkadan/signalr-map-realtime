@@ -83,3 +83,80 @@ class Program
         Console.WriteLine($"Matches pattern: {matches}");
     }
 }
+```
+
+## DateTimeExtensions
+
+`DateTimeExtensions` offers a collection of helper methods for common date and time calculations, such as friendly time spans, period boundaries, rounding, range checks, age calculation, Unix timestamp conversion, and ISO‑8601 formatting. These extensions simplify working with `DateTime` values throughout the tracking application.
+
+### Usage Example
+
+```csharp
+using System;
+using SignalRMapRealtime.Utilities;
+
+class Program
+{
+    static void Main()
+    {
+        DateTime now = DateTime.UtcNow;
+
+        // Friendly description of how long ago a timestamp occurred
+        string friendly = now.AddMinutes(-5).ToFriendlyTimeSpan();
+        Console.WriteLine($"Friendly: {friendly}");
+
+        // Duration between two moments
+        TimeSpan duration = now.Duration(now.AddHours(2));
+        Console.WriteLine($"Duration (hours): {duration.TotalHours}");
+
+        // Start / end of day
+        DateTime startDay = now.StartOfDay();
+        DateTime endDay = now.EndOfDay();
+        Console.WriteLine($"Day starts at {startDay:O}, ends at {endDay:O}");
+
+        // Start / end of week
+        DateTime startWeek = now.StartOfWeek();
+        DateTime endWeek = now.EndOfWeek();
+        Console.WriteLine($"Week starts on {startWeek:yyyy-MM-dd}, ends on {endWeek:yyyy-MM-dd}");
+
+        // Start / end of month
+        DateTime startMonth = now.StartOfMonth();
+        DateTime endMonth = now.EndOfMonth();
+        Console.WriteLine($"Month starts {startMonth:yyyy-MM-dd}, ends {endMonth:yyyy-MM-dd}");
+
+        // Start / end of year
+        DateTime startYear = now.StartOfYear();
+        DateTime endYear = now.EndOfYear();
+        Console.WriteLine($"Year starts {startYear:yyyy-MM-dd}, ends {endYear:yyyy-MM-dd}");
+
+        // Past / future / today checks
+        Console.WriteLine($"Is past? {now.AddDays(-1).IsPast()}");
+        Console.WriteLine($"Is future? {now.AddDays(1).IsFuture()}");
+        Console.WriteLine($"Is today? {now.IsToday()}");
+
+        // Rounding
+        DateTime roundedMinute = now.RoundToNearestMinute(15);
+        DateTime roundedSecond = now.RoundToNearestSecond();
+        Console.WriteLine($"Rounded to 15‑minute interval: {roundedMinute:O}");
+        Console.WriteLine($"Rounded to nearest second: {roundedSecond:O}");
+
+        // Between check
+        bool between = now.IsBetween(now.AddHours(-1), now.AddHours(1));
+        Console.WriteLine($"Is now between one hour ago and one hour ahead? {between}");
+
+        // Age calculation
+        DateTime birthDate = new DateTime(1990, 4, 15);
+        int age = birthDate.GetAgeInYears();
+        Console.WriteLine($"Age: {age}");
+
+        // Unix timestamp conversion
+        long unix = now.ToUnixTimestamp();
+        DateTime fromUnix = unix.FromUnixTimestamp();
+        Console.WriteLine($"Unix: {unix}, back to DateTime: {fromUnix:O}");
+
+        // ISO‑8601 string
+        string iso = now.ToIso8601String();
+        Console.WriteLine($"ISO‑8601: {iso}");
+    }
+}
+```
