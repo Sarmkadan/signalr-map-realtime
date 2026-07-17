@@ -690,6 +690,43 @@ class Program
 }
 ```
 
+## SessionAnalyticsReporter
+
+`SessionAnalyticsReporter` analyzes and reports on tracking session statistics. It generates comprehensive analytics reports for vehicles, including distance traveled, speed metrics, duration, and other key performance indicators. The reporter can display formatted console output and export data to CSV format for further analysis.
+
+### Usage Example
+
+```csharp
+using System;
+using System.IO;
+using System.Threading.Tasks;
+using SignalRMapRealtime.Examples;
+
+class Program
+{
+    static async Task Main()
+    {
+        // Create a session analytics reporter
+        var reporter = new SessionAnalyticsReporter(
+            baseUrl: "https://api.example.com",
+            apiKey: "your-api-key-here"
+        );
+
+        // Generate analytics report for a vehicle
+        var vehicleId = Guid.NewGuid().ToString();
+        await reporter.GenerateVehicleAnalyticsReport(vehicleId);
+
+        // Export analytics to CSV
+        var outputPath = Path.Combine(Directory.GetCurrentDirectory(), "vehicle_analytics.csv");
+        await reporter.ExportAnalyticsToCsv(vehicleId, outputPath);
+        Console.WriteLine($"Analytics exported to: {outputPath}");
+
+        // Run the complete example
+        await reporter.RunExample(vehicleId);
+    }
+}
+```
+
 ## RouteControllerTests
 
 `RouteControllerTests` contains integration tests for the `RouteController` API controller, which manages CRUD operations for routes in the SignalRMapRealtime application. The test class verifies that the controller endpoints correctly handle creating, reading, updating, and deleting routes, including proper status codes, content types, and error handling. Tests cover scenarios like invalid model validation, non-existent resource lookups, and ID mismatch scenarios.
