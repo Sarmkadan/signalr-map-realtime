@@ -83,5 +83,3 @@ class Program
         Console.WriteLine($"Matches pattern: {matches}");
     }
 }
-``` 
-```
