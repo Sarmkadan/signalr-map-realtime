@@ -346,6 +346,61 @@ double totalDistance = await repository.GetTotalDistanceTraveledAsync(1);
 Console.WriteLine($"Total distance traveled by vehicle 1: {totalDistance:F2} km");
 ```
 
+## BaseRepository
+
+The `BaseRepository` class is an abstract generic repository that provides common data access operations for all entity types in the system. It serves as the foundation for concrete repository implementations, offering CRUD operations, batch operations, and query capabilities that work with any entity type inheriting from `BaseEntity`.
+
+### Usage Example
+
+```csharp
+using SignalRMapRealtime.Data.Repositories;
+using SignalRMapRealtime.Data;
+using Microsoft.EntityFrameworkCore;
+
+// Assuming dbContext is injected
+var repository = new ConcreteRepository<Vehicle>(dbContext);
+
+// 1. Add a new entity
+var newVehicle = new Vehicle { Name = "Truck 1", RegistrationNumber = "ABC123" };
+await repository.AddAsync(newVehicle);
+await repository.SaveChangesAsync();
+
+// 2. Get entity by ID
+var vehicle = await repository.GetByIdAsync(1);
+if (vehicle != null)
+{
+    Console.WriteLine($"Found vehicle: {vehicle.Name}");
+}
+
+// 3. Get all entities
+var allVehicles = await repository.GetAllAsync();
+Console.WriteLine($"Total vehicles: {allVehicles.Count()}");
+
+// 4. Find entities matching criteria
+var activeVehicles = await repository.FindAsync(v => v.IsActive);
+Console.WriteLine($"Active vehicles: {activeVehicles.Count()}");
+
+// 5. Update an entity
+if (vehicle != null)
+{
+    vehicle.Name = "Updated Truck 1";
+    await repository.UpdateAsync(vehicle);
+    await repository.SaveChangesAsync();
+}
+
+// 6. Remove by ID
+await repository.RemoveByIdAsync(2);
+await repository.SaveChangesAsync();
+
+// 7. Check if entity exists
+bool exists = await repository.ExistsAsync(v => v.RegistrationNumber == "ABC123");
+Console.WriteLine($"Vehicle with ABC123 exists: {exists}");
+
+// 8. Get count
+int vehicleCount = await repository.CountAsync();
+Console.WriteLine($"Total vehicles in database: {vehicleCount}");
+```
+
 ## VehicleService
 
 The `VehicleService` provides a comprehensive API for managing vehicle entities, including creation, retrieval, updates, and status tracking. It facilitates fleet operations by allowing management of vehicle assignments, operational status, and monitoring of performance metrics such as fuel levels and speed violations.
