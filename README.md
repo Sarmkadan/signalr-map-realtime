@@ -325,6 +325,68 @@ class Program
 }
 ```
 
+## AssetControllerTests
+
+`AssetControllerTests` contains integration tests for the `AssetController` API controller, which manages CRUD operations for assets in the SignalRMapRealtime application. The test class verifies that the controller endpoints correctly handle creating, reading, updating, and deleting assets, including proper status codes, content types, and error handling. Tests cover scenarios like invalid model validation, non-existent resource lookups, and ID mismatch scenarios.
+
+### Usage Example
+
+```csharp
+using System;
+using System.Net.Http.Json;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc.Testing;
+using SignalRMapRealtime.DTOs;
+using SignalRMapRealtime.Models;
+
+class Program
+{
+    static async Task Main()
+    {
+        // Example using WebApplicationFactory for integration testing
+        var factory = new WebApplicationFactory<Program>();
+        var client = factory.CreateClient();
+
+        // Create a new asset
+        var newAsset = new AssetDto
+        {
+            Name = "Medical Equipment #XYZ-789",
+            Type = AssetType.Equipment,
+            Status = "Available"
+        };
+
+        var createResponse = await client.PostAsJsonAsync("api/Asset", newAsset);
+        var createdAsset = await createResponse.Content.ReadFromJsonAsync<ApiResponse<AssetDto>>();
+        Console.WriteLine($"Created asset: {createdAsset?.Data?.Id} - {createdAsset?.Data?.Name}");
+
+        // Get all assets with pagination
+        var getAllResponse = await client.GetAsync("api/Asset?pageNumber=1&pageSize=20");
+        var allAssets = await getAllResponse.Content.ReadFromJsonAsync<ApiResponse<PaginatedResponse<AssetDto>>>();
+        Console.WriteLine($"Total assets: {allAssets?.Data?.TotalCount}");
+
+        // Get a specific asset by ID
+        var getByIdResponse = await client.GetAsync($"api/Asset/{createdAsset?.Data?.Id}");
+        var singleAsset = await getByIdResponse.Content.ReadFromJsonAsync<ApiResponse<AssetDto>>();
+        Console.WriteLine($"Asset: {singleAsset?.Data?.Name} (Status: {singleAsset?.Data?.Status})");
+
+        // Update an asset
+        var updateAsset = new AssetDto
+        {
+            Id = createdAsset?.Data?.Id ?? Guid.Empty,
+            Name = "Medical Equipment #XYZ-789 - Updated",
+            Type = AssetType.Equipment,
+            Status = "InUse"
+        };
+        var updateResponse = await client.PutAsJsonAsync($"api/Asset/{createdAsset?.Data?.Id}", updateAsset);
+        Console.WriteLine($"Update status: {updateResponse.StatusCode}");
+
+        // Delete an asset
+        var deleteResponse = await client.DeleteAsync($"api/Asset/{createdAsset?.Data?.Id}");
+        Console.WriteLine($"Delete status: {deleteResponse.StatusCode}");
+    }
+}
+```
+
 ## DomainModelBehaviorTests
 
 `DomainModelBehaviorTests` contains unit tests that verify the behavioral contracts of domain models in the SignalRMapRealtime application. This test class validates that domain entities like `Vehicle`, `TrackingSession`, and `Asset` behave correctly under various conditions, ensuring proper state transitions, validation rules, and business logic execution. The tests use FluentAssertions for clear, readable assertions and cover edge cases such as null configurations, invalid operations, and argument validation.
