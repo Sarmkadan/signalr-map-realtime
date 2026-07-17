@@ -7,10 +7,10 @@
 
 namespace SignalRMapRealtime.Services;
 
-using System.Globalization;
 using Microsoft.Extensions.Logging;
 using SignalRMapRealtime.Domain.Enums;
 using SignalRMapRealtime.Domain.Models;
+using SignalRMapRealtime.Exceptions;
 
 /// <summary>
 /// Extension methods for <see cref="TrackingService"/> that provide additional tracking functionality.
@@ -25,8 +25,8 @@ public static class TrackingServiceExtensions
     /// <param name="routeId">Optional route identifier.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The created session identifier.</returns>
-    /// <exception cref="ArgumentNullException">Thrown if service is null.</exception>
-    /// <exception cref="ArgumentOutOfRangeException">Thrown if vehicleId is not positive.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="service"/> is null.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="vehicleId"/> is not positive.</exception>
     public static async Task<int> StartTrackingSessionAsync(
         this TrackingService service,
         int vehicleId,
@@ -36,10 +36,9 @@ public static class TrackingServiceExtensions
         ArgumentNullException.ThrowIfNull(service);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(vehicleId);
 
-        var timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture);
         return await service.StartTrackingSessionAsync(
             vehicleId,
-            sessionName: $"Session-{timestamp}",
+            sessionName: string.Empty,
             routeId,
             cancellationToken).ConfigureAwait(false);
     }
@@ -51,8 +50,8 @@ public static class TrackingServiceExtensions
     /// <param name="vehicleId">The vehicle identifier.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The active session or null if none exists.</returns>
-    /// <exception cref="ArgumentNullException">Thrown if service is null.</exception>
-    /// <exception cref="ArgumentOutOfRangeException">Thrown if vehicleId is not positive.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="service"/> is null.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="vehicleId"/> is not positive.</exception>
     public static async Task<TrackingSession?> GetActiveSessionAsync(
         this TrackingService service,
         int vehicleId,
@@ -72,8 +71,8 @@ public static class TrackingServiceExtensions
     /// <param name="vehicleId">The vehicle identifier.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Read-only list of tracking sessions.</returns>
-    /// <exception cref="ArgumentNullException">Thrown if service is null.</exception>
-    /// <exception cref="ArgumentOutOfRangeException">Thrown if vehicleId is not positive.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="service"/> is null.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="vehicleId"/> is not positive.</exception>
     public static async Task<IReadOnlyList<TrackingSession>> GetSessionHistoryAsync(
         this TrackingService service,
         int vehicleId,
@@ -93,7 +92,7 @@ public static class TrackingServiceExtensions
     /// <param name="status">The session status to filter by.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Read-only list of tracking sessions with the specified status.</returns>
-    /// <exception cref="ArgumentNullException">Thrown if service is null.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="service"/> is null.</exception>
     public static async Task<IReadOnlyList<TrackingSession>> GetSessionsByStatusAsync(
         this TrackingService service,
         SessionStatus status,
@@ -112,8 +111,8 @@ public static class TrackingServiceExtensions
     /// <param name="sessionId">The session identifier.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>True if session was paused, false if session doesn't exist or isn't active.</returns>
-    /// <exception cref="ArgumentNullException">Thrown if service is null.</exception>
-    /// <exception cref="ArgumentOutOfRangeException">Thrown if sessionId is not positive.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="service"/> is null.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="sessionId"/> is not positive.</exception>
     public static async Task<bool> TryPauseSessionAsync(
         this TrackingService service,
         int sessionId,
@@ -132,8 +131,8 @@ public static class TrackingServiceExtensions
     /// <param name="sessionId">The session identifier.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>True if session was resumed, false if session doesn't exist or isn't paused.</returns>
-    /// <exception cref="ArgumentNullException">Thrown if service is null.</exception>
-    /// <exception cref="ArgumentOutOfRangeException">Thrown if sessionId is not positive.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="service"/> is null.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="sessionId"/> is not positive.</exception>
     public static async Task<bool> TryResumeSessionAsync(
         this TrackingService service,
         int sessionId,
@@ -152,8 +151,8 @@ public static class TrackingServiceExtensions
     /// <param name="sessionId">The session identifier.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>True if session was completed, false if session doesn't exist or is already completed.</returns>
-    /// <exception cref="ArgumentNullException">Thrown if service is null.</exception>
-    /// <exception cref="ArgumentOutOfRangeException">Thrown if sessionId is not positive.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="service"/> is null.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="sessionId"/> is not positive.</exception>
     public static async Task<bool> TryCompleteSessionAsync(
         this TrackingService service,
         int sessionId,
@@ -173,8 +172,8 @@ public static class TrackingServiceExtensions
     /// <param name="reason">Optional cancellation reason.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>True if session was cancelled, false if session doesn't exist.</returns>
-    /// <exception cref="ArgumentNullException">Thrown if service is null.</exception>
-    /// <exception cref="ArgumentOutOfRangeException">Thrown if sessionId is not positive.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="service"/> is null.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="sessionId"/> is not positive.</exception>
     public static async Task<bool> TryCancelSessionAsync(
         this TrackingService service,
         int sessionId,
@@ -194,8 +193,8 @@ public static class TrackingServiceExtensions
     /// <param name="sessionId">The session identifier.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The session details or null if session doesn't exist.</returns>
-    /// <exception cref="ArgumentNullException">Thrown if service is null.</exception>
-    /// <exception cref="ArgumentOutOfRangeException">Thrown if sessionId is not positive.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="service"/> is null.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="sessionId"/> is not positive.</exception>
     public static async Task<TrackingSession?> GetSessionDetailsAsync(
         this TrackingService service,
         int sessionId,
@@ -214,7 +213,7 @@ public static class TrackingServiceExtensions
     /// <param name="service">The tracking service instance.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Read-only list of expired tracking sessions.</returns>
-    /// <exception cref="ArgumentNullException">Thrown if service is null.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="service"/> is null.</exception>
     public static async Task<IReadOnlyList<TrackingSession>> GetExpiredSessionsAsync(
         this TrackingService service,
         CancellationToken cancellationToken = default)
@@ -232,8 +231,8 @@ public static class TrackingServiceExtensions
     /// <param name="sessionId">The session identifier.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The total distance in kilometers, or 0 if session doesn't exist.</returns>
-    /// <exception cref="ArgumentNullException">Thrown if service is null.</exception>
-    /// <exception cref="ArgumentOutOfRangeException">Thrown if sessionId is not positive.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="service"/> is null.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="sessionId"/> is not positive.</exception>
     public static async Task<double> GetSessionDistanceAsync(
         this TrackingService service,
         int sessionId,
@@ -252,8 +251,8 @@ public static class TrackingServiceExtensions
     /// <param name="sessionId">The session identifier.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The average speed in km/h, or 0 if session doesn't exist.</returns>
-    /// <exception cref="ArgumentNullException">Thrown if service is null.</exception>
-    /// <exception cref="ArgumentOutOfRangeException">Thrown if sessionId is not positive.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="service"/> is null.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="sessionId"/> is not positive.</exception>
     public static async Task<double> GetSessionAverageSpeedAsync(
         this TrackingService service,
         int sessionId,
