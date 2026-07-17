@@ -3,7 +3,7 @@
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
-// =============================================================================
+// =====================================================================
 
 namespace SignalRMapRealtime.Tests;
 
@@ -47,11 +47,15 @@ public static class JsonExtensions
     /// </summary>
     /// <typeparam name="T">The type to deserialize to.</typeparam>
     /// <param name="json">The JSON string to deserialize.</param>
-    /// <returns>The deserialized instance, or null if the JSON is null or empty.</returns>
+    /// <returns>The deserialized instance, or null if the JSON is null, empty, or whitespace.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is empty or whitespace.</exception>
     /// <exception cref="JsonException">Thrown when the JSON is invalid or cannot be deserialized.</exception>
     public static T? FromJson<T>(string json)
     {
-        if (string.IsNullOrEmpty(json))
+        ArgumentNullException.ThrowIfNull(json);
+
+        if (string.IsNullOrWhiteSpace(json))
         {
             return default;
         }
@@ -66,11 +70,15 @@ public static class JsonExtensions
     /// <param name="json">The JSON string to deserialize.</param>
     /// <param name="value">Receives the deserialized instance if successful.</param>
     /// <returns>True if deserialization succeeded; otherwise, false.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is empty or whitespace.</exception>
     public static bool TryFromJson<T>(string json, out T? value)
     {
+        ArgumentNullException.ThrowIfNull(json);
+
         value = default;
 
-        if (string.IsNullOrEmpty(json))
+        if (string.IsNullOrWhiteSpace(json))
         {
             return false;
         }
