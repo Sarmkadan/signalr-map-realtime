@@ -1,4 +1,19 @@
-// ... (rest of file remains unchanged)
+# SignalR Map Realtime
+
+ASP.NET Core service for real-time vehicle/asset location tracking. Live updates are pushed
+over SignalR hubs (`/hubs/location`, `/hubs/playback`), a REST API covers the same domain
+(vehicles, locations, routes, assets, geofences, clustering, playback), and EF Core with
+SQL Server provides persistence. See `docker-compose.yml` for a runnable setup.
+
+## Architecture
+
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the component breakdown, design
+decisions (service lifetimes, in-memory event bus, playback engine), data flow, and known
+limitations.
+
+## DTO reference
+
+Usage examples for selected DTOs follow.
 
 ## GeofenceDto
 
@@ -77,5 +92,3 @@ var user = new UserDto
 
 Console.WriteLine($"User: {user.FullName} ({user.Email}) - Active: {user.IsActive}");
 ```
-
-// ... (rest of file remains unchanged)
