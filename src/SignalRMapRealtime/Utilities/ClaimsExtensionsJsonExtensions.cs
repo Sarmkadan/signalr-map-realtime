@@ -2,7 +2,7 @@
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
-// =============================================================================
+// =====================================================================
 
 namespace SignalRMapRealtime.Utilities;
 
@@ -32,22 +32,19 @@ public static class ClaimsExtensionsJsonExtensions
     {
         ArgumentNullException.ThrowIfNull(principal);
 
-        var options = indented
-            ? new JsonSerializerOptions(_jsonOptions) { WriteIndented = true }
-            : _jsonOptions;
-
-        return JsonSerializer.Serialize(principal, options);
+        return JsonSerializer.Serialize(principal, indented ? new JsonSerializerOptions(_jsonOptions) { WriteIndented = true } : _jsonOptions);
     }
 
     /// <summary>
     /// Deserializes a ClaimsPrincipal from a JSON string.
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
-    /// <returns>A ClaimsPrincipal instance, or null if the JSON is null or empty.</returns>
+    /// <returns>A ClaimsPrincipal instance, or null if the JSON is null, empty, or whitespace.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
     /// <exception cref="JsonException">Thrown when the JSON is invalid or cannot be deserialized.</exception>
-    public static ClaimsPrincipal? FromJson(string json)
+    public static ClaimsPrincipal? FromJson(string? json)
     {
-        if (string.IsNullOrEmpty(json))
+        if (string.IsNullOrWhiteSpace(json))
         {
             return null;
         }
@@ -61,8 +58,11 @@ public static class ClaimsExtensionsJsonExtensions
     /// <param name="json">The JSON string to deserialize.</param>
     /// <param name="principal">Receives the deserialized ClaimsPrincipal instance, or null on failure.</param>
     /// <returns>True if deserialization succeeded; otherwise, false.</returns>
-    public static bool TryFromJson(string json, out ClaimsPrincipal? principal)
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
+    public static bool TryFromJson(string? json, out ClaimsPrincipal? principal)
     {
+        ArgumentNullException.ThrowIfNull(json);
+
         try
         {
             principal = FromJson(json);
