@@ -15,13 +15,14 @@ using System.Text.Json.Serialization;
 /// </summary>
 public static class VehicleServiceJsonExtensions
 {
-    private static readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web)
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new(JsonSerializerDefaults.Web)
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         WriteIndented = false,
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         PropertyNameCaseInsensitive = true,
-        ReferenceHandler = ReferenceHandler.IgnoreCycles
+        ReferenceHandler = ReferenceHandler.IgnoreCycles,
+        Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) }
     };
 
     /// <summary>
@@ -36,11 +37,8 @@ public static class VehicleServiceJsonExtensions
         ArgumentNullException.ThrowIfNull(value);
 
         var options = indented
-            ? new JsonSerializerOptions(_jsonOptions)
-            {
-                WriteIndented = true
-            }
-            : _jsonOptions;
+            ? new JsonSerializerOptions(_jsonSerializerOptions) { WriteIndented = true }
+            : _jsonSerializerOptions;
 
         return JsonSerializer.Serialize(value, options);
     }
@@ -49,16 +47,14 @@ public static class VehicleServiceJsonExtensions
     /// Deserializes a JSON string to a <see cref="VehicleService"/> instance.
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
-    /// <returns>The deserialized vehicle service instance, or null if the JSON is null or empty.</returns>
+    /// <returns>The deserialized vehicle service instance.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is null or empty.</exception>
     /// <exception cref="JsonException">Thrown when the JSON is invalid or cannot be deserialized.</exception>
     public static VehicleService? FromJson(string json)
     {
-        if (string.IsNullOrWhiteSpace(json))
-        {
-            return null;
-        }
+        ArgumentException.ThrowIfNullOrEmpty(json);
 
-        return JsonSerializer.Deserialize<VehicleService>(json, _jsonOptions);
+        return JsonSerializer.Deserialize<VehicleService>(json, _jsonSerializerOptions);
     }
 
     /// <summary>
@@ -67,22 +63,19 @@ public static class VehicleServiceJsonExtensions
     /// <param name="json">The JSON string to deserialize.</param>
     /// <param name="value">Receives the deserialized vehicle service instance if successful.</param>
     /// <returns>True if deserialization succeeded; otherwise, false.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is null or empty.</exception>
     public static bool TryFromJson(string json, out VehicleService? value)
     {
-        value = default;
-
-        if (string.IsNullOrWhiteSpace(json))
-        {
-            return false;
-        }
+        ArgumentException.ThrowIfNullOrEmpty(json);
 
         try
         {
-            value = JsonSerializer.Deserialize<VehicleService>(json, _jsonOptions)!;
-            return true;
+            value = JsonSerializer.Deserialize<VehicleService>(json, _jsonSerializerOptions);
+            return value is not null;
         }
         catch (JsonException)
         {
+            value = null;
             return false;
         }
     }
