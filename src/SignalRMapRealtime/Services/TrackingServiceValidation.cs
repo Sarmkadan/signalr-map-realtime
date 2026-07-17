@@ -15,85 +15,84 @@ namespace SignalRMapRealtime.Services
         /// Validates a vehicle ID parameter.
         /// </summary>
         /// <param name="vehicleId">The vehicle identifier to validate.</param>
+        /// <exception cref="ArgumentException">Thrown when <paramref name="vehicleId"/> is not positive.</exception>
         /// <returns>A list of validation problems; empty if valid.</returns>
         public static IReadOnlyList<string> ValidateVehicleId(int vehicleId)
         {
-            var errors = new List<string>();
-
             if (vehicleId <= 0)
             {
-                errors.Add($"Vehicle ID must be a positive integer, but was {vehicleId}.");
+                return new[] { $"Vehicle ID must be a positive integer, but was {vehicleId}." };
             }
 
-            return errors.AsReadOnly();
+            return EmptyErrors;
         }
 
         /// <summary>
         /// Validates a session ID parameter.
         /// </summary>
         /// <param name="sessionId">The session identifier to validate.</param>
+        /// <exception cref="ArgumentException">Thrown when <paramref name="sessionId"/> is not positive.</exception>
         /// <returns>A list of validation problems; empty if valid.</returns>
         public static IReadOnlyList<string> ValidateSessionId(int sessionId)
         {
-            var errors = new List<string>();
-
             if (sessionId <= 0)
             {
-                errors.Add($"Session ID must be a positive integer, but was {sessionId}.");
+                return new[] { $"Session ID must be a positive integer, but was {sessionId}." };
             }
 
-            return errors.AsReadOnly();
+            return EmptyErrors;
         }
 
         /// <summary>
         /// Validates a session name parameter.
         /// </summary>
         /// <param name="sessionName">The session name to validate.</param>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="sessionName"/> is <see langword="null"/>.</exception>
         /// <returns>A list of validation problems; empty if valid.</returns>
         public static IReadOnlyList<string> ValidateSessionName(string? sessionName)
         {
-            var errors = new List<string>();
+            ArgumentNullException.ThrowIfNull(sessionName);
 
-            if (!string.IsNullOrWhiteSpace(sessionName) && sessionName.Length > 200)
+            if (sessionName.Length > 200)
             {
-                errors.Add("Session name cannot exceed 200 characters.");
+                return new[] { "Session name cannot exceed 200 characters." };
             }
 
-            return errors.AsReadOnly();
+            return EmptyErrors;
         }
 
         /// <summary>
         /// Validates a route ID parameter.
         /// </summary>
         /// <param name="routeId">The route identifier to validate.</param>
+        /// <exception cref="ArgumentException">Thrown when <paramref name="routeId"/> is negative.</exception>
         /// <returns>A list of validation problems; empty if valid.</returns>
         public static IReadOnlyList<string> ValidateRouteId(int? routeId)
         {
-            var errors = new List<string>();
-
             if (routeId.HasValue && routeId.Value <= 0)
             {
-                errors.Add($"Route ID must be a positive integer or null, but was {routeId}.");
+                return new[] { $"Route ID must be a positive integer or null, but was {routeId}." };
             }
 
-            return errors.AsReadOnly();
+            return EmptyErrors;
         }
 
         /// <summary>
         /// Validates a cancellation reason parameter.
         /// </summary>
         /// <param name="reason">The cancellation reason to validate.</param>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="reason"/> is <see langword="null"/>.</exception>
         /// <returns>A list of validation problems; empty if valid.</returns>
         public static IReadOnlyList<string> ValidateCancellationReason(string? reason)
         {
-            var errors = new List<string>();
+            ArgumentNullException.ThrowIfNull(reason);
 
-            if (!string.IsNullOrWhiteSpace(reason) && reason.Length > 500)
+            if (reason.Length > 500)
             {
-                errors.Add("Cancellation reason cannot exceed 500 characters.");
+                return new[] { "Cancellation reason cannot exceed 500 characters." };
             }
 
-            return errors.AsReadOnly();
+            return EmptyErrors;
         }
 
         /// <summary>
@@ -102,6 +101,7 @@ namespace SignalRMapRealtime.Services
         /// <param name="vehicleId">The vehicle identifier.</param>
         /// <param name="sessionName">The optional session name.</param>
         /// <param name="routeId">The optional route identifier.</param>
+        /// <exception cref="ArgumentException">Thrown when any parameter is invalid.</exception>
         /// <returns>A list of validation problems; empty if valid.</returns>
         public static IReadOnlyList<string> ValidateStartSessionParameters(
             int vehicleId,
@@ -121,6 +121,7 @@ namespace SignalRMapRealtime.Services
         /// Validates all parameters for <see cref="TrackingService.PauseSessionAsync"/>.
         /// </summary>
         /// <param name="sessionId">The session identifier.</param>
+        /// <exception cref="ArgumentException">Thrown when <paramref name="sessionId"/> is not positive.</exception>
         /// <returns>A list of validation problems; empty if valid.</returns>
         public static IReadOnlyList<string> ValidatePauseSessionParameters(int sessionId)
         {
@@ -131,6 +132,7 @@ namespace SignalRMapRealtime.Services
         /// Validates all parameters for <see cref="TrackingService.ResumeSessionAsync"/>.
         /// </summary>
         /// <param name="sessionId">The session identifier.</param>
+        /// <exception cref="ArgumentException">Thrown when <paramref name="sessionId"/> is not positive.</exception>
         /// <returns>A list of validation problems; empty if valid.</returns>
         public static IReadOnlyList<string> ValidateResumeSessionParameters(int sessionId)
         {
@@ -141,6 +143,7 @@ namespace SignalRMapRealtime.Services
         /// Validates all parameters for <see cref="TrackingService.CompleteSessionAsync"/>.
         /// </summary>
         /// <param name="sessionId">The session identifier.</param>
+        /// <exception cref="ArgumentException">Thrown when <paramref name="sessionId"/> is not positive.</exception>
         /// <returns>A list of validation problems; empty if valid.</returns>
         public static IReadOnlyList<string> ValidateCompleteSessionParameters(int sessionId)
         {
@@ -152,6 +155,7 @@ namespace SignalRMapRealtime.Services
         /// </summary>
         /// <param name="sessionId">The session identifier.</param>
         /// <param name="reason">The optional cancellation reason.</param>
+        /// <exception cref="ArgumentException">Thrown when any parameter is invalid.</exception>
         /// <returns>A list of validation problems; empty if valid.</returns>
         public static IReadOnlyList<string> ValidateCancelSessionParameters(
             int sessionId,
@@ -169,6 +173,7 @@ namespace SignalRMapRealtime.Services
         /// Validates all parameters for <see cref="TrackingService.IsSessionActiveAsync"/>.
         /// </summary>
         /// <param name="sessionId">The session identifier.</param>
+        /// <exception cref="ArgumentException">Thrown when <paramref name="sessionId"/> is not positive.</exception>
         /// <returns>A list of validation problems; empty if valid.</returns>
         public static IReadOnlyList<string> ValidateSessionStatusParameters(int sessionId)
         {
@@ -179,6 +184,7 @@ namespace SignalRMapRealtime.Services
         /// Validates all parameters for <see cref="TrackingService.GetSessionDistanceAsync"/>.
         /// </summary>
         /// <param name="sessionId">The session identifier.</param>
+        /// <exception cref="ArgumentException">Thrown when <paramref name="sessionId"/> is not positive.</exception>
         /// <returns>A list of validation problems; empty if valid.</returns>
         public static IReadOnlyList<string> ValidateSessionDistanceParameters(int sessionId)
         {
@@ -189,6 +195,7 @@ namespace SignalRMapRealtime.Services
         /// Validates all parameters for <see cref="TrackingService.GetSessionAverageSpeedAsync"/>.
         /// </summary>
         /// <param name="sessionId">The session identifier.</param>
+        /// <exception cref="ArgumentException">Thrown when <paramref name="sessionId"/> is not positive.</exception>
         /// <returns>A list of validation problems; empty if valid.</returns>
         public static IReadOnlyList<string> ValidateSessionSpeedParameters(int sessionId)
         {
@@ -219,6 +226,7 @@ namespace SignalRMapRealtime.Services
         /// Determines whether the specified session name is valid.
         /// </summary>
         /// <param name="sessionName">The session name to check.</param>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="sessionName"/> is <see langword="null"/>.</exception>
         /// <returns><see langword="true"/> if valid; otherwise, <see langword="false"/>.</returns>
         public static bool IsValidSessionName(string? sessionName)
         {
@@ -239,6 +247,7 @@ namespace SignalRMapRealtime.Services
         /// Determines whether the specified cancellation reason is valid.
         /// </summary>
         /// <param name="reason">The cancellation reason to check.</param>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="reason"/> is <see langword="null"/>.</exception>
         /// <returns><see langword="true"/> if valid; otherwise, <see langword="false"/>.</returns>
         public static bool IsValidCancellationReason(string? reason)
         {
@@ -279,14 +288,17 @@ namespace SignalRMapRealtime.Services
         /// Ensures that the specified session name is valid.
         /// </summary>
         /// <param name="sessionName">The session name to validate.</param>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="sessionName"/> is <see langword="null"/>.</exception>
         /// <exception cref="ArgumentException">Thrown when the session name is not valid.</exception>
         public static void EnsureValidSessionName(string? sessionName)
         {
+            ArgumentNullException.ThrowIfNull(sessionName);
+
             var errors = ValidateSessionName(sessionName);
             if (errors.Count > 0)
             {
                 throw new ArgumentException(
-                    $"Session name is not valid. Problems:\n{string.Join("\n", errors)}");
+                    "Session name is not valid. Problems:\n" + string.Join("\n", errors));
             }
         }
 
@@ -309,14 +321,17 @@ namespace SignalRMapRealtime.Services
         /// Ensures that the specified cancellation reason is valid.
         /// </summary>
         /// <param name="reason">The cancellation reason to validate.</param>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="reason"/> is <see langword="null"/>.</exception>
         /// <exception cref="ArgumentException">Thrown when the cancellation reason is not valid.</exception>
         public static void EnsureValidCancellationReason(string? reason)
         {
+            ArgumentNullException.ThrowIfNull(reason);
+
             var errors = ValidateCancellationReason(reason);
             if (errors.Count > 0)
             {
                 throw new ArgumentException(
-                    $"Cancellation reason is not valid. Problems:\n{string.Join("\n", errors)}");
+                    "Cancellation reason is not valid. Problems:\n" + string.Join("\n", errors));
             }
         }
     }
