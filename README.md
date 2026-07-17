@@ -1113,6 +1113,86 @@ class Program
 }
 ```
 
+## TrackingServiceValidation
+
+`TrackingServiceValidation` provides validation helpers for tracking session parameters used by `TrackingService`. It offers methods to validate individual parameters (vehicle ID, session ID, session name, route ID, cancellation reason) and parameter sets for all tracking operations (start, pause, resume, complete, cancel). The class includes both validation methods that return error lists and convenience methods for quick validation checks and exception throwing.
+
+### Usage Example
+
+```csharp
+using System;
+using SignalRMapRealtime.Services;
+
+class Program
+{
+    static void Main()
+    {
+        // Validate individual parameters
+        bool isValidVehicle = TrackingServiceValidation.IsValidVehicleId(42);
+        Console.WriteLine($"Vehicle ID 42 is valid: {isValidVehicle}"); // True
+        
+        bool isValidSession = TrackingServiceValidation.IsValidSessionId(1);
+        Console.WriteLine($"Session ID 1 is valid: {isValidSession}"); // True
+        
+        bool isValidName = TrackingServiceValidation.IsValidSessionName("Morning Delivery Run");
+        Console.WriteLine($"Session name is valid: {isValidName}"); // True
+        
+        // Validate parameter sets for tracking operations
+        var startErrors = TrackingServiceValidation.ValidateStartSessionParameters(
+            vehicleId: 42,
+            sessionName: "Morning Delivery Run",
+            routeId: 5
+        );
+        
+        if (startErrors.Count == 0)
+        {
+            Console.WriteLine("Start parameters are valid!");
+        }
+        else
+        {
+            Console.WriteLine("Validation errors:");
+            foreach (var error in startErrors)
+            {
+                Console.WriteLine($"- {error}");
+            }
+        }
+        
+        // Validate cancellation parameters
+        var cancelErrors = TrackingServiceValidation.ValidateCancelSessionParameters(
+            sessionId: 1,
+            reason: "Driver requested early completion"
+        );
+        
+        if (cancelErrors.Count == 0)
+        {
+            Console.WriteLine("Cancellation parameters are valid!");
+        }
+        
+        // Use Ensure methods to throw exceptions on invalid parameters
+        try
+        {
+            TrackingServiceValidation.EnsureValidVehicleId(-1);
+            Console.WriteLine("ERROR: Should have thrown exception");
+        }
+        catch (ArgumentException ex)
+        {
+            Console.WriteLine($"Correctly threw exception: {ex.Message}");
+        }
+        
+        // Test invalid session ID
+        try
+        {
+            TrackingServiceValidation.EnsureValidSessionId(0);
+            Console.WriteLine("ERROR: Should have thrown exception");
+        }
+        catch (ArgumentException ex)
+        {
+            Console.WriteLine($"Correctly threw exception: {ex.Message}");
+        }
+    }
+}
+```
+
 ## LocationTrackingExceptionExtensions
 
 `LocationTrackingExceptionExtensions` provides extension methods for handling and extracting information from location tracking exceptions. This utility class helps extract contextual information from specific exception types like `VehicleNotFoundException`, `AssetNotFoundException`, `TrackingSessionNotFoundException`, and `InvalidLocationException`, and provides helper methods to determine error types and format error messages.
