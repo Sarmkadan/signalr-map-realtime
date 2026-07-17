@@ -42,13 +42,12 @@ public static class ErrorResponseValidation
         {
             problems.Add("Errors dictionary cannot be null.");
         }
+        else if (value.Errors.Values.Any(errors => errors is null))
+        {
+            problems.Add("Errors dictionary contains null error arrays.");
+        }
         else
         {
-            if (value.Errors.Values.Any(errors => errors is null))
-            {
-                problems.Add("Errors dictionary contains null error arrays.");
-            }
-
             foreach (var kvp in value.Errors)
             {
                 if (string.IsNullOrWhiteSpace(kvp.Key))
@@ -63,20 +62,21 @@ public static class ErrorResponseValidation
                 }
                 else
                 {
-                    foreach (var error in kvp.Value)
+                    var emptyErrors = kvp.Value
+                        .Where(error => string.IsNullOrWhiteSpace(error))
+                        .ToList();
+
+                    if (emptyErrors.Count > 0)
                     {
-                        if (string.IsNullOrWhiteSpace(error))
-                        {
-                            problems.Add($"Error dictionary contains empty error message for key '{kvp.Key}'.");
-                            break;
-                        }
+                        problems.Add($"Error dictionary contains empty error messages for key '{kvp.Key}': {string.Join(", ", emptyErrors.Select(e => $"'{e}'"))}.");
+                        break;
                     }
                 }
             }
         }
 
         // Validate StatusCode
-        if (value.StatusCode < 400 || value.StatusCode > 599)
+        if (value.StatusCode is < 400 or > 599)
         {
             problems.Add("StatusCode must be a valid HTTP status code (400-599).");
         }
