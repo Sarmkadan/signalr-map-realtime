@@ -1193,6 +1193,93 @@ class Program
 }
 ```
 
+## RouteRepositoryValidation
+
+`RouteRepositoryValidation` provides validation helpers for `RouteRepository` to ensure data integrity when querying route data. It offers methods to validate parameters for various route-related operations including vehicle-based queries, user-based queries, date ranges, completion status, and statistical aggregations. The validation methods return lists of human-readable error messages, making it easy to provide user feedback when invalid parameters are provided.
+
+### Usage Example
+
+```csharp
+using System;
+using SignalRMapRealtime.Data.Repositories;
+
+class Program
+{
+    static void Main()
+    {
+        // Validate RouteRepository instance
+        var routeRepo = new RouteRepository();
+        var repoErrors = RouteRepositoryValidation.Validate(routeRepo);
+        Console.WriteLine($"RouteRepository is valid: {RouteRepositoryValidation.IsValid(routeRepo)}"); // True
+
+        // Validate vehicle ID for GetActiveRoutesByVehicleAsync
+        var vehicleErrors = RouteRepositoryValidation.ValidateParametersForGetActiveRoutesByVehicleAsync(42);
+        Console.WriteLine($"Vehicle ID 42 validation errors: {vehicleErrors.Count}"); // 0
+
+        // Validate invalid vehicle ID
+        var invalidVehicleErrors = RouteRepositoryValidation.ValidateParametersForGetActiveRoutesByVehicleAsync(-1);
+        Console.WriteLine("Invalid vehicle ID errors:");
+        foreach (var error in invalidVehicleErrors)
+        {
+            Console.WriteLine($"- {error}");
+        }
+        // Output: - Vehicle ID must be positive, but was -1.
+
+        // Validate user ID for GetRoutesByUserAsync
+        var userErrors = RouteRepositoryValidation.ValidateParametersForGetRoutesByUserAsync(1);
+        Console.WriteLine($"User ID 1 validation errors: {userErrors.Count}"); // 0
+
+        // Validate route ID for GetRouteWithDetailsAsync
+        var routeErrors = RouteRepositoryValidation.ValidateParametersForGetRouteWithDetailsAsync(1);
+        Console.WriteLine($"Route ID 1 validation errors: {routeErrors.Count}"); // 0
+
+        // Validate date range for GetRoutesByDateRangeAsync
+        var dateErrors = RouteRepositoryValidation.ValidateParametersForGetRoutesByDateRangeAsync(
+            new DateTime(2024, 1, 1),
+            new DateTime(2024, 12, 31)
+        );
+        Console.WriteLine($"Date range validation errors: {dateErrors.Count}"); // 0
+
+        // Validate invalid date range (start after end)
+        var invalidDateErrors = RouteRepositoryValidation.ValidateParametersForGetRoutesByDateRangeAsync(
+            new DateTime(2024, 12, 31),
+            new DateTime(2024, 1, 1)
+        );
+        Console.WriteLine("Invalid date range errors:");
+        foreach (var error in invalidDateErrors)
+        {
+            Console.WriteLine($"- {error}");
+        }
+        // Output: - Start date must be before or equal to end date.
+
+        // Validate top count for GetLongestRoutesAsync
+        var topErrors = RouteRepositoryValidation.ValidateParametersForGetLongestRoutesAsync(10);
+        Console.WriteLine($"Top 10 routes validation errors: {topErrors.Count}"); // 0
+
+        // Validate invalid top count (too large)
+        var invalidTopErrors = RouteRepositoryValidation.ValidateParametersForGetLongestRoutesAsync(5000);
+        Console.WriteLine("Invalid top count errors:");
+        foreach (var error in invalidTopErrors)
+        {
+            Console.WriteLine($"- {error}");
+        }
+        // Output: - Top count 5000 is too large; maximum recommended is 1000.
+
+        // Validate completion status for GetRoutesByCompletionAsync
+        var completionErrors = RouteRepositoryValidation.ValidateParametersForGetRoutesByCompletionAsync(true);
+        Console.WriteLine($"Completion status validation errors: {completionErrors.Count}"); // 0
+
+        // Validate vehicle ID for GetAverageCompletionTimeAsync
+        var avgTimeErrors = RouteRepositoryValidation.ValidateParametersForGetAverageCompletionTimeAsync(1);
+        Console.WriteLine($"Average completion time validation errors: {avgTimeErrors.Count}"); // 0
+
+        // Validate pending routes (no parameters to validate)
+        var pendingErrors = RouteRepositoryValidation.ValidateParametersForGetPendingRoutesAsync();
+        Console.WriteLine($"Pending routes validation errors: {pendingErrors.Count}"); // 0
+    }
+}
+```
+
 ## LocationTrackingExceptionExtensions
 
 `LocationTrackingExceptionExtensions` provides extension methods for handling and extracting information from location tracking exceptions. This utility class helps extract contextual information from specific exception types like `VehicleNotFoundException`, `AssetNotFoundException`, `TrackingSessionNotFoundException`, and `InvalidLocationException`, and provides helper methods to determine error types and format error messages.
