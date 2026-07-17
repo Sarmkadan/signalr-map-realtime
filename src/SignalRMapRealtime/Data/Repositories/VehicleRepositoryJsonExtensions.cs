@@ -45,43 +45,31 @@ public static class VehicleRepositoryJsonExtensions
     }
 
     /// <summary>
-    /// Deserializes a JSON string to a VehicleRepository instance.
+    /// Deserializes a JSON string to a <see cref="VehicleRepository"/> instance.
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
-    /// <returns>The deserialized VehicleRepository instance, or null if the JSON is empty.</returns>
+    /// <returns>The deserialized <see cref="VehicleRepository"/> instance, or <see langword="null"/> if the JSON is empty or whitespace.</returns>
     /// <exception cref="JsonException">Thrown when the JSON is invalid or cannot be deserialized.</exception>
     public static VehicleRepository? FromJson(string json)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(json);
 
-        if (string.IsNullOrWhiteSpace(json))
-        {
-            return null;
-        }
-
-        return JsonSerializer.Deserialize<VehicleRepository>(json, _jsonSerializerOptions);
+        return string.IsNullOrWhiteSpace(json)
+            ? null
+            : JsonSerializer.Deserialize<VehicleRepository>(json, _jsonSerializerOptions);
     }
 
     /// <summary>
-    /// Attempts to deserialize a JSON string to a VehicleRepository instance.
+    /// Attempts to deserialize a JSON string to a <see cref="VehicleRepository"/> instance.
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
-    /// <param name="value">The deserialized VehicleRepository instance, or null if deserialization fails.</param>
-    /// <returns>True if deserialization succeeds; otherwise, false.</returns>
+    /// <param name="value">When this method returns, contains the deserialized <see cref="VehicleRepository"/> instance if deserialization succeeds; otherwise, <see langword="null"/>.</param>
+    /// <returns><see langword="true"/> if deserialization succeeds; otherwise, <see langword="false"/>.</returns>
     public static bool TryFromJson(string json, out VehicleRepository? value)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(json);
 
-        value = default;
-
-        try
-        {
-            value = JsonSerializer.Deserialize<VehicleRepository>(json, _jsonSerializerOptions);
-            return true;
-        }
-        catch (JsonException)
-        {
-            return false;
-        }
+        value = JsonSerializer.Deserialize<VehicleRepository>(json, _jsonSerializerOptions);
+        return value is not null;
     }
 }
