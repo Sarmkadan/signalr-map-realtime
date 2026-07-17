@@ -1,77 +1,34 @@
 // ... (rest of the file remains unchanged)
 
-## SignalrMapRealtimeOptions
+## RateLimitingOptions
 
-The `SignalrMapRealtimeOptions` class serves as the root configuration options for the SignalR Map Realtime application, consolidating all individual option classes into a single root configuration object. This allows for centralized management of application settings.
+The `RateLimitingOptions` class provides configuration options for rate limiting protection against abuse and DoS attacks. It allows you to customize rate limits for different types of requests, such as standard endpoints, location updates, authentication attempts, and more. By adjusting these settings, you can effectively prevent excessive usage and protect your application.
 
 ### Usage Example
 
 ```csharp
 using SignalRMapRealtime.Configuration;
 
-// Access and configure SignalrMapRealtimeOptions
-var signalrMapRealtimeOptions = new SignalrMapRealtimeOptions
+// Access and configure RateLimitingOptions
+var rateLimitingOptions = new RateLimitingOptions
 {
-    AppInfo = new AppInfoOptions
-    {
-        ApiVersion = "2.0.0",
-        ApiTitle = "SignalR Map Realtime API",
-        Environment = "Production",
-        EnableSwagger = true,
-        EnableCors = true,
-        RequestTimeoutSeconds = 30,
-        LocationUpdateIntervalSeconds = 30,
-        MaxPayloadSizeKb = 1024,
-    },
-    HealthChecks = new HealthCheckOptions
-    {
-        Enabled = true,
-        TimeoutSeconds = 5,
-        MinimumStatus = "Healthy"
-    },
-    ApiKeyAuthentication = new ApiKeyAuthenticationOptions
-    {
-        Enabled = true,
-        HeaderName = "X-API-Key",
-        Required = true
-    },
-    Performance = new PerformanceOptions
-    {
-        EnableDetailedMetrics = true,
-        MaxConcurrentConnections = 10000,
-        RequestQueueLimit = 1000
-    },
-    SignalRHubs = new SignalRHubOptions
-    {
-        Enabled = true,
-        MaxConnectionsPerHub = 10000,
-    },
-    WebSockets = new WebSocketOptions
-    {
-        Enabled = true,
-        KeepAliveIntervalSeconds = 30,
-    },
-    BackgroundJobs = new BackgroundJobsOptions
-    {
-        Enabled = true,
-        MaxConcurrentWorkers = 5,
-    },
-    Security = new SecurityOptions
-    {
-        EnableHttpsRedirection = true,
-        EnableRequestLogging = true,
-    }
+    Enabled = true,
+    RequestsPerMinute = 60,
+    LocationUpdatesPerMinute = 120,
+    AuthenticationAttemptsPerMinute = 10,
+    ListEndpointsPerMinute = 40,
+    WebhookRequestsPerMinute = 30,
+    WindowSizeSeconds = 60,
+    EnableIpBasedLimiting = true,
+    EnableUserBasedLimiting = true,
+    ExemptedEndpoints = new List<string> { "/health", "/api/info" },
+    WhitelistedIps = new List<string> { "192.168.1.100" },
+    TooManyRequestsStatusCode = 429,
+    IncludeRateLimitHeaders = true,
+    UseDistributedRateLimiting = false,
+    DistributedCounterTtlSeconds = 120
 };
 
-// Validate the configuration
-if (!signalrMapRealtimeOptions.Validate(out var validationResults))
-{
-    // Handle validation errors
-    foreach (var result in validationResults)
-    {
-        Console.WriteLine(result.ErrorMessage);
-    }
-}
-```
-
+// Use rateLimitingOptions in your application configuration
+``
 // ... (rest of the file remains unchanged)
