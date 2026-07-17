@@ -2,7 +2,7 @@
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
-// =============================================================================
+// =====================================================================
 
 namespace SignalRMapRealtime.Tests;
 
@@ -36,6 +36,7 @@ public static class PlaybackServiceTestsValidation
     /// </summary>
     /// <param name="value">The test instance to check.</param>
     /// <returns><c>true</c> if the instance is valid; otherwise, <c>false</c>.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is null.</exception>
     public static bool IsValid(this PlaybackServiceTests? value)
         => Validate(value).Count == 0;
 
