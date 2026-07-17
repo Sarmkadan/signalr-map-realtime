@@ -23,7 +23,7 @@ public static class PaginationExtensionsValidation
     /// </summary>
     /// <param name="value">The pagination info to validate.</param>
     /// <returns>An empty list if valid, otherwise a list of validation problems.</returns>
-    /// <exception cref="ArgumentNullException">Thrown if value is null.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is null.</exception>
     public static IReadOnlyList<string> Validate(this PaginationInfo value)
     {
         ArgumentNullException.ThrowIfNull(value);
@@ -60,18 +60,18 @@ public static class PaginationExtensionsValidation
             problems.Add($"Skip cannot be negative, but was {value.Skip}.");
         }
 
-        // Validate boolean flags consistency
-        if (value.IsFirstPage && value.PageNumber != 1)
+        // Validate boolean flags consistency using pattern matching
+        if (value.IsFirstPage is true && value.PageNumber != 1)
         {
             problems.Add("IsFirstPage is true but PageNumber is not 1.");
         }
 
-        if (value.HasPreviousPage && value.PageNumber <= 1)
+        if (value.HasPreviousPage is true && value.PageNumber <= 1)
         {
             problems.Add("HasPreviousPage is true but PageNumber is 1 or less.");
         }
 
-        if (value.HasNextPage && value.PageNumber >= value.TotalPages)
+        if (value.HasNextPage is true && value.PageNumber >= value.TotalPages)
         {
             problems.Add("HasNextPage is true but PageNumber is at or beyond TotalPages.");
         }
@@ -118,18 +118,15 @@ public static class PaginationExtensionsValidation
     /// </summary>
     /// <param name="value">The pagination info to check.</param>
     /// <returns>True if valid, false otherwise.</returns>
-    /// <exception cref="ArgumentNullException">Thrown if value is null.</exception>
-    public static bool IsValid(this PaginationInfo value)
-    {
-        return Validate(value).Count == 0;
-    }
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is null.</exception>
+    public static bool IsValid(this PaginationInfo value) => Validate(value).Count == 0;
 
     /// <summary>
     /// Ensures that the pagination state is valid, throwing an exception if not.
     /// The exception includes a detailed list of all validation problems.
     /// </summary>
     /// <param name="value">The pagination info to validate.</param>
-    /// <exception cref="ArgumentNullException">Thrown if value is null.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is null.</exception>
     /// <exception cref="ArgumentException">Thrown if validation fails, containing all problems.</exception>
     public static void EnsureValid(this PaginationInfo value)
     {
