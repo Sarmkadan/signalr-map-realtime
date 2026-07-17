@@ -23,9 +23,21 @@ public static class RouteDtoExtensions
     /// <param name="route">The route to calculate the duration for.</param>
     /// <returns>The duration of the route in minutes.</returns>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="route"/> is null.</exception>
+    /// <exception cref="ArgumentException">Thrown if <paramref name="route"/> has invalid time values.</exception>
     public static double CalculateDurationInMinutes(this RouteDto route)
     {
         ArgumentNullException.ThrowIfNull(route);
+
+        if (route.PlannedDepartureTime == default)
+        {
+            throw new ArgumentException("PlannedDepartureTime must be set", nameof(route));
+        }
+
+        if (route.EstimatedArrivalTime == default)
+        {
+            throw new ArgumentException("EstimatedArrivalTime must be set", nameof(route));
+        }
+
         var duration = route.EstimatedArrivalTime - route.PlannedDepartureTime;
         return duration.TotalMinutes;
     }
@@ -39,6 +51,6 @@ public static class RouteDtoExtensions
     public static bool HasValidVehicle(this RouteDto route)
     {
         ArgumentNullException.ThrowIfNull(route);
-        return route.VehicleId > 0 && route.Vehicle != null;
+        return route.VehicleId > 0 && route.Vehicle is not null;
     }
 }
