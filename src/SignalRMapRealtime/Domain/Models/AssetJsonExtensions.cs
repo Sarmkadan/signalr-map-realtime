@@ -66,9 +66,14 @@ public static class AssetJsonExtensions
     /// <param name="json">The JSON string to deserialize.</param>
     /// <param name="value">Receives the deserialized asset if successful.</param>
     /// <returns>True if deserialization succeeded; otherwise, false.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
     public static bool TryFromJson(string json, out Asset? value)
+        => TryFromJsonCore(json, out value);
+
+    private static bool TryFromJsonCore(string json, out Asset? value)
     {
         value = null;
+        ArgumentNullException.ThrowIfNull(json);
 
         if (string.IsNullOrWhiteSpace(json))
         {
@@ -77,8 +82,8 @@ public static class AssetJsonExtensions
 
         try
         {
-            value = JsonSerializer.Deserialize<Asset>(json, _jsonOptions)!;
-            return true;
+            value = JsonSerializer.Deserialize<Asset>(json, _jsonOptions);
+            return value is not null;
         }
         catch (JsonException)
         {
