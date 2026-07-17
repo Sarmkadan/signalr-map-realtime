@@ -645,3 +645,108 @@ class Program
     }
 }
 ```
+
+## SignalrMapRealtimeOptionsTests
+
+`SignalrMapRealtimeOptionsTests` contains unit tests for the `SignalrMapRealtimeOptions` configuration class, which validates application settings for the SignalR Map Realtime application. The test class verifies configuration validation rules for the main options object and all its nested configuration sections including AppInfo, HealthChecks, ApiKeyAuthentication, Performance, SignalRHubs, WebSockets, BackgroundJobs, and Security. Tests ensure that invalid configurations (wrong API versions, invalid environments, out-of-range values) are properly rejected while valid configurations pass validation.
+
+### Usage Example
+
+```csharp
+using Microsoft.Extensions.Configuration;
+using SignalRMapRealtime.Configuration;
+
+class Program
+{
+    static void Main()
+    {
+        // Create valid configuration
+        var validConfig = new SignalrMapRealtimeOptions
+        {
+            AppInfo = new SignalrMapRealtimeOptions.AppInfoOptions
+            {
+                ApiVersion = "2.0.0",
+                ApiTitle = "SignalR Map Realtime API",
+                Environment = "Production",
+                RequestTimeoutSeconds = 30,
+                LocationUpdateIntervalSeconds = 60
+            },
+            HealthChecks = new SignalrMapRealtimeOptions.HealthCheckOptions { Enabled = true },
+            ApiKeyAuthentication = new SignalrMapRealtimeOptions.ApiKeyAuthenticationOptions { Enabled = true },
+            Performance = new SignalrMapRealtimeOptions.PerformanceOptions
+            {
+                EnableDetailedMetrics = true,
+                MaxConcurrentConnections = 1000,
+                MaxConnectionsPerHub = 50000
+            },
+            SignalRHubs = new SignalrMapRealtimeOptions.SignalRHubOptions
+            {
+                Enabled = true,
+                MaxConnectionsPerHub = 1000
+            },
+            WebSockets = new SignalrMapRealtimeOptions.WebSocketOptions { Enabled = true },
+            BackgroundJobs = new SignalrMapRealtimeOptions.BackgroundJobsOptions { Enabled = true },
+            Security = new SignalrMapRealtimeOptions.SecurityOptions { EnableRateLimiting = true }
+        };
+
+        // Validate configuration
+        bool isValid = validConfig.Validate(out var validationResults);
+        Console.WriteLine($"Valid configuration: {isValid}");
+        if (!isValid)
+        {
+            foreach (var result in validationResults)
+            {
+                Console.WriteLine($"Validation error: {result.ErrorMessage}");
+            }
+        }
+
+        // Create invalid configuration (out of range values)
+        var invalidConfig = new SignalrMapRealtimeOptions
+        {
+            AppInfo = new SignalrMapRealtimeOptions.AppInfoOptions
+            {
+                ApiVersion = "2.0.0",
+                ApiTitle = "SignalR Map Realtime API",
+                Environment = "Production",
+                RequestTimeoutSeconds = 2, // Too low (< 5)
+                LocationUpdateIntervalSeconds = 700 // Too high (> 600)
+            },
+            HealthChecks = new SignalrMapRealtimeOptions.HealthCheckOptions { Enabled = true },
+            ApiKeyAuthentication = new SignalrMapRealtimeOptions.ApiKeyAuthenticationOptions { Enabled = true },
+            Performance = new SignalrMapRealtimeOptions.PerformanceOptions
+            {
+                EnableDetailedMetrics = true,
+                MaxConcurrentConnections = 99, // Too low (< 100)
+                MaxConnectionsPerHub = 50000
+            },
+            SignalRHubs = new SignalrMapRealtimeOptions.SignalRHubOptions
+            {
+                Enabled = true,
+                MaxConnectionsPerHub = 50001 // Too high (> 50000)
+            },
+            WebSockets = new SignalrMapRealtimeOptions.WebSocketOptions { Enabled = true },
+            BackgroundJobs = new SignalrMapRealtimeOptions.BackgroundJobsOptions { Enabled = true },
+            Security = new SignalrMapRealtimeOptions.SecurityOptions { EnableRateLimiting = true }
+        };
+
+        // Validate invalid configuration
+        isValid = invalidConfig.Validate(out validationResults);
+        Console.WriteLine($"Invalid configuration: {isValid}");
+        foreach (var result in validationResults)
+        {
+            Console.WriteLine($"Expected validation error: {result.ErrorMessage}");
+        }
+
+        // Verify section name
+        string sectionName = SignalrMapRealtimeOptions.SectionName;
+        Console.WriteLine($"Configuration section name: {sectionName}");
+
+        // Verify default values
+        var defaultOptions = new SignalrMapRealtimeOptions();
+        Console.WriteLine($"Default API version: {defaultOptions.AppInfo.ApiVersion}");
+        Console.WriteLine($"Default environment: {defaultOptions.AppInfo.Environment}");
+        Console.WriteLine($"Default performance metrics enabled: {defaultOptions.Performance.EnableDetailedMetrics}");
+        Console.WriteLine($"Default SignalR hubs enabled: {defaultOptions.SignalRHubs.Enabled}");
+    }
+}
+```
