@@ -897,6 +897,80 @@ class Program
 }
 ```
 
+## LocationTrackingExceptionExtensions
+
+`LocationTrackingExceptionExtensions` provides extension methods for handling and extracting information from location tracking exceptions. This utility class helps extract contextual information from specific exception types like `VehicleNotFoundException`, `AssetNotFoundException`, `TrackingSessionNotFoundException`, and `InvalidLocationException`, and provides helper methods to determine error types and format error messages.
+
+### Usage Example
+
+```csharp
+using System;
+using SignalRMapRealtime.Exceptions;
+
+class Program
+{
+    static void Main()
+    {
+        try
+        {
+            // Simulate a location tracking operation that throws an exception
+            throw new VehicleNotFoundException("Vehicle with ID 42 not found", 42);
+        }
+        catch (LocationTrackingException ex)
+        {
+            // Extract vehicle ID from the exception
+            int? vehicleId = ex.GetVehicleId();
+            Console.WriteLine($"Vehicle ID: {vehicleId}"); // Output: Vehicle ID: 42
+
+            // Extract asset ID (returns null for VehicleNotFoundException)
+            int? assetId = ex.GetAssetId();
+            Console.WriteLine($"Asset ID: {assetId}"); // Output: Asset ID: 
+
+            // Extract session ID (returns null for VehicleNotFoundException)
+            int? sessionId = ex.GetSessionId();
+            Console.WriteLine($"Session ID: {sessionId}"); // Output: Session ID: 
+
+            // Get coordinates (returns null for non-location exceptions)
+            ex.GetCoordinates(out double? latitude, out double? longitude);
+            Console.WriteLine($"Coordinates: Latitude={latitude}, Longitude={longitude}");
+
+            // Check if it's a not-found error
+            bool isNotFound = ex.IsNotFoundError();
+            Console.WriteLine($"Is not found error: {isNotFound}"); // Output: Is not found error: True
+
+            // Check if it's an invalid location error
+            bool isInvalidLocation = ex.IsInvalidLocationError();
+            Console.WriteLine($"Is invalid location error: {isInvalidLocation}"); // Output: Is invalid location error: False
+
+            // Get formatted error message
+            string errorMessage = ex.ToErrorMessage();
+            Console.WriteLine($"Error message: {errorMessage}");
+            // Output: Error message: Vehicle with ID 42 not found | Vehicle ID: 42
+        }
+
+        // Example with InvalidLocationException
+        try
+        {
+            throw new InvalidLocationException("Invalid coordinates provided", 181.0, -181.0);
+        }
+        catch (LocationTrackingException ex)
+        {
+            // Get coordinates from the exception
+            ex.GetCoordinates(out double? latitude, out double? longitude);
+            Console.WriteLine($"Invalid coordinates: Latitude={latitude}, Longitude={longitude}");
+
+            // Check error types
+            Console.WriteLine($"Is invalid location error: {ex.IsInvalidLocationError()}"); // Output: True
+            Console.WriteLine($"Is not found error: {ex.IsNotFoundError()}"); // Output: False
+
+            // Get formatted error message
+            Console.WriteLine($"Error message: {ex.ToErrorMessage()}");
+            // Output: Error message: Invalid coordinates provided | Coordinates: Latitude=181.000000, Longitude=-181.000000
+        }
+    }
+}
+```
+
 ## DomainModelBehaviorTests
 
 `DomainModelBehaviorTests` contains unit tests that verify the behavioral contracts of domain models in the SignalRMapRealtime application. This test class validates that domain entities like `Vehicle`, `TrackingSession`, and `Asset` behave correctly under various conditions, ensuring proper state transitions, validation rules, and business logic execution. The tests use FluentAssertions for clear, readable assertions and cover edge cases such as null configurations, invalid operations, and argument validation.
