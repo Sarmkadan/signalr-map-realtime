@@ -6,8 +6,8 @@
 
 namespace SignalRMapRealtime.Configuration;
 
+using System;
 using System.Collections.Generic;
-using System.Globalization;
 
 /// <summary>
 /// Provides validation helpers for <see cref="ThrottleOptions"/> configuration.
@@ -18,7 +18,6 @@ public static class ThrottleOptionsValidation
 {
     private const int MinimumAllowedIntervalSeconds = 1;
     private const int MaximumAllowedIntervalSeconds = 86400; // 24 hours
-    private const int DefaultDeliveryVanIntervalSeconds = 1;
 
     /// <summary>
     /// Validates the throttle configuration and returns a list of human-readable problems.
@@ -35,7 +34,7 @@ public static class ThrottleOptionsValidation
 
         if (!value.Enabled)
         {
-            return errors; // Validation disabled, no errors
+            return errors.AsReadOnly(); // Validation disabled, no errors
         }
 
         ValidateInterval(value.DeliveryVanIntervalSeconds, nameof(value.DeliveryVanIntervalSeconds), errors);
@@ -90,6 +89,9 @@ public static class ThrottleOptionsValidation
 
     private static void ValidateInterval(int intervalSeconds, string propertyName, List<string> errors)
     {
+        ArgumentNullException.ThrowIfNull(errors);
+        ArgumentException.ThrowIfNullOrEmpty(propertyName);
+
         if (intervalSeconds < MinimumAllowedIntervalSeconds)
         {
             errors.Add($"{propertyName}: {intervalSeconds} seconds is less than the minimum allowed value of {MinimumAllowedIntervalSeconds} seconds.");
