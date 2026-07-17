@@ -23,12 +23,9 @@ public static class RouteRepositoryValidation
     {
         ArgumentNullException.ThrowIfNull(value);
 
-        var problems = new List<string>();
-
-        // Repository instances are typically validated by their constructor
-        // No additional validation needed beyond null check for the repository itself
-
-        return problems.AsReadOnly();
+        // RouteRepository is a simple data access class with no complex dependencies
+        // All validation is handled by the constructor and DbContext
+        return Array.Empty<string>();
     }
 
     /// <summary>
@@ -36,44 +33,19 @@ public static class RouteRepositoryValidation
     /// </summary>
     /// <param name="value">The RouteRepository instance to check.</param>
     /// <returns>True if valid; otherwise, false.</returns>
-    public static bool IsValid(this RouteRepository? value)
-    {
-        return Validate(value).Count == 0;
-    }
-
-    /// <summary>
-    /// Ensures that a RouteRepository instance is valid, throwing an exception if not.
-    /// </summary>
-    /// <param name="value">The RouteRepository instance to validate.</param>
-    /// <exception cref="ArgumentNullException">Thrown when value is null.</exception>
-    /// <exception cref="ArgumentException">Thrown when validation fails, containing the list of problems.</exception>
-    public static void EnsureValid(this RouteRepository? value)
-    {
-        ArgumentNullException.ThrowIfNull(value);
-
-        var problems = Validate(value);
-        if (problems.Count > 0)
-        {
-            throw new ArgumentException(
-                $"RouteRepository validation failed:{Environment.NewLine}{string.Join(Environment.NewLine, problems)}");
-        }
-    }
+    public static bool IsValid(this RouteRepository? value) => Validate(value).Count == 0;
 
     /// <summary>
     /// Validates parameters for GetActiveRoutesByVehicleAsync.
     /// </summary>
     /// <param name="vehicleId">The vehicle identifier.</param>
     /// <returns>A list of validation problems; empty if valid.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when vehicleId is not positive.</exception>
     public static IReadOnlyList<string> ValidateParametersForGetActiveRoutesByVehicleAsync(this int vehicleId)
     {
-        var problems = new List<string>();
-
-        if (vehicleId <= 0)
-        {
-            problems.Add($"Vehicle ID must be positive, but was {vehicleId}.");
-        }
-
-        return problems.AsReadOnly();
+        return vehicleId > 0
+            ? Array.Empty<string>()
+            : [$"Vehicle ID must be positive, but was {vehicleId}."];
     }
 
     /// <summary>
@@ -81,16 +53,12 @@ public static class RouteRepositoryValidation
     /// </summary>
     /// <param name="userId">The user identifier.</param>
     /// <returns>A list of validation problems; empty if valid.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when userId is not positive.</exception>
     public static IReadOnlyList<string> ValidateParametersForGetRoutesByUserAsync(this int userId)
     {
-        var problems = new List<string>();
-
-        if (userId <= 0)
-        {
-            problems.Add($"User ID must be positive, but was {userId}.");
-        }
-
-        return problems.AsReadOnly();
+        return userId > 0
+            ? Array.Empty<string>()
+            : [$"User ID must be positive, but was {userId}."];
     }
 
     /// <summary>
@@ -98,27 +66,19 @@ public static class RouteRepositoryValidation
     /// </summary>
     /// <param name="isCompleted">Whether routes should be completed.</param>
     /// <returns>A list of validation problems; empty if valid.</returns>
-    public static IReadOnlyList<string> ValidateParametersForGetRoutesByCompletionAsync(this bool isCompleted)
-    {
-        // No validation needed for boolean parameter
-        return Array.Empty<string>();
-    }
+    public static IReadOnlyList<string> ValidateParametersForGetRoutesByCompletionAsync(this bool isCompleted) => Array.Empty<string>();
 
     /// <summary>
     /// Validates parameters for GetRouteWithDetailsAsync.
     /// </summary>
     /// <param name="routeId">The route identifier.</param>
     /// <returns>A list of validation problems; empty if valid.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when routeId is not positive.</exception>
     public static IReadOnlyList<string> ValidateParametersForGetRouteWithDetailsAsync(this int routeId)
     {
-        var problems = new List<string>();
-
-        if (routeId <= 0)
-        {
-            problems.Add($"Route ID must be positive, but was {routeId}.");
-        }
-
-        return problems.AsReadOnly();
+        return routeId > 0
+            ? Array.Empty<string>()
+            : [$"Route ID must be positive, but was {routeId}."];
     }
 
     /// <summary>
@@ -127,26 +87,15 @@ public static class RouteRepositoryValidation
     /// <param name="startDate">The start date of the range.</param>
     /// <param name="endDate">The end date of the range.</param>
     /// <returns>A list of validation problems; empty if valid.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when startDate is after endDate.</exception>
     public static IReadOnlyList<string> ValidateParametersForGetRoutesByDateRangeAsync(this DateTime startDate, DateTime endDate)
     {
-        var problems = new List<string>();
-
-        if (startDate == default)
-        {
-            problems.Add("Start date cannot be the default DateTime value.");
-        }
-
-        if (endDate == default)
-        {
-            problems.Add("End date cannot be the default DateTime value.");
-        }
-
         if (startDate > endDate)
         {
-            problems.Add("Start date must be before or equal to end date.");
+            return ["Start date must be before or equal to end date."];
         }
 
-        return problems.AsReadOnly();
+        return Array.Empty<string>();
     }
 
     /// <summary>
@@ -154,21 +103,14 @@ public static class RouteRepositoryValidation
     /// </summary>
     /// <param name="topCount">The number of routes to return.</param>
     /// <returns>A list of validation problems; empty if valid.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when topCount is not positive or exceeds 1000.</exception>
     public static IReadOnlyList<string> ValidateParametersForGetLongestRoutesAsync(this int topCount)
     {
-        var problems = new List<string>();
-
-        if (topCount <= 0)
-        {
-            problems.Add($"Top count must be positive, but was {topCount}.");
-        }
-
-        if (topCount > 1000)
-        {
-            problems.Add($"Top count {topCount} is too large; maximum recommended is 1000.");
-        }
-
-        return problems.AsReadOnly();
+        return topCount > 0 && topCount <= 1000
+            ? Array.Empty<string>()
+            : topCount <= 0
+                ? [$"Top count must be positive, but was {topCount}."]
+                : [$"Top count {topCount} is too large; maximum recommended is 1000."];
     }
 
     /// <summary>
@@ -176,25 +118,17 @@ public static class RouteRepositoryValidation
     /// </summary>
     /// <param name="vehicleId">The vehicle identifier.</param>
     /// <returns>A list of validation problems; empty if valid.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when vehicleId is not positive.</exception>
     public static IReadOnlyList<string> ValidateParametersForGetAverageCompletionTimeAsync(this int vehicleId)
     {
-        var problems = new List<string>();
-
-        if (vehicleId <= 0)
-        {
-            problems.Add($"Vehicle ID must be positive, but was {vehicleId}.");
-        }
-
-        return problems.AsReadOnly();
+        return vehicleId > 0
+            ? Array.Empty<string>()
+            : [$"Vehicle ID must be positive, but was {vehicleId}."];
     }
 
     /// <summary>
     /// Validates parameters for GetPendingRoutesAsync.
     /// </summary>
     /// <returns>A list of validation problems; empty if valid.</returns>
-    public static IReadOnlyList<string> ValidateParametersForGetPendingRoutesAsync()
-    {
-        // No parameters to validate
-        return Array.Empty<string>();
-    }
+    public static IReadOnlyList<string> ValidateParametersForGetPendingRoutesAsync() => Array.Empty<string>();
 }
