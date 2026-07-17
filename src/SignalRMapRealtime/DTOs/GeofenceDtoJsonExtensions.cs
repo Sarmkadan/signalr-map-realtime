@@ -58,6 +58,7 @@ public static class GeofenceDtoJsonExtensions
     /// <param name="json">The JSON string to deserialize.</param>
     /// <param name="value">Receives the deserialized <see cref="GeofenceDto"/> instance if successful.</param>
     /// <returns><see langword="true"/> if deserialization succeeded; otherwise, <see langword="false"/>.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is <see langword="null"/>, empty, or whitespace.</exception>
     public static bool TryFromJson(string json, out GeofenceDto? value)
     {
         ArgumentException.ThrowIfNullOrEmpty(json);
