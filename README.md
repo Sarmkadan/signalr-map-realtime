@@ -180,6 +180,87 @@ class Program
 }
 ```
 
+## GeoJsonSerializer
+
+`GeoJsonSerializer` converts location data, routes, and geofences to GeoJSON format, a standardized geographic data format used by mapping libraries like Leaflet and Mapbox. It provides static methods to serialize single locations, collections of locations, routes, and geofence circles into valid GeoJSON strings with proper coordinate ordering and camelCase property naming.
+
+### Usage Example
+
+```csharp
+using System;
+using SignalRMapRealtime.Domain.Models;
+using SignalRMapRealtime.Formatters;
+
+class Program
+{
+    static void Main()
+    {
+        // Serialize a single location to GeoJSON Point feature
+        var location = new Location
+        {
+            Id = Guid.NewGuid(),
+            VehicleId = Guid.NewGuid(),
+            Latitude = 40.7128,
+            Longitude = -74.0060,
+            Accuracy = 5.2,
+            Altitude = 10.5,
+            LocationType = "GPS"
+        };
+        
+        string locationJson = GeoJsonSerializer.SerializeLocation(location);
+        Console.WriteLine(locationJson);
+        
+        // Serialize multiple locations to GeoJSON FeatureCollection
+        var locations = new List<Location>();
+        for (int i = 0; i < 5; i++)
+        {
+            locations.Add(new Location
+            {
+                Id = Guid.NewGuid(),
+                VehicleId = Guid.NewGuid(),
+                Latitude = 40.7128 + (i * 0.001),
+                Longitude = -74.0060 + (i * 0.001),
+                Accuracy = 5.0,
+                Altitude = 10.0,
+                LocationType = "GPS"
+            });
+        }
+        
+        string locationsJson = GeoJsonSerializer.SerializeLocations(locations);
+        Console.WriteLine(locationsJson);
+        
+        // Serialize a route to GeoJSON LineString feature
+        var route = new Route
+        {
+            Id = Guid.NewGuid(),
+            Name = "Downtown to Warehouse",
+            Description = "Delivery route",
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+        
+        var waypoints = new List<(double Latitude, double Longitude)>
+        {
+            (40.7128, -74.0060),      // Start: Manhattan
+            (40.7484, -73.9857),      // Mid: Brooklyn Bridge
+            (40.7580, -73.9855)       // End: Downtown Brooklyn
+        };
+        
+        string routeJson = GeoJsonSerializer.SerializeRoute(route, waypoints);
+        Console.WriteLine(routeJson);
+        
+        // Serialize a geofence circle to GeoJSON
+        string geofenceJson = GeoJsonSerializer.SerializeGeofence(
+            Guid.NewGuid(),
+            40.7484,
+            -73.9857,
+            500.0
+        );
+        Console.WriteLine(geofenceJson);
+    }
+}
+```
+
 ## PlaybackController
 
 `PlaybackController` provides REST endpoints for managing historical route playback sessions, retrieving timelines, snapshots, and statistics. It enables clients to start a playback session, query active sessions, obtain the state of a specific session, stop a session, and fetch detailed timeline or snapshot data for a tracking session.
