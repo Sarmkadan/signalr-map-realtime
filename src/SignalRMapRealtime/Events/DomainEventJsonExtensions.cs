@@ -33,7 +33,6 @@ public static class DomainEventJsonExtensions
     public static string ToJson(this DomainEvent value, bool indented = false)
     {
         ArgumentNullException.ThrowIfNull(value);
-
         return JsonSerializer.Serialize(value, indented ? GetIndentedOptions() : _jsonOptions);
     }
 
@@ -42,15 +41,14 @@ public static class DomainEventJsonExtensions
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
     /// <returns>The deserialized domain event, or null if the JSON is empty or whitespace.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
     /// <exception cref="JsonException">Thrown when the JSON is invalid or cannot be deserialized.</exception>
     public static DomainEvent? FromJson(string json)
     {
-        if (string.IsNullOrWhiteSpace(json))
-        {
-            return null;
-        }
-
-        return JsonSerializer.Deserialize<DomainEvent>(json, _jsonOptions);
+        ArgumentNullException.ThrowIfNull(json);
+        return string.IsNullOrWhiteSpace(json)
+            ? null
+            : JsonSerializer.Deserialize<DomainEvent>(json, _jsonOptions);
     }
 
     /// <summary>
@@ -59,8 +57,11 @@ public static class DomainEventJsonExtensions
     /// <param name="json">The JSON string to deserialize.</param>
     /// <param name="value">Receives the deserialized domain event if successful.</param>
     /// <returns>True if deserialization succeeded; otherwise, false.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
     public static bool TryFromJson(string json, out DomainEvent? value)
     {
+        ArgumentNullException.ThrowIfNull(json);
+
         value = null;
 
         if (string.IsNullOrWhiteSpace(json))
@@ -82,12 +83,8 @@ public static class DomainEventJsonExtensions
     /// <summary>
     /// Gets JSON serialization options with indentation enabled.
     /// </summary>
-    private static JsonSerializerOptions GetIndentedOptions()
+    private static JsonSerializerOptions GetIndentedOptions() => new(_jsonOptions)
     {
-        var options = new JsonSerializerOptions(_jsonOptions)
-        {
-            WriteIndented = true,
-        };
-        return options;
-    }
+        WriteIndented = true,
+    };
 }
