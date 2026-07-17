@@ -46,4 +46,32 @@ var notificationOptions = new NotificationOptions
 };
 ```
 
+## ThrottleOptions
+
+`ThrottleOptions` configures per‑asset‑type throttling for location updates, allowing you to limit how frequently each type of asset can broadcast its position. This helps reduce unnecessary SignalR traffic for slow‑moving or stationary assets while still keeping fast‑moving assets responsive.
+
+### Usage Example
+
+```csharp
+using SignalRMapRealtime.Configuration;
+using SignalRMapRealtime.Domain.Enums;
+
+// Create a throttle configuration with custom intervals
+var throttleOptions = new ThrottleOptions
+{
+    Enabled = true,
+    DeliveryVanIntervalSeconds = 2,
+    CourierIntervalSeconds = 12,
+    BicycleIntervalSeconds = 20,
+    MotorcycleIntervalSeconds = 5,
+    PortableIntervalSeconds = 30,
+    FixedAssetIntervalSeconds = 300,
+    DroneIntervalSeconds = 1
+};
+
+// Get the minimum interval for a specific asset type
+TimeSpan courierInterval = throttleOptions.GetIntervalForAssetType(AssetType.Courier);
+Console.WriteLine($"Courier updates are throttled to one every {courierInterval.TotalSeconds} seconds.");
+```
+
 // ... (rest of the file remains unchanged)
