@@ -572,3 +572,76 @@ public class PlaybackServiceTestsExample
     }
 }
 ```
+
+## GeofenceServiceTests
+
+`GeofenceServiceTests` contains unit tests for the `GeofenceService` class, which manages geofence zone registration, removal, and location checking functionality. The test class verifies that zones can be registered and removed correctly, and that vehicle locations are properly evaluated against geofence boundaries to generate boundary-crossing alerts (entry/exit events). Tests cover both circle and polygon zone shapes and ensure that alerts are only emitted on state changes, preventing duplicate alerts for vehicles that remain inside zones.
+
+### Usage Example
+
+```csharp
+using System;
+using System.Threading.Tasks;
+using FluentAssertions;
+using SignalRMapRealtime.DTOs;
+using SignalRMapRealtime.Services;
+
+class Program
+{
+    static async Task Main()
+    {
+        // Create the geofence service
+        var eventBus = new InMemoryEventBus();
+        var service = new GeofenceService(eventBus, Microsoft.Extensions.Logging.Abstractions.NullLogger<GeofenceService>.Instance);
+
+        // Register a new circular geofence zone (500m radius around London coordinates)
+        var newZone = new CreateGeofenceDto
+        {
+            Name = "Central London Zone",
+            Type = GeofenceType.Circle,
+            IsActive = true,
+            CenterLatitude = 51.5074,
+            CenterLongitude = -0.1278,
+            RadiusKm = 0.5, // 500 meters
+            Description = "Restricted area in central London"
+        };
+
+        var registeredZone = await service.RegisterZoneAsync(newZone);
+        Console.WriteLine($"Registered zone: {registeredZone.Id} - {registeredZone.Name}");
+
+        // Get all active zones
+        var activeZones = await service.GetActiveZonesAsync();
+        Console.WriteLine($"Active zones count: {activeZones.Count}");
+
+        // Check vehicle location against geofences (vehicle enters the zone)
+        var vehicleId = Guid.NewGuid();
+        var alertsOnEntry = await service.CheckLocationAsync(vehicleId, 51.5074, -0.1278);
+        Console.WriteLine($"Alerts on entry: {alertsOnEntry.Count}");
+        if (alertsOnEntry.Count > 0)
+        {
+            Console.WriteLine($"  - Violation: {alertsOnEntry[0].ViolationType}");
+            Console.WriteLine($"  - Vehicle: {alertsOnEntry[0].VehicleId}");
+        }
+
+        // Check vehicle location again (vehicle remains inside the zone - no duplicate alert)
+        var alertsOnStay = await service.CheckLocationAsync(vehicleId, 51.5075, -0.1279);
+        Console.WriteLine($"Alerts while staying inside: {alertsOnStay.Count}");
+
+        // Move vehicle outside the zone (vehicle exits)
+        var alertsOnExit = await service.CheckLocationAsync(vehicleId, 52.0, 1.0);
+        Console.WriteLine($"Alerts on exit: {alertsOnExit.Count}");
+        if (alertsOnExit.Count > 0)
+        {
+            Console.WriteLine($"  - Violation: {alertsOnExit[0].ViolationType}");
+        }
+
+        // Remove the zone
+        var removed = await service.RemoveZoneAsync(registeredZone.Id);
+        Console.WriteLine($"Zone removed: {removed}");
+
+        // Verify zone is gone
+        var remainingZones = await service.GetActiveZonesAsync();
+        Console.WriteLine($"Remaining zones: {remainingZones.Count}");
+    }
+}
+```
