@@ -143,6 +143,51 @@ foreach (var item in pending)
 }
 ```
 
+## ICacheService
+
+The `ICacheService` interface provides a unified, abstract interface for caching operations, supporting both local memory caching and distributed caching to improve application performance. It allows business logic to store, retrieve, check for, and remove cached data without needing to know the underlying cache provider implementation.
+
+### Usage Example
+
+```csharp
+using SignalRMapRealtime.Services;
+using SignalRMapRealtime.DTOs;
+
+// Assuming cacheService is injected
+string cacheKey = "vehicle_1_details";
+
+// 1. Get or Create
+// Retrieves from cache if exists, otherwise calls the factory to fetch and cache
+var vehicle = await cacheService.GetOrCreateAsync(
+    cacheKey,
+    async () => {
+        // Simulate database or API call
+        return await Task.FromResult(new VehicleDto { Id = 1, Name = "Vehicle 1" });
+    },
+    TimeSpan.FromMinutes(5)
+);
+
+// 2. Check Exists
+if (await cacheService.ExistsAsync(cacheKey))
+{
+    // 3. Get
+    var cachedVehicle = await cacheService.GetAsync<VehicleDto>(cacheKey);
+    Console.WriteLine($"Retrieved: {cachedVehicle?.Name}");
+}
+
+// 4. Set
+await cacheService.SetAsync("vehicle_1_status", "Active", TimeSpan.FromMinutes(1));
+
+// 5. Remove
+await cacheService.RemoveAsync("vehicle_1_status");
+
+// 6. Remove By Pattern
+await cacheService.RemoveByPatternAsync("vehicle_*");
+
+// 7. Clear
+await cacheService.ClearAsync();
+```
+
 ## ILocationService
 
 The `ILocationService` interface provides comprehensive functionality for managing location-based operations, including recording location updates, querying location history, and performing geofencing calculations. It also facilitates retrieving aggregated performance statistics for vehicles over specific time intervals.
