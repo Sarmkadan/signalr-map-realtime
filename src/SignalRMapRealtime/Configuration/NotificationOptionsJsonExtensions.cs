@@ -13,7 +13,7 @@ namespace SignalRMapRealtime.Configuration;
 /// <summary>
 /// Provides System.Text.Json serialization and deserialization extensions for <see cref="NotificationOptions"/>.
 /// </summary>
-public static class NotificationOptionsJsonExtensions
+internal static class NotificationOptionsJsonExtensions
 {
     /// <summary>
     /// Gets the cached JSON serializer options configured for camelCase property naming.
@@ -32,19 +32,11 @@ public static class NotificationOptionsJsonExtensions
     /// <param name="value">The notification options to serialize.</param>
     /// <param name="indented">Whether to format the JSON with indentation for readability.</param>
     /// <returns>A JSON string representation of the notification options.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="value"/> is null.</exception>
     public static string ToJson(this NotificationOptions value, bool indented = false)
     {
         ArgumentNullException.ThrowIfNull(value);
-
-        var options = indented
-            ? new JsonSerializerOptions(JsonOptions)
-            {
-                WriteIndented = true,
-            }
-            : JsonOptions;
-
-        return JsonSerializer.Serialize(value, options);
+        return JsonSerializer.Serialize(value, indented ? new JsonSerializerOptions(JsonOptions) { WriteIndented = true } : JsonOptions);
     }
 
     /// <summary>
@@ -52,8 +44,8 @@ public static class NotificationOptionsJsonExtensions
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
     /// <returns>The deserialized notification options, or null if the JSON is invalid.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
-    /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is empty or whitespace.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="json"/> is null.</exception>
+    /// <exception cref="ArgumentException"><paramref name="json"/> is empty or whitespace.</exception>
     public static NotificationOptions? FromJson(string json)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(json);
@@ -74,10 +66,11 @@ public static class NotificationOptionsJsonExtensions
     /// <param name="json">The JSON string to deserialize.</param>
     /// <param name="value">Receives the deserialized notification options if successful.</param>
     /// <returns>True if deserialization succeeded; otherwise, false.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="json"/> is null.</exception>
+    /// <exception cref="ArgumentException"><paramref name="json"/> is empty or whitespace.</exception>
     public static bool TryFromJson(string json, out NotificationOptions? value)
     {
-        ArgumentNullException.ThrowIfNull(json);
+        ArgumentException.ThrowIfNullOrWhiteSpace(json);
 
         try
         {
