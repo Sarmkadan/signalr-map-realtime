@@ -10,7 +10,7 @@ using System.Text.Json.Serialization.Metadata;
 namespace SignalRMapRealtime.Utilities;
 
 /// <summary>
-/// Provides System.Text.Json serialization and deserialization extensions for DateTimeExtensions.
+/// Provides System.Text.Json serialization and deserialization extensions for <see cref="DateTime"/> values.
 /// Enables JSON serialization/deserialization of DateTime values with camelCase naming convention.
 /// </summary>
 public static class DateTimeExtensionsJsonExtensions
@@ -28,11 +28,8 @@ public static class DateTimeExtensionsJsonExtensions
     /// <param name="value">The DateTime value to serialize.</param>
     /// <param name="indented">Whether to format the JSON with indentation for readability.</param>
     /// <returns>A JSON string representation of the DateTime value.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
     public static string ToJson(this DateTime value, bool indented = false)
     {
-        ArgumentNullException.ThrowIfNull(value);
-
         var options = indented
             ? new JsonSerializerOptions(_jsonSerializerOptions) { WriteIndented = true }
             : _jsonSerializerOptions;
@@ -44,11 +41,11 @@ public static class DateTimeExtensionsJsonExtensions
     /// Deserializes a JSON string to a DateTime value.
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
-    /// <returns>The deserialized DateTime value, or null if the JSON is null or empty.</returns>
+    /// <returns>The deserialized DateTime value, or null if the JSON is null, empty, or whitespace.</returns>
     /// <exception cref="JsonException">Thrown when the JSON is invalid or cannot be deserialized to DateTime.</exception>
     public static DateTime? FromJson(string? json)
     {
-        if (string.IsNullOrEmpty(json))
+        if (string.IsNullOrWhiteSpace(json))
         {
             return null;
         }
@@ -69,11 +66,17 @@ public static class DateTimeExtensionsJsonExtensions
     /// <param name="json">The JSON string to deserialize.</param>
     /// <param name="value">Receives the deserialized DateTime value if successful; otherwise, null.</param>
     /// <returns>True if deserialization succeeded; otherwise, false.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
     public static bool TryFromJson(string? json, out DateTime? value)
     {
         value = null;
 
-        if (string.IsNullOrEmpty(json))
+        if (json is null)
+        {
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(json))
         {
             return true;
         }
