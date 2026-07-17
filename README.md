@@ -92,3 +92,30 @@ var user = new UserDto
 
 Console.WriteLine($"User: {user.FullName} ({user.Email}) - Active: {user.IsActive}");
 ```
+
+## TrackingService
+
+The `TrackingService` provides comprehensive functionality for managing the lifecycle of vehicle tracking sessions. It allows users to start, pause, resume, complete, and cancel sessions while also offering methods to retrieve session history, status information, and performance statistics such as distance and average speed.
+
+### Usage Example
+
+```csharp
+using SignalRMapRealtime.Services;
+
+// Assuming trackingService is injected
+// Start a new session for vehicle 1
+int sessionId = await trackingService.StartTrackingSessionAsync(1, "Morning Route");
+
+// Pause the session
+await trackingService.PauseSessionAsync(sessionId);
+
+// Get session stats
+double distance = await trackingService.GetSessionDistanceAsync(sessionId);
+double avgSpeed = await trackingService.GetSessionAverageSpeedAsync(sessionId);
+
+Console.WriteLine($"Session {sessionId} stats: Distance={distance}km, AvgSpeed={avgSpeed}km/h");
+
+// Complete the session
+await trackingService.CompleteSessionAsync(sessionId);
+```
+
