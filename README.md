@@ -30,5 +30,68 @@ var rateLimitingOptions = new RateLimitingOptions
 };
 
 // Use rateLimitingOptions in your application configuration
-``
+```
+
+## CollectionExtensions
+
+`CollectionExtensions` provides a set of handy LINQ‑style extension methods for working with `IEnumerable<T>` and `List<T>` collections. It includes helpers for adding items without duplicates, chunking, partitioning, safe retrieval, and other common collection tasks.
+
+**Usage example**
+
+```csharp
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using SignalRMapRealtime.Utilities;
+
+class Program
+{
+    static async Task Main()
+    {
+        var numbers = new List<int> { 1, 2, 2, 3, 4, 5 };
+
+        // Add items if they don't already exist
+        numbers.AddIfNotExists(6);
+        numbers.AddRangeIfNotExists(new[] { 3, 7 });
+
+        // Remove even numbers
+        numbers.RemoveWhere(n => n % 2 == 0);
+
+        // Safe first/last retrieval
+        int? first = numbers.GetFirstOrNull();
+        int? last = numbers.GetLastOrNull();
+
+        // Null/empty checks
+        bool isEmpty = numbers.IsNullOrEmpty();
+        bool hasItems = numbers.HasItems();
+
+        // Distinct by key
+        var distinct = numbers.DistinctBy(n => n);
+
+        // Chunk into groups of 2
+        var chunks = numbers.ChunkBy(2);
+
+        // Flatten nested collections
+        var nested = new List<List<int>> { new() { 1, 2 }, new() { 3, 4 } };
+        var flat = nested.Flatten();
+
+        // Partition into even and odd numbers
+        var (evens, odds) = numbers.Partition(n => n % 2 == 0);
+
+        // Iterate with actions
+        numbers.ForEach(n => Console.WriteLine(n));
+        await numbers.ForEachAsync(async n => await Task.Delay(10));
+
+        // Get items at specific indices
+        var at = numbers.GetAt(0, 2);
+
+        // Create a dictionary, keeping the first occurrence of each key
+        var dict = numbers.ToDictionaryDistinct(n => n, n => n.ToString());
+
+        // Shuffle the collection
+        var shuffled = numbers.Shuffle();
+    }
+}
+```
+
 // ... (rest of the file remains unchanged)
