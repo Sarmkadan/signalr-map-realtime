@@ -13,6 +13,9 @@ namespace SignalRMapRealtime.Exceptions;
 /// <summary>
 /// Provides JSON serialization and deserialization extensions for <see cref="LocationTrackingException"/> and its derived types.
 /// </summary>
+/// <remarks>
+/// This class uses <see cref="JsonSerializer"/> with camelCase naming policy and ignores null values during serialization.
+/// </remarks>
 public static class LocationTrackingExceptionJsonExtensions
 {
     private static readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web)
@@ -46,8 +49,9 @@ public static class LocationTrackingExceptionJsonExtensions
     /// Deserializes a JSON string to a <see cref="LocationTrackingException"/>.
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
-    /// <returns>The deserialized exception, or null if the JSON is invalid.</returns>
+    /// <returns>The deserialized exception if successful; otherwise, null.</returns>
     /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is null or empty.</exception>
+/// <exception cref="JsonException">Thrown when the JSON is malformed and cannot be deserialized.</exception>
     public static LocationTrackingException? FromJson(string json)
     {
         ArgumentException.ThrowIfNullOrEmpty(json);
@@ -67,8 +71,9 @@ public static class LocationTrackingExceptionJsonExtensions
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
     /// <param name="value">Receives the deserialized exception if successful.</param>
-    /// <returns>True if deserialization succeeded; otherwise, false.</returns>
+    /// <returns>True if deserialization succeeded; otherwise, false. When false, <paramref name="value"/> will be null.</returns>
     /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is null or empty.</exception>
+/// <exception cref="JsonException">Thrown when the JSON is malformed and cannot be deserialized.</exception>
     public static bool TryFromJson(string json, out LocationTrackingException? value)
     {
         ArgumentException.ThrowIfNullOrEmpty(json);
