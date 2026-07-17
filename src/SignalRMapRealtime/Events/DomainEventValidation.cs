@@ -86,6 +86,7 @@ public static class DomainEventValidation
     /// <exception cref="ArgumentNullException">Thrown when value is null.</exception>
     public static bool IsValid(this DomainEvent? value)
     {
+        ArgumentNullException.ThrowIfNull(value);
         return Validate(value).Count == 0;
     }
 
@@ -121,13 +122,13 @@ public static class DomainEventValidation
         }
 
         // Validate coordinates (latitude must be between -90 and 90)
-        if (locationEvent.Latitude < -90.0 || locationEvent.Latitude > 90.0)
+        if (locationEvent.Latitude is < -90.0 or > 90.0)
         {
             problems.Add("Latitude must be between -90.0 and 90.0");
         }
 
         // Validate longitude (must be between -180 and 180)
-        if (locationEvent.Longitude < -180.0 || locationEvent.Longitude > 180.0)
+        if (locationEvent.Longitude is < -180.0 or > 180.0)
         {
             problems.Add("Longitude must be between -180.0 and 180.0");
         }
@@ -139,32 +140,32 @@ public static class DomainEventValidation
         }
 
         // Validate previous coordinates if provided
-        if (locationEvent.PreviousLatitude.HasValue)
+        if (locationEvent.PreviousLatitude is not null)
         {
-            if (locationEvent.PreviousLatitude.Value < -90.0 || locationEvent.PreviousLatitude.Value > 90.0)
+            if (locationEvent.PreviousLatitude is < -90.0 or > 90.0)
             {
                 problems.Add("PreviousLatitude must be between -90.0 and 90.0");
             }
         }
 
-        if (locationEvent.PreviousLongitude.HasValue)
+        if (locationEvent.PreviousLongitude is not null)
         {
-            if (locationEvent.PreviousLongitude.Value < -180.0 || locationEvent.PreviousLongitude.Value > 180.0)
+            if (locationEvent.PreviousLongitude is < -180.0 or > 180.0)
             {
                 problems.Add("PreviousLongitude must be between -180.0 and 180.0");
             }
         }
 
         // Validate speed (should be non-negative if provided)
-        if (locationEvent.Speed.HasValue && locationEvent.Speed.Value < 0.0)
+        if (locationEvent.Speed is not null && locationEvent.Speed < 0.0)
         {
             problems.Add("Speed must be non-negative");
         }
 
         // Validate heading (should be between 0 and 360 if provided)
-        if (locationEvent.Heading.HasValue)
+        if (locationEvent.Heading is not null)
         {
-            if (locationEvent.Heading.Value < 0.0 || locationEvent.Heading.Value > 360.0)
+            if (locationEvent.Heading is < 0.0 or > 360.0)
             {
                 problems.Add("Heading must be between 0.0 and 360.0");
             }
@@ -307,19 +308,19 @@ public static class DomainEventValidation
         }
 
         // Validate coordinates (latitude must be between -90 and 90)
-        if (geofenceEvent.Latitude < -90.0 || geofenceEvent.Latitude > 90.0)
+        if (geofenceEvent.Latitude is < -90.0 or > 90.0)
         {
             problems.Add("Latitude must be between -90.0 and 90.0");
         }
 
         // Validate longitude (must be between -180 and 180)
-        if (geofenceEvent.Longitude < -180.0 || geofenceEvent.Longitude > 180.0)
+        if (geofenceEvent.Longitude is < -180.0 or > 180.0)
         {
             problems.Add("Longitude must be between -180.0 and 180.0");
         }
 
         // Validate DistanceFromBoundaryMeters
-        if (geofenceEvent.DistanceFromBoundaryMeters < -10000.0 || geofenceEvent.DistanceFromBoundaryMeters > 10000.0)
+        if (geofenceEvent.DistanceFromBoundaryMeters is < -10000.0 or > 10000.0)
         {
             problems.Add("DistanceFromBoundaryMeters must be between -10000.0 and 10000.0");
         }
