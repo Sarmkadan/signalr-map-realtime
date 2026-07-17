@@ -324,3 +324,185 @@ class Program
     }
 }
 ```
+
+## PlaybackServiceTests
+
+`PlaybackServiceTests` contains unit tests for the `PlaybackService` class, which manages playback sessions for tracking data. The test class verifies functionality for retrieving playback states, building timelines from location data, obtaining playback statistics, and generating snapshots at specific timestamps. It ensures that the service correctly handles edge cases like unknown sessions, empty location data, and validates proper behavior across different scenarios.
+
+### Usage Example
+
+```csharp
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Moq;
+using SignalRMapRealtime.Domain.Models;
+using SignalRMapRealtime.Services;
+using Xunit;
+
+public class PlaybackServiceTestsExample
+{
+    private readonly PlaybackService _playbackService;
+    private readonly Mock<IPlaybackRepository> _mockRepository;
+
+    public PlaybackServiceTestsExample()
+    {
+        _mockRepository = new Mock<IPlaybackRepository>();
+        _playbackService = new PlaybackService(_mockRepository.Object);
+    }
+
+    public async Task Example_GetPlaybackStateAsync_ForUnknownSession_ReturnsNull()
+    {
+        // Arrange
+        var unknownSessionId = 999;
+        _mockRepository.Setup(x => x.GetPlaybackStateAsync(unknownSessionId))
+                     .ReturnsAsync((PlaybackState?)null);
+
+        // Act
+        var result = await _playbackService.GetPlaybackStateAsync(unknownSessionId);
+
+        // Assert
+        Assert.Null(result);
+    }
+
+    public async Task Example_GetActivePlaybacksAsync_WithNoActiveSessions_ReturnsEmptyList()
+    {
+        // Arrange
+        _mockRepository.Setup(x => x.GetActivePlaybacksAsync())
+                     .ReturnsAsync(new List<PlaybackSession>());
+
+        // Act
+        var result = await _playbackService.GetActivePlaybacksAsync();
+
+        // Assert
+        Assert.Empty(result);
+    }
+
+    public async Task Example_BuildTimelineAsync_ForSessionWithNoLocations_ReturnsNull()
+    {
+        // Arrange
+        var sessionId = 1;
+        _mockRepository.Setup(x => x.GetLocationsAsync(sessionId))
+                     .ReturnsAsync(new List<Location>());
+
+        // Act
+        var result = await _playbackService.BuildTimelineAsync(sessionId);
+
+        // Assert
+        Assert.Null(result);
+    }
+
+    public async Task Example_BuildTimelineAsync_ForSessionWithLocations_ReturnsPopulatedTimeline()
+    {
+        // Arrange
+        var sessionId = 1;
+        var locations = new List<Location>
+        {
+            new Location
+            {
+                Id = Guid.NewGuid(),
+                VehicleId = Guid.NewGuid(),
+                Latitude = 40.7128,
+                Longitude = -74.0060,
+                Timestamp = DateTime.UtcNow.AddMinutes(-10)
+            },
+            new Location
+            {
+                Id = Guid.NewGuid(),
+                VehicleId = Guid.NewGuid(),
+                Latitude = 40.7484,
+                Longitude = -73.9857,
+                Timestamp = DateTime.UtcNow.AddMinutes(-5)
+            }
+        };
+        _mockRepository.Setup(x => x.GetLocationsAsync(sessionId))
+                     .ReturnsAsync(locations);
+
+        // Act
+        var result = await _playbackService.BuildTimelineAsync(sessionId);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.NotEmpty(result.Points);
+    }
+
+    public async Task Example_GetPlaybackStatisticsAsync_ForValidSession_ReturnsStatistics()
+    {
+        // Arrange
+        var sessionId = 1;
+        var locations = new List<Location>
+        {
+            new Location
+            {
+                Id = Guid.NewGuid(),
+                VehicleId = Guid.NewGuid(),
+                Latitude = 40.7128,
+                Longitude = -74.0060,
+                Timestamp = DateTime.UtcNow.AddMinutes(-10)
+            },
+            new Location
+            {
+                Id = Guid.NewGuid(),
+                VehicleId = Guid.NewGuid(),
+                Latitude = 40.7484,
+                Longitude = -73.9857,
+                Timestamp = DateTime.UtcNow.AddMinutes(-5)
+            }
+        };
+        _mockRepository.Setup(x => x.GetLocationsAsync(sessionId))
+                     .ReturnsAsync(locations);
+
+        // Act
+        var result = await _playbackService.GetPlaybackStatisticsAsync(sessionId);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.True(result.TotalDistanceKm > 0);
+        Assert.True(result.DurationMinutes > 0);
+    }
+
+    public async Task Example_GetSnapshotAtTimestampAsync_ForSessionWithData_ReturnsFrame()
+    {
+        // Arrange
+        var sessionId = 1;
+        var timestamp = DateTime.UtcNow.AddMinutes(-7);
+        var locations = new List<Location>
+        {
+            new Location
+            {
+                Id = Guid.NewGuid(),
+                VehicleId = Guid.NewGuid(),
+                Latitude = 40.7128,
+                Longitude = -74.0060,
+                Timestamp = DateTime.UtcNow.AddMinutes(-10)
+            },
+            new Location
+            {
+                Id = Guid.NewGuid(),
+                VehicleId = Guid.NewGuid(),
+                Latitude = 40.7484,
+                Longitude = -73.9857,
+                Timestamp = timestamp
+            },
+            new Location
+            {
+                Id = Guid.NewGuid(),
+                VehicleId = Guid.NewGuid(),
+                Latitude = 40.7580,
+                Longitude = -73.9855,
+                Timestamp = DateTime.UtcNow.AddMinutes(-3)
+            }
+        };
+        _mockRepository.Setup(x => x.GetLocationsAsync(sessionId))
+                     .ReturnsAsync(locations);
+
+        // Act
+        var result = await _playbackService.GetSnapshotAtTimestampAsync(sessionId, timestamp);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.NotNull(result.Vehicle);
+        Assert.Equal(timestamp, result.Timestamp);
+    }
+}
+```
