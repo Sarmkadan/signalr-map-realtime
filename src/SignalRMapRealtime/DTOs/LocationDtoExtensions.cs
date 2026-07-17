@@ -1,16 +1,19 @@
 using System;
-using System.Globalization;
 
 namespace SignalRMapRealtime.DTOs;
 
+/// <summary>
+/// Provides extension methods for <see cref="LocationDto"/> objects to perform location-based calculations and comparisons.
+/// </summary>
 public static class LocationDtoExtensions
 {
     /// <summary>
     /// Calculates the distance between two locations using the Haversine formula.
     /// </summary>
-    /// <param name="location">The location to calculate from.</param>
-    /// <param name="otherLocation">The other location.</param>
+    /// <param name="location">The location to calculate from. Cannot be <see langword="null"/>.</param>
+    /// <param name="otherLocation">The other location. Cannot be <see langword="null"/>.</param>
     /// <returns>The distance between the two locations in kilometers.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="location"/> or <paramref name="otherLocation"/> is <see langword="null"/>.</exception>
     public static double CalculateDistanceTo(this LocationDto location, LocationDto otherLocation)
     {
         ArgumentNullException.ThrowIfNull(location);
@@ -37,10 +40,12 @@ public static class LocationDtoExtensions
     /// <summary>
     /// Checks if two locations are within a certain distance of each other.
     /// </summary>
-    /// <param name="location">The location to check.</param>
-    /// <param name="otherLocation">The other location.</param>
-    /// <param name="maxDistanceKm">The maximum distance in kilometers.</param>
+    /// <param name="location">The location to check. Cannot be <see langword="null"/>.</param>
+    /// <param name="otherLocation">The other location. Cannot be <see langword="null"/>.</param>
+    /// <param name="maxDistanceKm">The maximum distance in kilometers. Must be non-negative.</param>
     /// <returns>True if the locations are within the maximum distance, false otherwise.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="location"/> or <paramref name="otherLocation"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException"><paramref name="maxDistanceKm"/> is negative.</exception>
     public static bool IsWithinDistance(this LocationDto location, LocationDto otherLocation, double maxDistanceKm)
     {
         ArgumentNullException.ThrowIfNull(location);
