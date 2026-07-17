@@ -3,7 +3,7 @@
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
-// =====================================================================
+// ===================================================================
 
 namespace SignalRMapRealtime.Controllers;
 
@@ -33,12 +33,7 @@ public static class PlaybackControllerJsonExtensions
     public static string ToJson(this PlaybackController value, bool indented = false)
     {
         ArgumentNullException.ThrowIfNull(value);
-
-        var options = indented
-            ? new JsonSerializerOptions(_jsonOptions) { WriteIndented = true }
-            : _jsonOptions;
-
-        return JsonSerializer.Serialize(value, options);
+        return JsonSerializer.Serialize(value, indented ? new JsonSerializerOptions(_jsonOptions) { WriteIndented = true } : _jsonOptions);
     }
 
     /// <summary>
@@ -47,18 +42,11 @@ public static class PlaybackControllerJsonExtensions
     /// <param name="json">The JSON string to deserialize.</param>
     /// <returns>A <see cref="PlaybackController"/> instance, or null if deserialization fails.</returns>
     /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is null or empty.</exception>
+    /// <exception cref="JsonException">Thrown when the JSON is invalid and cannot be deserialized.</exception>
     public static PlaybackController? FromJson(string json)
     {
         ArgumentException.ThrowIfNullOrEmpty(json);
-
-        try
-        {
-            return JsonSerializer.Deserialize<PlaybackController>(json, _jsonOptions);
-        }
-        catch (JsonException)
-        {
-            return null;
-        }
+        return JsonSerializer.Deserialize<PlaybackController>(json, _jsonOptions);
     }
 
     /// <summary>
@@ -68,10 +56,10 @@ public static class PlaybackControllerJsonExtensions
     /// <param name="value">Receives the deserialized instance, or null if deserialization fails.</param>
     /// <returns>True if deserialization succeeds; otherwise, false.</returns>
     /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is null or empty.</exception>
+    /// <exception cref="JsonException">Thrown when the JSON is invalid and cannot be deserialized.</exception>
     public static bool TryFromJson(string json, out PlaybackController? value)
     {
         ArgumentException.ThrowIfNullOrEmpty(json);
-
         try
         {
             value = JsonSerializer.Deserialize<PlaybackController>(json, _jsonOptions);
