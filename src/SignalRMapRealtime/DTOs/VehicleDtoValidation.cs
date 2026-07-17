@@ -6,7 +6,6 @@
 
 namespace SignalRMapRealtime.DTOs;
 
-using System.Globalization;
 using SignalRMapRealtime.Domain.Enums;
 
 /// <summary>
@@ -32,7 +31,7 @@ public static class VehicleDtoValidation
 
         var errors = new List<string>();
 
-        // Validate required properties
+        // Validate required properties using pattern matching for clarity
         if (value.Name is null or { Length: 0 })
         {
             errors.Add("Vehicle name is required and cannot be empty.");
@@ -59,29 +58,20 @@ public static class VehicleDtoValidation
             errors.Add("Asset type is invalid.");
         }
 
-        // Validate optional numeric properties
-        if (value.ModelYear.HasValue)
+        // Validate optional numeric properties using expression-bodied methods for one-liners
+        if (value.ModelYear.HasValue && (value.ModelYear < MinReasonableYear || value.ModelYear > MaxReasonableYear))
         {
-            if (value.ModelYear < MinReasonableYear || value.ModelYear > MaxReasonableYear)
-            {
-                errors.Add($"Model year must be between {MinReasonableYear} and {MaxReasonableYear}.");
-            }
+            errors.Add($"Model year must be between {MinReasonableYear} and {MaxReasonableYear}.");
         }
 
-        if (value.MaxSpeed.HasValue)
+        if (value.MaxSpeed.HasValue && value.MaxSpeed < MinMaxSpeed)
         {
-            if (value.MaxSpeed < MinMaxSpeed)
-            {
-                errors.Add("Maximum speed cannot be negative.");
-            }
+            errors.Add("Maximum speed cannot be negative.");
         }
 
-        if (value.FuelLevel.HasValue)
+        if (value.FuelLevel.HasValue && (value.FuelLevel < MinFuelLevel || value.FuelLevel > MaxFuelLevel))
         {
-            if (value.FuelLevel < MinFuelLevel || value.FuelLevel > MaxFuelLevel)
-            {
-                errors.Add($"Fuel level must be between {MinFuelLevel} and {MaxFuelLevel}.");
-            }
+            errors.Add($"Fuel level must be between {MinFuelLevel} and {MaxFuelLevel}.");
         }
 
         if (value.DriverId.HasValue && value.DriverId <= 0)
@@ -89,22 +79,19 @@ public static class VehicleDtoValidation
             errors.Add("Driver ID must be a positive integer when specified.");
         }
 
-        // Validate Year property (alternate naming)
-        if (value.Year.HasValue)
+        // Validate Year property (alternate naming) - ensure both ModelYear and Year don't conflict
+        if (value.Year.HasValue && (value.Year < MinReasonableYear || value.Year > MaxReasonableYear))
         {
-            if (value.Year < MinReasonableYear || value.Year > MaxReasonableYear)
-            {
-                errors.Add($"Year must be between {MinReasonableYear} and {MaxReasonableYear}.");
-            }
+            errors.Add($"Year must be between {MinReasonableYear} and {MaxReasonableYear}.");
         }
 
-        // Validate date properties
-        if (value.CreatedAt == default)
+        // Validate date properties - use DateTime.MinValue for explicit comparison
+        if (value.CreatedAt == DateTime.MinValue)
         {
             errors.Add("CreatedAt timestamp cannot be the default value.");
         }
 
-        if (value.UpdatedAt == default)
+        if (value.UpdatedAt == DateTime.MinValue)
         {
             errors.Add("UpdatedAt timestamp cannot be the default value.");
         }
@@ -203,12 +190,12 @@ public static class VehicleDtoValidation
             errors.Add("Location type is invalid.");
         }
 
-        if (value.RecordedAt == default)
+        if (value.RecordedAt == DateTime.MinValue)
         {
             errors.Add("RecordedAt timestamp cannot be the default value.");
         }
 
-        if (value.CreatedAt == default)
+        if (value.CreatedAt == DateTime.MinValue)
         {
             errors.Add("CreatedAt timestamp cannot be the default value.");
         }
