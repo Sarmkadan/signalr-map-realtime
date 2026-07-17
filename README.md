@@ -94,4 +94,58 @@ class Program
 }
 ```
 
+## PaginationExtensions
+
+`PaginationExtensions` offers a comprehensive set of helpers for validating pagination parameters, applying pagination to `IEnumerable<T>` and `IQueryable<T>` collections, calculating pagination metadata, and retrieving pagination information such as total pages, skip count, and page boundaries.
+
+### Usage Example
+
+```csharp
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using SignalRMapRealtime.Utilities;
+
+var numbers = Enumerable.Range(1, 25).ToList();
+
+// Validate parameters (throws if invalid)
+PaginationExtensions.ValidatePaginationParameters(2, 10);
+
+// Normalize parameters (returns a tuple with safe values)
+var (pageNumber, pageSize) = PaginationExtensions.NormalizePaginationParameters(2, 10);
+
+// Apply pagination to an IEnumerable<T>
+IEnumerable<int> pageItems = numbers.ApplyPagination(pageNumber, pageSize);
+Console.WriteLine($"Page {pageNumber} items: {string.Join(", ", pageItems)}");
+
+// Apply pagination to an IQueryable<T>
+IQueryable<int> query = numbers.AsQueryable();
+IQueryable<int> pagedQuery = query.ApplyPagination(pageNumber, pageSize);
+Console.WriteLine($"Queryable count on page: {pagedQuery.Count()}");
+
+// Apply pagination with sorting to an IQueryable<T>
+IQueryable<int> sortedPaged = query.ApplyPaginationWithSort(
+    pageNumber,
+    pageSize,
+    q => q.OrderByDescending(x => x));
+Console.WriteLine($"First item of sorted page: {sortedPaged.First()}");
+
+// Get paged results together with total count for IEnumerable<T>
+var (items, totalCount) = numbers.GetPagedResults(pageNumber, pageSize);
+Console.WriteLine($"Total items: {totalCount}, items on page: {string.Join(", ", items)}");
+
+// Get paged results together with total count for IQueryable<T>
+var (queryItems, queryTotal) = query.GetPagedQueryableResults(pageNumber, pageSize);
+Console.WriteLine($"Total query items: {queryTotal}, page count: {queryItems.Count()}");
+
+// Helper calculations
+int skip = PaginationExtensions.CalculateSkip(pageNumber, pageSize);
+int totalPages = PaginationExtensions.CalculateTotalPages(totalCount, pageSize);
+bool isValidPage = PaginationExtensions.IsValidPageNumber(pageNumber, totalCount, pageSize);
+PaginationInfo info = PaginationExtensions.GetPaginationInfo(pageNumber, pageSize, totalCount);
+
+Console.WriteLine($"Skip: {skip}, TotalPages: {totalPages}, IsValidPage: {isValidPage}");
+Console.WriteLine($"Info – IsFirstPage: {info.IsFirstPage}, HasNextPage: {info.HasNextPage}");
+```
+
 // ... (rest of the file remains unchanged)
