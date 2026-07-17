@@ -5,8 +5,15 @@ using System;
 
 namespace SignalRMapRealtime.Domain.Models.Tests
 {
+    /// <summary>
+    /// Contains unit tests for the <see cref="Waypoint"/> class.
+    /// </summary>
     public class WaypointTests
     {
+        /// <summary>
+        /// Tests that CompleteWaypoint method correctly marks a waypoint as completed
+        /// when valid arrival and departure times are provided.
+        /// </summary>
         [Fact]
         public void CompleteWaypoint_ValidInput_MarksAsCompleted()
         {
@@ -24,6 +31,10 @@ namespace SignalRMapRealtime.Domain.Models.Tests
             waypoint.ActualDepartureTime.Should().Be(departureTime);
         }
 
+        /// <summary>
+        /// Tests that CompleteWaypoint method marks a waypoint as completed
+        /// and sets the departure time to the current time when no departure time is provided.
+        /// </summary>
         [Fact]
         public void CompleteWaypoint_NoDepartureTimeProvided_MarksAsCompletedWithCurrentTime()
         {
@@ -41,6 +52,10 @@ namespace SignalRMapRealtime.Domain.Models.Tests
             waypoint.ActualDepartureTime.Value.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
         }
 
+        /// <summary>
+        /// Tests that Reset method clears all completion state and time values
+        /// from a waypoint, returning it to an incomplete state.
+        /// </summary>
         [Fact]
         public void Reset_ResetsWaypointToIncompleteState()
         {
@@ -61,6 +76,10 @@ namespace SignalRMapRealtime.Domain.Models.Tests
             waypoint.ActualDepartureTime.Should().BeNull();
         }
 
+        /// <summary>
+        /// Tests that HasValidCoordinates method returns true when coordinates
+        /// are within valid geographic ranges (-90 to 90 for latitude, -180 to 180 for longitude).
+        /// </summary>
         [Fact]
         public void HasValidCoordinates_ValidCoordinates_ReturnsTrue()
         {
@@ -78,6 +97,10 @@ namespace SignalRMapRealtime.Domain.Models.Tests
             result.Should().BeTrue();
         }
 
+        /// <summary>
+        /// Tests that HasValidCoordinates method returns false when coordinates
+        /// are outside valid geographic ranges.
+        /// </summary>
         [Fact]
         public void HasValidCoordinates_InvalidCoordinates_ReturnsFalse()
         {
@@ -95,6 +118,10 @@ namespace SignalRMapRealtime.Domain.Models.Tests
             result.Should().BeFalse();
         }
 
+        /// <summary>
+        /// Tests that HasTimeWindow method returns true when both
+        /// ArrivalTimeStart and ArrivalTimeEnd properties are set.
+        /// </summary>
         [Fact]
         public void HasTimeWindow_ValidTimeWindow_ReturnsTrue()
         {
@@ -112,6 +139,10 @@ namespace SignalRMapRealtime.Domain.Models.Tests
             result.Should().BeTrue();
         }
 
+        /// <summary>
+        /// Tests that HasTimeWindow method returns false when either
+        /// ArrivalTimeStart or ArrivalTimeEnd properties are not set.
+        /// </summary>
         [Fact]
         public void HasTimeWindow_NoTimeWindow_ReturnsFalse()
         {
