@@ -12,7 +12,7 @@ namespace SignalRMapRealtime.Configuration;
 /// <summary>
 /// Provides validation helpers for <see cref="SignalrMapRealtimeOptions"/> configuration.
 /// </summary>
-public static class SignalrMapRealtimeOptionsValidation
+internal static class SignalrMapRealtimeOptionsValidation
 {
     /// <summary>
     /// Validates the SignalR Map Realtime configuration options.
@@ -110,15 +110,13 @@ public static class SignalrMapRealtimeOptionsValidation
     }
 
     /// <summary>
-    /// Validates the SignalR Map Realtime configuration options.
+    /// Determines whether the SignalR Map Realtime configuration options are valid.
     /// </summary>
     /// <param name="value">The options to validate.</param>
     /// <returns>True if all validation rules pass; otherwise false.</returns>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is null.</exception>
     public static bool IsValid(this SignalrMapRealtimeOptions value)
-    {
-        return Validate(value).Count == 0;
-    }
+        => Validate(value).Count == 0;
 
     /// <summary>
     /// Validates and ensures the SignalR Map Realtime configuration options are valid.
