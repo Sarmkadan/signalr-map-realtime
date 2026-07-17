@@ -130,7 +130,6 @@ public static class LocationTrackingExceptionExtensions
     public static bool IsNotFoundError(this LocationTrackingException exception)
     {
         ArgumentNullException.ThrowIfNull(exception);
-
         return exception is VehicleNotFoundException
             or AssetNotFoundException
             or TrackingSessionNotFoundException;
@@ -145,7 +144,6 @@ public static class LocationTrackingExceptionExtensions
     public static bool IsInvalidLocationError(this LocationTrackingException exception)
     {
         ArgumentNullException.ThrowIfNull(exception);
-
         return exception is InvalidLocationException;
     }
 
@@ -154,10 +152,8 @@ public static class LocationTrackingExceptionExtensions
     /// </summary>
     /// <param name="coordinate">The coordinate value.</param>
     /// <returns>A formatted string representation of the coordinate.</returns>
-    private static string FormatCoordinate(double? coordinate)
-    {
-        return coordinate.HasValue
+    private static string FormatCoordinate(double? coordinate) =>
+        coordinate.HasValue
             ? coordinate.Value.ToString("F6", CultureInfo.InvariantCulture)
             : "null";
-    }
 }
