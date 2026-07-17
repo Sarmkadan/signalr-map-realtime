@@ -8,82 +8,60 @@
 
 ```csharp
 using System;
-using SignalRMapRealtime.Utilities;
+using System.Net.Http.Json;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc.Testing;
+using SignalRMapRealtime.DTOs;
 
 class Program
 {
-    static void Main()
+    static async Task Main()
     {
-        string email = "user@example.com";
-        bool isValid = email.IsValidEmail();
-        Console.WriteLine($"Is valid email: {isValid}");
+        // Example using WebApplicationFactory for integration testing
+        var factory = new WebApplicationFactory<Program>();
+        var client = factory.CreateClient();
 
-        string phoneNumber = "+1 123-456-7890";
-        bool isValidPhone = phoneNumber.IsValidPhoneNumber();
-        Console.WriteLine($"Is valid phone number: {isValidPhone}");
+        // Create a new route
+        var newRoute = new RouteDto
+        {
+            Name = "Downtown Delivery Route",
+            Description = "Delivery route through city center"
+        };
 
-        string url = "https://www.example.com";
-        bool isValidUrl = url.IsValidUrl();
-        Console.WriteLine($"Is valid URL: {isValidUrl}");
+        var createResponse = await client.PostAsJsonAsync("api/route", newRoute);
+        var createdRoute = await createResponse.Content.ReadFromJsonAsync<ApiResponse<RouteDto>>();
+        Console.WriteLine($"Created route: {createdRoute?.Data?.Name} with ID: {createdRoute?.Data?.Id}");
 
-        string ipAddress = "192.168.1.1";
-        bool isValidIp = ipAddress.IsValidIpAddress();
-        Console.WriteLine($"Is valid IP address: {isValidIp}");
+        // Get all routes with pagination
+        var getAllResponse = await client.GetAsync("api/route?pageNumber=1&pageSize=10");
+        var allRoutes = await getAllResponse.Content.ReadFromJsonAsync<ApiResponse<PaginatedResponse<RouteDto>>>();
+        Console.WriteLine($"Total routes: {allRoutes?.Data?.TotalCount}");
 
-        string guid = "01234567-89ab-cdef-0123-456789abcdef";
-        bool isValidGuid = guid.IsValidGuid();
-        Console.WriteLine($"Is valid GUID: {isValidGuid}");
+        // Get a specific route by ID
+        var getByIdResponse = await client.GetAsync("api/route/1");
+        var singleRoute = await getByIdResponse.Content.ReadFromJsonAsync<ApiResponse<RouteDto>>();
+        Console.WriteLine($"Route: {singleRoute?.Data?.Name}");
 
-        string alphanumeric = "Hello123";
-        bool isAlphanumeric = alphanumeric.IsAlphanumeric();
-        Console.WriteLine($"Is alphanumeric: {isAlphanumeric}");
+        // Update a route
+        var updateRoute = new RouteDto
+        {
+            Name = "Updated Downtown Delivery Route",
+            Description = "Updated delivery route description"
+        };
+        var updateResponse = await client.PutAsJsonAsync("api/route/1", updateRoute);
+        var updatedRoute = await updateResponse.Content.ReadFromJsonAsync<ApiResponse<RouteDto>>();
+        Console.WriteLine($"Updated route: {updatedRoute?.Data?.Name}");
 
-        string password = "P@ssw0rd!";
-        bool isStrong = password.IsStrongPassword();
-        Console.WriteLine($"Is strong password: {isStrong}");
+        // Calculate route metrics
+        var calculateResponse = await client.PostAsync("api/route/1/calculate", null);
+        var routeMetrics = await calculateResponse.Content.ReadFromJsonAsync<ApiResponse<object>>();
+        Console.WriteLine($"Route calculation: {routeMetrics?.Message}");
 
-        int value = 5;
-        bool isInValueRange = value.IsInRange(1, 10);
-        Console.WriteLine($"Is in range: {isInValueRange}");
-
-        string lengthTest = "Hello";
-        bool isLengthInRange = lengthTest.IsLengthInRange(5, 10);
-        Console.WriteLine($"Is length in range: {isLengthInRange}");
-
-        var collection = new[] { 1, 2, 3 };
-        bool hasElements = collection.HasElements();
-        Console.WriteLine($"Has elements: {hasElements}");
-        bool hasExactlyTwo = collection.HasExactly(2);
-        Console.WriteLine($"Has exactly 2: {hasExactlyTwo}");
-        bool hasAtLeastTwo = collection.HasAtLeast(2);
-        Console.WriteLine($"Has at least 2: {hasAtLeastTwo}");
-
-        double positiveValue = 5.0;
-        bool isPositive = positiveValue.IsPositive<double>();
-        Console.WriteLine($"Is positive: {isPositive}");
-
-        double negativeValue = -5.0;
-        bool isNegative = negativeValue.IsNegative<double>();
-        Console.WriteLine($"Is negative: {isNegative}");
-
-        double nanValue = double.NaN;
-        bool isNaN = nanValue.IsNaN();
-        Console.WriteLine($"Is NaN: {isNaN}");
-
-        double infinityValue = double.PositiveInfinity;
-        bool isInfinite = infinityValue.IsInfinite();
-        Console.WriteLine($"Is infinite: {isInfinite}");
-
-        decimal percentage = 50m;
-        bool isValidPercentage = percentage.IsValidPercentage();
-        Console.WriteLine($"Is valid percentage: {isValidPercentage}");
-
-        string pattern = "Hello*";
-        bool matches = "Hello World!".MatchesPattern(pattern);
-        Console.WriteLine($"Matches pattern: {matches}");
+        // Delete a route
+        var deleteResponse = await client.DeleteAsync("api/route/1");
+        Console.WriteLine($"Delete status: {deleteResponse.StatusCode}");
     }
 }
-```
 
 ## DateTimeExtensions
 
@@ -93,79 +71,108 @@ class Program
 
 ```csharp
 using System;
-using SignalRMapRealtime.Utilities;
+using System.Net.Http.Json;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc.Testing;
+using SignalRMapRealtime.DTOs;
 
 class Program
 {
-    static void Main()
+    static async Task Main()
     {
-        DateTime now = DateTime.UtcNow;
+        // Example using WebApplicationFactory for integration testing
+        var factory = new WebApplicationFactory<Program>();
+        var client = factory.CreateClient();
 
-        // Friendly description of how long ago a timestamp occurred
-        string friendly = now.AddMinutes(-5).ToFriendlyTimeSpan();
-        Console.WriteLine($"Friendly: {friendly}");
+        // Create a new route
+        var newRoute = new RouteDto
+        {
+            Name = "Downtown Delivery Route",
+            Description = "Delivery route through city center"
+        };
 
-        // Duration between two moments
-        TimeSpan duration = now.Duration(now.AddHours(2));
-        Console.WriteLine($"Duration (hours): {duration.TotalHours}");
+        var createResponse = await client.PostAsJsonAsync("api/route", newRoute);
+        var createdRoute = await createResponse.Content.ReadFromJsonAsync<ApiResponse<RouteDto>>();
+        Console.WriteLine($"Created route: {createdRoute?.Data?.Name} with ID: {createdRoute?.Data?.Id}");
 
-        // Start / end of day
-        DateTime startDay = now.StartOfDay();
-        DateTime endDay = now.EndOfDay();
-        Console.WriteLine($"Day starts at {startDay:O}, ends at {endDay:O}");
+        // Get all routes with pagination
+        var getAllResponse = await client.GetAsync("api/route?pageNumber=1&pageSize=10");
+        var allRoutes = await getAllResponse.Content.ReadFromJsonAsync<ApiResponse<PaginatedResponse<RouteDto>>>();
+        Console.WriteLine($"Total routes: {allRoutes?.Data?.TotalCount}");
 
-        // Start / end of week
-        DateTime startWeek = now.StartOfWeek();
-        DateTime endWeek = now.EndOfWeek();
-        Console.WriteLine($"Week starts on {startWeek:yyyy-MM-dd}, ends on {endWeek:yyyy-MM-dd}");
+        // Get a specific route by ID
+        var getByIdResponse = await client.GetAsync("api/route/1");
+        var singleRoute = await getByIdResponse.Content.ReadFromJsonAsync<ApiResponse<RouteDto>>();
+        Console.WriteLine($"Route: {singleRoute?.Data?.Name}");
 
-        // Start / end of month
-        DateTime startMonth = now.StartOfMonth();
-        DateTime endMonth = now.EndOfMonth();
-        Console.WriteLine($"Month starts {startMonth:yyyy-MM-dd}, ends {endMonth:yyyy-MM-dd}");
+        // Update a route
+        var updateRoute = new RouteDto
+        {
+            Name = "Updated Downtown Delivery Route",
+            Description = "Updated delivery route description"
+        };
+        var updateResponse = await client.PutAsJsonAsync("api/route/1", updateRoute);
+        var updatedRoute = await updateResponse.Content.ReadFromJsonAsync<ApiResponse<RouteDto>>();
+        Console.WriteLine($"Updated route: {updatedRoute?.Data?.Name}");
 
-        // Start / end of year
-        DateTime startYear = now.StartOfYear();
-        DateTime endYear = now.EndOfYear();
-        Console.WriteLine($"Year starts {startYear:yyyy-MM-dd}, ends {endYear:yyyy-MM-dd}");
+        // Calculate route metrics
+        var calculateResponse = await client.PostAsync("api/route/1/calculate", null);
+        var routeMetrics = await calculateResponse.Content.ReadFromJsonAsync<ApiResponse<object>>();
+        Console.WriteLine($"Route calculation: {routeMetrics?.Message}");
 
-        // Past / future / today checks
-        Console.WriteLine($"Is past? {now.AddDays(-1).IsPast()}");
-        Console.WriteLine($"Is future? {now.AddDays(1).IsFuture()}");
-        Console.WriteLine($"Is today? {now.IsToday()}");
-
-        // Rounding
-        DateTime roundedMinute = now.RoundToNearestMinute(15);
-        DateTime roundedSecond = now.RoundToNearestSecond();
-        Console.WriteLine($"Rounded to 15‑minute interval: {roundedMinute:O}");
-        Console.WriteLine($"Rounded to nearest second: {roundedSecond:O}");
-
-        // Between check
-        bool between = now.IsBetween(now.AddHours(-1), now.AddHours(1));
-        Console.WriteLine($"Is now between one hour ago and one hour ahead? {between}");
-
-        // Age calculation
-        DateTime birthDate = new DateTime(1990, 4, 15);
-        int age = birthDate.GetAgeInYears();
-        Console.WriteLine($"Age: {age}");
-
-        // Unix timestamp conversion
-        long unix = now.ToUnixTimestamp();
-        DateTime fromUnix = unix.FromUnixTimestamp();
-        Console.WriteLine($"Unix: {unix}, back to DateTime: {fromUnix:O}");
-
-        // ISO‑8601 string
-        string iso = now.ToIso8601String();
-        Console.WriteLine($"ISO‑8601: {iso}");
+        // Delete a route
+        var deleteResponse = await client.DeleteAsync("api/route/1");
+        Console.WriteLine($"Delete status: {deleteResponse.StatusCode}");
     }
 }
-```
 
 ## HttpContextExtensions
 
 `HttpContextExtensions` provides a collection of helper methods for working with `HttpContext` instances. It simplifies retrieving request information (such as client IP, user‑agent, URLs, and headers), checking request characteristics (secure, AJAX, JSON, form), and manipulating the response (setting headers, status codes, content type, and caching directives).
 
 ### Usage Example
+
+```csharp
+using System;
+using Microsoft.AspNetCore.Http;
+using SignalRMapRealtime.Utilities;
+
+public class Example
+{
+    public void ProcessRequest(HttpContext context)
+    {
+        // Retrieve request information
+        string ip = context.GetClientIpAddress();
+        string userAgent = context.GetUserAgent();
+        string? referer = context.GetReferer();
+        string? origin = context.GetOrigin();
+        bool isSecure = context.IsSecure();
+        string fullUrl = context.GetFullUrl();
+        string baseUrl = context.GetBaseUrl();
+
+        // Header utilities
+        bool hasAuthHeader = context.HasHeader("Authorization");
+        string? authHeader = context.GetHeader("Authorization");
+        bool isAjax = context.IsAjaxRequest();
+
+        // Content‑type checks
+        string? contentType = context.GetContentType();
+        bool isJson = context.IsJsonRequest();
+        bool isForm = context.IsFormRequest();
+
+        // Method and query parameters
+        string method = context.GetMethod();
+        var parameters = context.GetParameters();
+
+        // Manipulate response
+        context.SetHeader("X-Custom-Header", "MyValue");
+        context.SetStatusCode(StatusCodes.Status200OK);
+        context.SetContentType("application/json");
+        context.DisableCaching();               // or context.SetCacheControl(60);
+
+        // Continue with response writing...
+    }
+}
 
 ## RouteController
 
@@ -229,49 +236,45 @@ class Program
         Console.WriteLine($"Delete status: {deleteResponse.StatusCode}");
     }
 }
-```
 
-## HttpContextExtensions
+## ClaimsExtensions
+
+`ClaimsExtensions` provides a set of extension methods for working with security claims. It simplifies extracting user information from `ClaimsPrincipal`, such as user ID, name, email, roles, and custom claims. 
+
+### Usage Example
 
 ```csharp
 using System;
-using Microsoft.AspNetCore.Http;
-using SignalRMapRealtime.Utilities;
+using System.Security.Claims;
 
-public class Example
+class Program
 {
-    public void ProcessRequest(HttpContext context)
+    static void Main()
     {
-        // Retrieve request information
-        string ip = context.GetClientIpAddress();
-        string userAgent = context.GetUserAgent();
-        string? referer = context.GetReferer();
-        string? origin = context.GetOrigin();
-        bool isSecure = context.IsSecure();
-        string fullUrl = context.GetFullUrl();
-        string baseUrl = context.GetBaseUrl();
+        var principal = new ClaimsPrincipal(new ClaimsIdentity(new[]
+        {
+            new Claim(ClaimTypes.NameIdentifier, "12345"),
+            new Claim(ClaimTypes.Name, "John Doe"),
+            new Claim(ClaimTypes.Email, "john@example.com"),
+            new Claim(ClaimTypes.Role, "Admin"),
+            new Claim("CustomClaim", "CustomValue")
+        }));
 
-        // Header utilities
-        bool hasAuthHeader = context.HasHeader("Authorization");
-        string? authHeader = context.GetHeader("Authorization");
-        bool isAjax = context.IsAjaxRequest();
+        string? userId = principal.GetUserId();
+        string? userName = principal.GetUserName();
+        string? userEmail = principal.GetUserEmail();
+        var userRoles = principal.GetUserRoles();
+        bool isAdmin = principal.HasRole("Admin");
+        bool hasCustomClaim = principal.HasClaim("CustomClaim");
+        string? customClaimValue = principal.GetClaimValue("CustomClaim");
 
-        // Content‑type checks
-        string? contentType = context.GetContentType();
-        bool isJson = context.IsJsonRequest();
-        bool isForm = context.IsFormRequest();
-
-        // Method and query parameters
-        string method = context.GetMethod();
-        var parameters = context.GetParameters();
-
-        // Manipulate response
-        context.SetHeader("X-Custom-Header", "MyValue");
-        context.SetStatusCode(StatusCodes.Status200OK);
-        context.SetContentType("application/json");
-        context.DisableCaching();               // or context.SetCacheControl(60);
-
-        // Continue with response writing...
+        Console.WriteLine($"User ID: {userId}");
+        Console.WriteLine($"User Name: {userName}");
+        Console.WriteLine($"User Email: {userEmail}");
+        Console.WriteLine($"User Roles: {string.Join(", ", userRoles)}");
+        Console.WriteLine($"Is Admin: {isAdmin}");
+        Console.WriteLine($"Has Custom Claim: {hasCustomClaim}");
+        Console.WriteLine($"Custom Claim Value: {customClaimValue}");
     }
 }
 ```
