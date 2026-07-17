@@ -1040,6 +1040,79 @@ class Program
 }
 ```
 
+## TrackingServiceExtensions
+
+`TrackingServiceExtensions` provides extension methods for `TrackingService` that add strongly-typed convenience methods for tracking session management. These extensions simplify working with tracking sessions by providing strongly-typed return values, automatic null handling, and simplified method signatures for common operations like starting, pausing, resuming, completing, and canceling tracking sessions.
+
+### Usage Example
+
+```csharp
+using System;
+using System.Threading.Tasks;
+using SignalRMapRealtime.Services;
+using SignalRMapRealtime.Domain.Models;
+using SignalRMapRealtime.Domain.Enums;
+
+class Program
+{
+    static async Task Main()
+    {
+        // Create tracking service (typically injected in real applications)
+        var trackingService = new TrackingService(
+            new TrackingRepository(),
+            new LocationRepository(),
+            new RouteRepository(),
+            new GeofenceService(null!, null!),
+            null!);
+
+        // Start a new tracking session
+        int sessionId = await trackingService.StartTrackingSessionAsync(vehicleId: 1);
+        Console.WriteLine($"Started tracking session: {sessionId}");
+
+        // Get active session for a vehicle
+        var activeSession = await trackingService.GetActiveSessionAsync(vehicleId: 1);
+        Console.WriteLine($"Active session: {activeSession?.Id}, Status: {activeSession?.Status}");
+
+        // Get session history for a vehicle
+        var sessionHistory = await trackingService.GetSessionHistoryAsync(vehicleId: 1);
+        Console.WriteLine($"Session history count: {sessionHistory.Count}");
+
+        // Get sessions by status
+        var pausedSessions = await trackingService.GetSessionsByStatusAsync(SessionStatus.Paused);
+        Console.WriteLine($"Paused sessions: {pausedSessions.Count}");
+
+        // Try to pause a session
+        bool paused = await trackingService.TryPauseSessionAsync(sessionId);
+        Console.WriteLine($"Session paused successfully: {paused}");
+
+        // Try to resume a session
+        bool resumed = await trackingService.TryResumeSessionAsync(sessionId);
+        Console.WriteLine($"Session resumed successfully: {resumed}");
+
+        // Try to complete a session
+        bool completed = await trackingService.TryCompleteSessionAsync(sessionId);
+        Console.WriteLine($"Session completed successfully: {completed}");
+
+        // Get session details
+        var sessionDetails = await trackingService.GetSessionDetailsAsync(sessionId);
+        Console.WriteLine($"Session details: {sessionDetails?.Id}, Distance: {sessionDetails?.TotalDistanceKm} km");
+
+        // Calculate session statistics
+        double distance = await trackingService.GetSessionDistanceAsync(sessionId);
+        double averageSpeed = await trackingService.GetSessionAverageSpeedAsync(sessionId);
+        Console.WriteLine($"Session distance: {distance:F2} km, Average speed: {averageSpeed:F2} km/h");
+
+        // Get expired sessions
+        var expiredSessions = await trackingService.GetExpiredSessionsAsync();
+        Console.WriteLine($"Expired sessions: {expiredSessions.Count}");
+
+        // Try to cancel a session
+        bool cancelled = await trackingService.TryCancelSessionAsync(sessionId, "Test cancellation");
+        Console.WriteLine($"Session cancelled successfully: {cancelled}");
+    }
+}
+```
+
 ## LocationTrackingExceptionExtensions
 
 `LocationTrackingExceptionExtensions` provides extension methods for handling and extracting information from location tracking exceptions. This utility class helps extract contextual information from specific exception types like `VehicleNotFoundException`, `AssetNotFoundException`, `TrackingSessionNotFoundException`, and `InvalidLocationException`, and provides helper methods to determine error types and format error messages.
