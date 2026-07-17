@@ -588,6 +588,50 @@ Console.WriteLine($"Playback covered {stats?.TotalDistance} km");
 await routePlaybackService.StopPlaybackAsync(playbackId);
 ```
 
+## PlaybackOptions
+
+The `PlaybackOptions` class provides configuration settings for the real-time route playback and historical timeline engine. These options control playback behavior such as speed limits, frame rates, idle detection thresholds, and session management.
+
+### Usage Example
+
+```csharp
+using Microsoft.Extensions.Options;
+using SignalRMapRealtime.Configuration;
+
+// Configure PlaybackOptions in Program.cs or Startup.cs
+builder.Services.Configure<PlaybackOptions>(builder.Configuration.GetSection(PlaybackOptions.SectionName));
+
+// Access configured options via dependency injection
+public class MyPlaybackService
+{
+    private readonly PlaybackOptions _options;
+    
+    public MyPlaybackService(IOptions<PlaybackOptions> options)
+    {
+        _options = options.Value;
+    }
+    
+    public void ConfigurePlayback()
+    {
+        // Validate speed multiplier is within bounds
+        double requestedSpeed = 2.5;
+        double clampedSpeed = Math.Clamp(
+            requestedSpeed,
+            _options.MinSpeedMultiplier,
+            _options.MaxSpeedMultiplier
+        );
+        
+        Console.WriteLine($"Playback configured with:");
+        Console.WriteLine($"  - Default speed: {_options.DefaultSpeedMultiplier}x");
+        Console.WriteLine($"  - Speed range: {_options.MinSpeedMultiplier}x - {_options.MaxSpeedMultiplier}x");
+        Console.WriteLine($"  - Frame interval: {_options.MinFrameIntervalMs}-{_options.MaxFrameIntervalMs}ms");
+        Console.WriteLine($"  - Idle threshold: {_options.IdleSpeedThresholdKmh} km/h");
+        Console.WriteLine($"  - Max locations: {_options.MaxLocationsPerPlayback}");
+        Console.WriteLine($"  - Session timeout: {_options.PlaybackSessionTimeoutMinutes} minutes");
+    }
+}
+```
+
 ## VehicleRepository
 
 The `VehicleRepository` class provides specialized data access operations for vehicle entities in the system. It extends the `BaseRepository<Vehicle>` with vehicle-specific methods for querying vehicles by status, online state, registration number, driver assignment, asset type, and operational conditions like fuel levels and speed violations. The repository includes methods for retrieving vehicles with complete tracking data and counting online vehicles.
