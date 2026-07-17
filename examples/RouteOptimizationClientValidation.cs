@@ -25,7 +25,10 @@ public static class RouteOptimizationClientValidation
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is null.</exception>
     public static IReadOnlyList<string> Validate(this RouteOptimizationClient.Waypoint? value)
     {
-        ArgumentNullException.ThrowIfNull(value);
+        if (value is null)
+            {
+                throw new ArgumentNullException(nameof(value));
+            }
 
         var errors = new List<string>();
 
@@ -65,7 +68,7 @@ public static class RouteOptimizationClientValidation
             errors.Add("Name cannot be null or whitespace.");
         }
 
-        return errors;
+        return errors.AsReadOnly();
     }
 
     /// <summary>
@@ -75,7 +78,15 @@ public static class RouteOptimizationClientValidation
     /// <returns><see langword="true"/> if the waypoint is valid; otherwise, <see langword="false"/>.</returns>
     public static bool IsValid(this RouteOptimizationClient.Waypoint? value)
     {
-        return value is not null && Validate(value).Count == 0;
+        return value is not null
+                && value.Order > 0
+                && !double.IsNaN(value.Latitude)
+                && !double.IsInfinity(value.Latitude)
+                && value.Latitude >= -90.0 && value.Latitude <= 90.0
+                && !double.IsNaN(value.Longitude)
+                && !double.IsInfinity(value.Longitude)
+                && value.Longitude >= -180.0 && value.Longitude <= 180.0
+                && !string.IsNullOrWhiteSpace(value.Name);
     }
 
     /// <summary>
@@ -87,7 +98,10 @@ public static class RouteOptimizationClientValidation
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is null.</exception>
     public static void EnsureValid(this RouteOptimizationClient.Waypoint? value)
     {
-        ArgumentNullException.ThrowIfNull(value);
+        if (value is null)
+            {
+                throw new ArgumentNullException(nameof(value));
+            }
 
         var errors = Validate(value);
 
