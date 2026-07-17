@@ -540,10 +540,92 @@ class Program
 
 `AssetControllerTests` contains integration tests for the `AssetController` API controller, which manages CRUD operations for assets in the SignalRMapRealtime application. The test class verifies that the controller endpoints correctly handle creating, reading, updating, and deleting assets, including proper status codes, content types, and error handling. Tests cover scenarios like invalid model validation, non-existent resource lookups, and ID mismatch scenarios.
 
+## AssetControllerTestsValidation
+
+`AssetControllerTestsValidation` provides validation helpers for `AssetControllerTests` and related asset DTOs (`AssetDto`, `CreateAssetDto`, `UpdateAssetDto`). It offers extension methods to validate asset instances, check validity, and ensure valid state with detailed error messages. The validation methods return lists of human-readable error messages, making it easy to provide user feedback when invalid data is encountered.
+
 ### Usage Example
 
 ```csharp
 using System;
+using System.Linq;
+using SignalRMapRealtime.DTOs;
+using SignalRMapRealtime.IntegrationTests;
+
+class Program
+{
+    static void Main()
+    {
+        // Validate an AssetDto instance
+        var validAsset = new AssetDto
+        {
+            Name = "Medical Equipment #XYZ-789",
+            AssetType = AssetType.Equipment,
+            Status = "Available",
+            Value = 1500.00m,
+            SerialNumber = "MED-XYZ-789-001"
+        };
+
+        var validationErrors = validAsset.Validate();
+        Console.WriteLine($"Valid AssetDto has {validationErrors.Count} errors"); // 0
+
+        // Validate an invalid AssetDto instance
+        var invalidAsset = new AssetDto
+        {
+            Name = "", // Empty name
+            AssetType = AssetType.Equipment,
+            Value = -100.00m // Negative value
+        };
+
+        var invalidErrors = invalidAsset.Validate();
+        Console.WriteLine($"Invalid AssetDto has {invalidErrors.Count} errors:");
+        foreach (var error in invalidErrors)
+        {
+            Console.WriteLine($"- {error}");
+        }
+        // Output:
+        // - Asset name is required and cannot be empty or whitespace.
+        // - Asset value cannot be negative.
+
+        // Check if an AssetDto is valid
+        bool isValid = invalidAsset.IsValid();
+        Console.WriteLine($"Is invalid AssetDto valid? {isValid}"); // False
+
+        // Ensure a valid AssetDto (throws if invalid)
+        try
+        {
+            validAsset.EnsureValid();
+            Console.WriteLine("Valid AssetDto passed EnsureValid successfully");
+        }
+        catch (ArgumentException ex)
+        {
+            Console.WriteLine($"ERROR: {ex.Message}");
+        }
+
+        // Validate a CreateAssetDto instance
+        var createAsset = new CreateAssetDto
+        {
+            Name = "New Equipment",
+            SerialNumber = "NEW-001",
+            AssetType = AssetType.Equipment,
+            Value = 2500.00m
+        };
+
+        var createErrors = createAsset.Validate();
+        Console.WriteLine($"CreateAssetDto validation errors: {createErrors.Count}"); // 0
+
+        // Validate an UpdateAssetDto instance
+        var updateAsset = new UpdateAssetDto
+        {
+            Name = "Updated Equipment Name",
+            Value = 2750.00m
+        };
+
+        var updateErrors = updateAsset.Validate();
+        Console.WriteLine($"UpdateAssetDto validation errors: {updateErrors.Count}"); // 0
+    }
+}
+```
 
 ## LocationControllerTests
 
