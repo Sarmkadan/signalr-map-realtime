@@ -3,9 +3,10 @@
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
-// =============================================================================
+// =====================================================================
 
-using System.Globalization;
+using System;
+using System.Collections.Generic;
 
 namespace SignalRMapRealtime.DTOs;
 
@@ -89,10 +90,7 @@ public static class RouteDtoValidation
     /// <param name="value">The route DTO to check.</param>
     /// <returns>True if the route is valid; otherwise, false.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
-    public static bool IsValid(this RouteDto? value)
-    {
-        return Validate(value).Count == 0;
-    }
+    public static bool IsValid(this RouteDto? value) => Validate(value).Count == 0;
 
     /// <summary>
     /// Ensures that a <see cref="RouteDto"/> instance is valid, throwing an exception if it is not.
