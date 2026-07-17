@@ -261,6 +261,81 @@ class Program
 }
 ```
 
+## GeofenceAlertsClient
+
+`GeofenceAlertsClient` is a SignalR client that connects to a real-time location tracking hub to receive and process geofence alerts for vehicles. It monitors vehicle movements against configured geofence zones and handles various alert types including geofence entry/exit, speed violations, and communication loss. The client can be used to track vehicle movements in restricted areas and trigger appropriate responses.
+
+### Usage Example
+
+```csharp
+using System;
+using System.Threading.Tasks;
+using SignalRMapRealtime.Examples;
+
+class Program
+{
+    static async Task Main()
+    {
+        // Create a geofence alerts client for a specific vehicle
+        var hubUrl = "https://localhost:5001/locationHub";
+        var vehicleId = Guid.NewGuid().ToString();
+        var client = new GeofenceAlertsClient(hubUrl, vehicleId);
+
+        // Connect to the SignalR hub
+        await client.Connect();
+
+        // Add geofence zones to monitor
+        client.AddGeofence("Warehouse District", 40.7128, -74.0060, 1.0);
+        client.AddGeofence("Office Park", 40.7489, -73.9680, 0.5);
+        client.AddGeofence("Restricted Zone Alpha", 40.7614, -73.9776, 2.0);
+
+        Console.WriteLine("Listening for geofence alerts... Press Enter to exit");
+        Console.ReadLine();
+
+        // Disconnect when done
+        await client.Disconnect();
+    }
+}
+```
+
+### Complete Usage with Alert Handling
+
+```csharp
+using System;
+using System.Threading.Tasks;
+using SignalRMapRealtime.Examples;
+
+class Program
+{
+    static async Task Main()
+    {
+        // Create client with custom hub URL
+        var client = new GeofenceAlertsClient(
+            "https://api.example.com/locationHub",
+            "TRUCK-999-FLEET"
+        );
+
+        // Connect to the hub
+        await client.Connect();
+
+        // Configure geofence zones
+        client.AddGeofence("Warehouse", 40.7128, -74.0060, 1.0);
+        client.AddGeofence("Loading Dock", 40.7484, -73.9857, 0.5);
+        client.AddGeofence("Security Perimeter", 40.7580, -73.9855, 1.5);
+
+        Console.WriteLine("=== Geofence Monitoring Started ===");
+        Console.WriteLine("Waiting for alerts... (press Enter to stop)");
+        
+        // Keep running to receive alerts
+        Console.ReadLine();
+
+        // Clean up
+        await client.Disconnect();
+        Console.WriteLine("Monitoring stopped.");
+    }
+}
+```
+
 ## RouteOptimizationClient
 
 `RouteOptimizationClient` is a helper class for creating, optimizing, and managing delivery routes with multiple waypoints. It provides functionality to calculate distances between locations, optimize waypoint order using nearest-neighbor algorithm, simulate route execution, and interact with a route management API. The client is useful for logistics applications that need to plan efficient delivery routes.
