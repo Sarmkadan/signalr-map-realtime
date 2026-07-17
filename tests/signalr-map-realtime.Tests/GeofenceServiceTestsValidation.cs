@@ -7,13 +7,28 @@
 
 namespace SignalRMapRealtime.Tests;
 
+using Microsoft.Extensions.Logging.Abstractions;
+using NSubstitute;
+using SignalRMapRealtime.Events;
+using SignalRMapRealtime.Services;
 using System.Globalization;
 
 /// <summary>
-/// Validation helpers for the GeofenceServiceTests class.
+/// Provides validation methods for <see cref="GeofenceServiceTests"/> instances.
 /// </summary>
 public static class GeofenceServiceTestsValidation
 {
+    /// <summary>
+    /// Creates a new instance of the GeofenceService class for testing purposes.
+    /// </summary>
+    /// <param name="testsInstance">The test instance to create the service from.</param>
+    /// <returns>A new instance of the GeofenceService class.</returns>
+    private static GeofenceService CreateService(GeofenceServiceTests? testsInstance = null)
+    {
+        var eventBus = Substitute.For<IEventBus>();
+        return new GeofenceService(eventBus, NullLogger<GeofenceService>.Instance);
+    }
+
     /// <summary>
     /// Validates the specified GeofenceServiceTests instance.
     /// </summary>
@@ -26,8 +41,15 @@ public static class GeofenceServiceTestsValidation
 
         var problems = new List<string>();
 
-        // Validate all public methods exist and are callable
-        // These are the real public members of GeofenceServiceTests
+        // Validate that the service can be created without throwing
+        try
+        {
+            var service = CreateService(value);
+        }
+        catch (Exception ex)
+        {
+            problems.Add($"Failed to create GeofenceService: {ex.Message}");
+        }
 
         return problems.AsReadOnly();
     }
