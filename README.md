@@ -647,3 +647,64 @@ if (vehicleWithTracking != null)
 }
 ```
 
+## RouteRepository
+
+The `RouteRepository` class provides specialized data access operations for route entities in the system. It extends the `BaseRepository<Route>` with route-specific methods for querying routes by vehicle assignment, user assignment, completion status, date ranges, and performance metrics. The repository includes methods for retrieving routes with detailed waypoint information, finding pending routes, and calculating route statistics such as average completion time.
+
+### Usage Example
+
+```csharp
+using SignalRMapRealtime.Data.Repositories;
+using SignalRMapRealtime.Data;
+using SignalRMapRealtime.Domain.Models;
+using Microsoft.EntityFrameworkCore;
+
+// Assuming dbContext is injected
+var routeRepository = new RouteRepository(dbContext);
+
+// 1. Get active routes for a specific vehicle
+var activeRoutes = await routeRepository.GetActiveRoutesByVehicleAsync(1);
+Console.WriteLine($"Found {activeRoutes.Count()} active routes for vehicle 1");
+
+// 2. Get all routes assigned to a user
+var userRoutes = await routeRepository.GetRoutesByUserAsync(1);
+Console.WriteLine($"Found {userRoutes.Count()} routes assigned to user 1");
+
+// 3. Get completed routes
+var completedRoutes = await routeRepository.GetRoutesByCompletionAsync(isCompleted: true);
+Console.WriteLine($"Found {completedRoutes.Count()} completed routes");
+
+// 4. Get route with full details including waypoints
+var routeWithDetails = await routeRepository.GetRouteWithDetailsAsync(1);
+if (routeWithDetails != null)
+{
+    Console.WriteLine($"Route {routeWithDetails.Id} has {routeWithDetails.Waypoints?.Count ?? 0} waypoints");
+}
+
+// 5. Get routes within a specific date range
+var dateRangeRoutes = await routeRepository.GetRoutesByDateRangeAsync(
+    DateTime.UtcNow.AddMonths(-1),
+    DateTime.UtcNow
+);
+Console.WriteLine($"Found {dateRangeRoutes.Count()} routes in the last month");
+
+// 6. Get the longest routes by distance
+var longestRoutes = await routeRepository.GetLongestRoutesAsync(10);
+Console.WriteLine($"Top 10 longest routes:");
+foreach (var route in longestRoutes)
+{
+    Console.WriteLine($"  - Route {route.Id}: {route.Distance} km");
+}
+
+// 7. Get average completion time for all routes
+var avgCompletionTime = await routeRepository.GetAverageCompletionTimeAsync();
+if (avgCompletionTime.HasValue)
+{
+    Console.WriteLine($"Average completion time: {avgCompletionTime.Value:F1} minutes");
+}
+
+// 8. Get pending routes (not yet completed)
+var pendingRoutes = await routeRepository.GetPendingRoutesAsync();
+Console.WriteLine($"Found {pendingRoutes.Count()} pending routes");
+```
+
