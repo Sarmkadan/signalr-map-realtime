@@ -334,9 +334,83 @@ class Program
 ```csharp
 using System;
 
-## VehicleControllerTests
+## LocationControllerTests
 
-`VehicleControllerTests` contains integration tests for the `VehicleController` API controller, which manages CRUD operations for vehicles in the SignalRMapRealtime application. The test class verifies that the controller endpoints correctly handle creating, reading, updating, and deleting vehicles, including proper status codes, content types, and error handling. Tests cover scenarios like invalid model validation, non-existent resource lookups, and ID mismatch scenarios.
+`LocationControllerTests` contains integration tests for the `LocationController` API controller, which manages CRUD operations for location data in the SignalRMapRealtime application. The test class verifies that the controller endpoints correctly handle creating, reading, updating, and deleting locations, including proper status codes, content types, and error handling. Tests cover scenarios like invalid model validation, non-existent resource lookups, and ID mismatch scenarios.
+
+### Usage Example
+
+```csharp
+using System;
+using System.Net;
+using System.Net.Http;
+using System.Text;
+using System.Threading.Tasks;
+using FluentAssertions;
+using Microsoft.AspNetCore.Mvc.Testing;
+using Newtonsoft.Json;
+using SignalRMapRealtime.DTOs;
+using SignalRMapRealtime.Models;
+using Xunit;
+
+class Program
+{
+    static async Task Main()
+    {
+        // Example using WebApplicationFactory for integration testing
+        var factory = new WebApplicationFactory<Program>();
+        var client = factory.CreateClient();
+
+        // Create a new location
+        var newLocation = new LocationDto
+        {
+            Latitude = 40.7128,
+            Longitude = -74.0060,
+            Timestamp = DateTime.UtcNow,
+            Accuracy = 5.2,
+            Speed = 45.5,
+            Heading = 90
+        };
+
+        var createResponse = await client.PostAsync("/api/Location",
+            new StringContent(JsonConvert.SerializeObject(newLocation), Encoding.UTF8, "application/json"));
+        var createdLocation = await createResponse.Content.ReadAsStringAsync();
+        Console.WriteLine($"Created location response status: {createResponse.StatusCode}");
+
+        // Get all locations with pagination
+        var getAllResponse = await client.GetAsync("/api/Location?pageNumber=1&pageSize=20");
+        var allLocations = await getAllResponse.Content.ReadAsStringAsync();
+        Console.WriteLine($"Get all locations response status: {getAllResponse.StatusCode}");
+
+        // Get a specific location by ID
+        var locationId = JsonConvert.DeserializeObject<LocationDto>(createdLocation)?.Id ?? Guid.Empty;
+        var getByIdResponse = await client.GetAsync($"/api/Location/{locationId}");
+        var singleLocation = await getByIdResponse.Content.ReadAsStringAsync();
+        Console.WriteLine($"Get location by ID response status: {getByIdResponse.StatusCode}");
+
+        // Update a location
+        var updateLocation = new LocationDto
+        {
+            Id = locationId,
+            Latitude = 40.7484,
+            Longitude = -73.9857,
+            Timestamp = DateTime.UtcNow.AddMinutes(1),
+            Accuracy = 6.1,
+            Speed = 55.0,
+            Heading = 180
+        };
+        var updateResponse = await client.PutAsync($"/api/Location/{locationId}",
+            new StringContent(JsonConvert.SerializeObject(updateLocation), Encoding.UTF8, "application/json"));
+        Console.WriteLine($"Update location response status: {updateResponse.StatusCode}");
+
+        // Delete a location
+        var deleteResponse = await client.DeleteAsync($"/api/Location/{locationId}");
+        Console.WriteLine($"Delete location response status: {deleteResponse.StatusCode}");
+    }
+}
+```
+
+## VehicleControllerTests
 
 ### Usage Example
 
@@ -396,9 +470,83 @@ class Program
 }
 ```
 
-## VehicleControllerTests
+## LocationControllerTests
 
-`VehicleControllerTests` contains integration tests for the `VehicleController` API controller, which manages CRUD operations for vehicles in the SignalRMapRealtime application. The test class verifies that the controller endpoints correctly handle creating, reading, updating, and deleting vehicles, including proper status codes, content types, and error handling. Tests cover scenarios like invalid model validation, non-existent resource lookups, and ID mismatch scenarios.
+`LocationControllerTests` contains integration tests for the `LocationController` API controller, which manages CRUD operations for location data in the SignalRMapRealtime application. The test class verifies that the controller endpoints correctly handle creating, reading, updating, and deleting locations, including proper status codes, content types, and error handling. Tests cover scenarios like invalid model validation, non-existent resource lookups, and ID mismatch scenarios.
+
+### Usage Example
+
+```csharp
+using System;
+using System.Net;
+using System.Net.Http;
+using System.Text;
+using System.Threading.Tasks;
+using FluentAssertions;
+using Microsoft.AspNetCore.Mvc.Testing;
+using Newtonsoft.Json;
+using SignalRMapRealtime.DTOs;
+using SignalRMapRealtime.Models;
+using Xunit;
+
+class Program
+{
+    static async Task Main()
+    {
+        // Example using WebApplicationFactory for integration testing
+        var factory = new WebApplicationFactory<Program>();
+        var client = factory.CreateClient();
+
+        // Create a new location
+        var newLocation = new LocationDto
+        {
+            Latitude = 40.7128,
+            Longitude = -74.0060,
+            Timestamp = DateTime.UtcNow,
+            Accuracy = 5.2,
+            Speed = 45.5,
+            Heading = 90
+        };
+
+        var createResponse = await client.PostAsync("/api/Location",
+            new StringContent(JsonConvert.SerializeObject(newLocation), Encoding.UTF8, "application/json"));
+        var createdLocation = await createResponse.Content.ReadAsStringAsync();
+        Console.WriteLine($"Created location response status: {createResponse.StatusCode}");
+
+        // Get all locations with pagination
+        var getAllResponse = await client.GetAsync("/api/Location?pageNumber=1&pageSize=20");
+        var allLocations = await getAllResponse.Content.ReadAsStringAsync();
+        Console.WriteLine($"Get all locations response status: {getAllResponse.StatusCode}");
+
+        // Get a specific location by ID
+        var locationId = JsonConvert.DeserializeObject<LocationDto>(createdLocation)?.Id ?? Guid.Empty;
+        var getByIdResponse = await client.GetAsync($"/api/Location/{locationId}");
+        var singleLocation = await getByIdResponse.Content.ReadAsStringAsync();
+        Console.WriteLine($"Get location by ID response status: {getByIdResponse.StatusCode}");
+
+        // Update a location
+        var updateLocation = new LocationDto
+        {
+            Id = locationId,
+            Latitude = 40.7484,
+            Longitude = -73.9857,
+            Timestamp = DateTime.UtcNow.AddMinutes(1),
+            Accuracy = 6.1,
+            Speed = 55.0,
+            Heading = 180
+        };
+        var updateResponse = await client.PutAsync($"/api/Location/{locationId}",
+            new StringContent(JsonConvert.SerializeObject(updateLocation), Encoding.UTF8, "application/json"));
+        Console.WriteLine($"Update location response status: {updateResponse.StatusCode}");
+
+        // Delete a location
+        var deleteResponse = await client.DeleteAsync($"/api/Location/{locationId}");
+        Console.WriteLine($"Delete location response status: {deleteResponse.StatusCode}");
+    }
+}
+```
+
+## VehicleControllerTests
 
 ### Usage Example
 
