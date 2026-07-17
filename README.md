@@ -627,6 +627,78 @@ class Program
 }
 ```
 
+## AssetControllerTestsExtensions
+`AssetControllerTestsExtensions` provides extension methods for `AssetControllerTests` to simplify integration test assertions for asset controller endpoints. It offers reusable assertion methods that verify HTTP response status codes, content types, and deserialize response data into strongly-typed objects, reducing boilerplate code in integration tests.
+
+### Usage Example
+
+```csharp
+using System;
+using System.Collections.Generic;
+using System.Net.Http;
+using System.Threading.Tasks;
+using FluentAssertions;
+using Microsoft.AspNetCore.Mvc.Testing;
+using SignalRMapRealtime.DTOs;
+using SignalRMapRealtime.IntegrationTests;
+
+class Program
+{
+    static async Task Main()
+    {
+        // Example using WebApplicationFactory for integration testing
+        var factory = new WebApplicationFactory<Program>();
+        var client = factory.CreateClient();
+
+        // Create a new asset using the test helper
+        var newAsset = AssetControllerTestsExtensions.CreateTestAssetDto(
+            name: "Medical Equipment #XYZ-789",
+            type: AssetType.Equipment,
+            status: "Available"
+        );
+
+        // Create asset via API
+        var createResponse = await client.PostAsJsonAsync("api/Asset", newAsset);
+        var createdAsset = await createResponse.ShouldBeCreatedResource<AssetDto>();
+        Console.WriteLine($"Created asset: {createdAsset.Id} - {createdAsset.Name}");
+
+        // Get all assets with pagination
+        var getAllResponse = await client.GetAsync("api/Asset?pageNumber=1&pageSize=20");
+        var allAssets = await getAllResponse.ShouldReturnAssetList();
+        Console.WriteLine($"Total assets: {allAssets.Count}");
+
+        // Get a specific asset by ID
+        var getByIdResponse = await client.GetAsync($"api/Asset/{createdAsset.Id}");
+        var singleAsset = await getByIdResponse.ShouldReturnAsset(createdAsset.Id);
+        Console.WriteLine($"Asset: {singleAsset.Name} (Status: {singleAsset.Status})");
+
+        // Update an asset
+        var updateAsset = AssetControllerTestsExtensions.CreateTestAssetDto(
+            id: createdAsset.Id,
+            name: "Medical Equipment #XYZ-789 - Updated",
+            type: AssetType.Equipment,
+            status: "InUse"
+        );
+        var updateResponse = await client.PutAsJsonAsync($"api/Asset/{createdAsset.Id}", updateAsset);
+        await updateResponse.ShouldBeSuccessfulJsonResponse();
+        Console.WriteLine($"Update status: {updateResponse.StatusCode}");
+
+        // Delete an asset
+        var deleteResponse = await client.DeleteAsync($"api/Asset/{createdAsset.Id}");
+        await deleteResponse.ShouldIndicateSuccessfulDeletion();
+        Console.WriteLine($"Delete status: {deleteResponse.StatusCode}");
+
+        // Test not found scenario
+        var notFoundResponse = await client.GetAsync($"api/Asset/99999");
+        await notFoundResponse.ShouldBeNotFound();
+
+        // Test bad request scenario
+        var badRequestResponse = await client.PostAsJsonAsync("api/Asset", new { });
+        await badRequestResponse.ShouldBeBadRequest();
+    }
+}
+```
+
 ## LocationControllerTests
 
 `LocationControllerTests` contains integration tests for the `LocationController` API controller, which manages CRUD operations for location data in the SignalRMapRealtime application. The test class verifies that the controller endpoints correctly handle creating, reading, updating, and deleting locations, including proper status codes, content types, and error handling. Tests cover scenarios like invalid model validation, non-existent resource lookups, and ID mismatch scenarios.
@@ -759,6 +831,78 @@ class Program
         // Delete an asset
         var deleteResponse = await client.DeleteAsync($"api/Asset/{createdAsset?.Data?.Id}");
         Console.WriteLine($"Delete status: {deleteResponse.StatusCode}");
+    }
+}
+```
+
+## AssetControllerTestsExtensions
+`AssetControllerTestsExtensions` provides extension methods for `AssetControllerTests` to simplify integration test assertions for asset controller endpoints. It offers reusable assertion methods that verify HTTP response status codes, content types, and deserialize response data into strongly-typed objects, reducing boilerplate code in integration tests.
+
+### Usage Example
+
+```csharp
+using System;
+using System.Collections.Generic;
+using System.Net.Http;
+using System.Threading.Tasks;
+using FluentAssertions;
+using Microsoft.AspNetCore.Mvc.Testing;
+using SignalRMapRealtime.DTOs;
+using SignalRMapRealtime.IntegrationTests;
+
+class Program
+{
+    static async Task Main()
+    {
+        // Example using WebApplicationFactory for integration testing
+        var factory = new WebApplicationFactory<Program>();
+        var client = factory.CreateClient();
+
+        // Create a new asset using the test helper
+        var newAsset = AssetControllerTestsExtensions.CreateTestAssetDto(
+            name: "Medical Equipment #XYZ-789",
+            type: AssetType.Equipment,
+            status: "Available"
+        );
+
+        // Create asset via API
+        var createResponse = await client.PostAsJsonAsync("api/Asset", newAsset);
+        var createdAsset = await createResponse.ShouldBeCreatedResource<AssetDto>();
+        Console.WriteLine($"Created asset: {createdAsset.Id} - {createdAsset.Name}");
+
+        // Get all assets with pagination
+        var getAllResponse = await client.GetAsync("api/Asset?pageNumber=1&pageSize=20");
+        var allAssets = await getAllResponse.ShouldReturnAssetList();
+        Console.WriteLine($"Total assets: {allAssets.Count}");
+
+        // Get a specific asset by ID
+        var getByIdResponse = await client.GetAsync($"api/Asset/{createdAsset.Id}");
+        var singleAsset = await getByIdResponse.ShouldReturnAsset(createdAsset.Id);
+        Console.WriteLine($"Asset: {singleAsset.Name} (Status: {singleAsset.Status})");
+
+        // Update an asset
+        var updateAsset = AssetControllerTestsExtensions.CreateTestAssetDto(
+            id: createdAsset.Id,
+            name: "Medical Equipment #XYZ-789 - Updated",
+            type: AssetType.Equipment,
+            status: "InUse"
+        );
+        var updateResponse = await client.PutAsJsonAsync($"api/Asset/{createdAsset.Id}", updateAsset);
+        await updateResponse.ShouldBeSuccessfulJsonResponse();
+        Console.WriteLine($"Update status: {updateResponse.StatusCode}");
+
+        // Delete an asset
+        var deleteResponse = await client.DeleteAsync($"api/Asset/{createdAsset.Id}");
+        await deleteResponse.ShouldIndicateSuccessfulDeletion();
+        Console.WriteLine($"Delete status: {deleteResponse.StatusCode}");
+
+        // Test not found scenario
+        var notFoundResponse = await client.GetAsync($"api/Asset/99999");
+        await notFoundResponse.ShouldBeNotFound();
+
+        // Test bad request scenario
+        var badRequestResponse = await client.PostAsJsonAsync("api/Asset", new { });
+        await badRequestResponse.ShouldBeBadRequest();
     }
 }
 ```
