@@ -125,6 +125,61 @@ class Program
 }
 ```
 
+## GeofenceController
+
+`GeofenceController` is an API controller that manages geofence zones and evaluates vehicle positions against configured boundaries. It provides endpoints for retrieving active zones, registering new zones, removing existing zones, and checking vehicle locations against geofence boundaries to generate boundary-crossing alerts. The controller supports circle and polygon zone shapes and emits alerts only on state changes (entry/exit events).
+
+### Usage Example
+
+```csharp
+using System;
+using System.Net.Http.Json;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc.Testing;
+using SignalRMapRealtime.DTOs;
+using SignalRMapRealtime.Models;
+
+class Program
+{
+    static async Task Main()
+    {
+        var factory = new WebApplicationFactory<Program>();
+        var client = factory.CreateClient();
+
+        // Get all active geofence zones
+        var getZonesResponse = await client.GetAsync("api/Geofence");
+        var zones = await getZonesResponse.Content.ReadFromJsonAsync<ApiResponse<IReadOnlyList<GeofenceDto>>>();
+        Console.WriteLine($"Active zones: {zones?.Data?.Count}");
+
+        // Register a new circular geofence zone
+        var newZone = new CreateGeofenceDto
+        {
+            Name = "Warehouse District",
+            ShapeType = GeofenceShapeType.Circle,
+            Coordinates = new[] { -73.9857, 40.7484 },
+            RadiusMeters = 500,
+            Description = "Restricted area around warehouse"
+        };
+
+        var registerResponse = await client.PostAsJsonAsync("api/Geofence", newZone);
+        var registeredZone = await registerResponse.Content.ReadFromJsonAsync<ApiResponse<GeofenceDto>>();
+        Console.WriteLine($"Registered zone: {registeredZone?.Data?.Id}");
+
+        // Check vehicle location against geofences
+        var vehicleId = Guid.NewGuid();
+        var checkResponse = await client.PostAsJsonAsync(
+            $"api/Geofence/check?vehicleId={vehicleId}&latitude=40.7484&longitude=-73.9857",
+            (object)null);
+        var alerts = await checkResponse.Content.ReadFromJsonAsync<ApiResponse<IReadOnlyList<GeofenceAlertDto>>>();
+        Console.WriteLine($"Geofence alerts: {alerts?.Data?.Count}");
+
+        // Remove the zone
+        var deleteResponse = await client.DeleteAsync($"api/Geofence/{registeredZone?.Data?.Id}");
+        Console.WriteLine($"Delete status: {deleteResponse.StatusCode}");
+    }
+}
+```
+
 ## PlaybackController
 
 `PlaybackController` provides REST endpoints for managing historical route playback sessions, retrieving timelines, snapshots, and statistics. It enables clients to start a playback session, query active sessions, obtain the state of a specific session, stop a session, and fetch detailed timeline or snapshot data for a tracking session.
