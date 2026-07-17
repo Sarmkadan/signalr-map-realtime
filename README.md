@@ -261,6 +261,78 @@ class Program
 }
 ```
 
+## RouteOptimizationClient
+
+`RouteOptimizationClient` is a helper class for creating, optimizing, and managing delivery routes with multiple waypoints. It provides functionality to calculate distances between locations, optimize waypoint order using nearest-neighbor algorithm, simulate route execution, and interact with a route management API. The client is useful for logistics applications that need to plan efficient delivery routes.
+
+### Usage Example
+
+```csharp
+using System;
+using System.Threading.Tasks;
+using SignalRMapRealtime.Examples;
+
+class Program
+{
+static async Task Main()
+{
+// Create a route optimization client
+var client = new RouteOptimizationClient(
+"https://localhost:5001",
+"your-api-key-here"
+);
+
+// Run the route optimization example with a vehicle
+var vehicleId = Guid.NewGuid().ToString();
+await client.RunExample(vehicleId);
+}
+}
+```
+
+### Complete Usage Example with Custom Waypoints
+
+```csharp
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using SignalRMapRealtime.Examples;
+
+class Program
+{
+static async Task Main()
+{
+// Create a route optimization client
+var client = new RouteOptimizationClient(
+"https://api.example.com",
+"sk-1234567890abcdef"
+);
+
+// Create custom waypoints for a delivery route
+var waypoints = new List<Waypoint>
+{
+new Waypoint { Order = 1, Latitude = 40.7128, Longitude = -74.0060, Name = "Warehouse - Start" },
+new Waypoint { Order = 2, Latitude = 40.7489, Longitude = -73.9680, Name = "Customer A" },
+new Waypoint { Order = 3, Latitude = 40.7614, Longitude = -73.9776, Name = "Customer B" },
+new Waypoint { Order = 4, Latitude = 40.7282, Longitude = -73.7949, Name = "Customer C" },
+new Waypoint { Order = 5, Latitude = 40.6892, Longitude = -74.0445, Name = "Warehouse - End" }
+};
+
+// Optimize the waypoint order
+var optimizedWaypoints = client.OptimizeWaypointOrder(waypoints);
+
+Console.WriteLine("Optimized Route Order:");
+foreach (var wp in optimizedWaypoints)
+{
+Console.WriteLine($" {wp.Order}. {wp.Name} ({wp.Latitude:F4}, {wp.Longitude:F4})");
+}
+
+// Run the example
+var vehicleId = Guid.NewGuid().ToString();
+await client.RunExample(vehicleId);
+}
+}
+```
+
 ## PlaybackController
 
 `PlaybackController` provides REST endpoints for managing historical route playback sessions, retrieving timelines, snapshots, and statistics. It enables clients to start a playback session, query active sessions, obtain the state of a specific session, stop a session, and fetch detailed timeline or snapshot data for a tracking session.
