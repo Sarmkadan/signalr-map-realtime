@@ -6,6 +6,10 @@
 
 namespace SignalRMapRealtime.Controllers;
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using SignalRMapRealtime.DTOs;
 using SignalRMapRealtime.Models;
@@ -219,6 +223,32 @@ public class LocationController : ControllerBase
         {
             _logger.LogError(ex, "Error deleting location {LocationId}. TraceId: {TraceId}", id, HttpContext.TraceIdentifier);
             return BadRequest(ErrorResponse.ServerError("Failed to delete location", HttpContext.TraceIdentifier));
+        }
+    }
+
+    /// <summary>
+    /// Retrieves the nearest assets (latest location per vehicle) ordered by haversine distance.
+    /// </summary>
+    /// <param name="lat">Reference latitude.</param>
+    /// <param name="lon">Reference longitude.</param>
+    /// <param name="count">Number of nearest assets to return (default 5).</param>
+    [HttpGet("nearest")]
+    public async Task<IActionResult> GetNearestAssets([FromQuery] double lat, [FromQuery] double lon, [FromQuery] int count = 5)
+    {
+        try
+        {
+            var locations = await _locationService.GetNearestAssets(lat, lon, count);
+            var response = ApiResponse<IEnumerable<LocationDto>>.SuccessResponse(
+                locations,
+                $"Nearest {count} assets retrieved successfully",
+                200,
+                HttpContext.TraceIdentifier);
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving nearest assets. TraceId: {TraceId}", HttpContext.TraceIdentifier);
+            return BadRequest(ErrorResponse.ServerError("Failed to retrieve nearest assets", HttpContext.TraceIdentifier));
         }
     }
 }

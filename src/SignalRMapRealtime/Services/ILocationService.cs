@@ -4,8 +4,10 @@
 // CTO & Software Architect
 // =============================================================================
 
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using SignalRMapRealtime.Models;
-
 using SignalRMapRealtime.DTOs;
 using SignalRMapRealtime.Domain.Enums;
 
@@ -128,6 +130,16 @@ public interface ILocationService
     /// <param name="lon2">Longitude of point 2.</param>
     /// <returns>Distance in kilometers.</returns>
     double CalculateDistance(double lat1, double lon1, double lat2, double lon2);
+
+    /// <summary>
+    /// Retrieves the N closest tracked assets (latest location per vehicle) ordered by haversine distance.
+    /// </summary>
+    /// <param name="latitude">Reference latitude.</param>
+    /// <param name="longitude">Reference longitude.</param>
+    /// <param name="count">Number of nearest assets to return.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>A task representing the asynchronous operation, containing the nearest location DTOs.</returns>
+    Task<IEnumerable<LocationDto>> GetNearestAssets(double latitude, double longitude, int count, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Cleans up old location records.

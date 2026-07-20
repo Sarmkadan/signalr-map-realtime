@@ -6,6 +6,11 @@
 
 namespace SignalRMapRealtime.Services;
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using AutoMapper;
 using SignalRMapRealtime.Constants;
@@ -296,6 +301,37 @@ public class LocationService : ILocationService
                   Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
         double c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
         return earthRadiusKm * c;
+    }
+
+    /// <summary>
+    /// Retrieves the N closest tracked assets (latest location per vehicle) ordered by haversine distance.
+    /// </summary>
+    public async Task<IEnumerable<LocationDto>> GetNearestAssets(double latitude, double longitude, int count, CancellationToken cancellationToken = default)
+    {
+        _logger.LogDebug("Retrieving {Count} nearest assets to lat {Latitude}, lon {Longitude}", count, latitude, longitude);
+
+        // Get all locations (could be large; in a real system we'd query for latest per vehicle)
+        var allLocations = await _locationRepository.GetAllAsync(cancellationToken).ConfigureAwait(false);
+
+        // Determine the latest location per vehicle
+        var latestPerVehicle = allLocations
+            .GroupBy(l => l.VehicleId)
+            .Select(g => g.OrderByDescending(l => l.RecordedAt).First())
+            .ToList();
+
+        // Compute distance and take the closest N
+        var nearest = latestPerVehicle
+            .Select(l => new
+            {
+                Location = l,
+                Distance = CalculateDistance(latitude, longitude, l.Latitude, l.Longitude)
+            })
+            .OrderBy(x => x.Distance)
+            .Take(count)
+            .Select(x => x.Location)
+            .ToList();
+
+        return _mapper.Map<IEnumerable<LocationDto>>(nearest);
     }
 
     /// <summary>
