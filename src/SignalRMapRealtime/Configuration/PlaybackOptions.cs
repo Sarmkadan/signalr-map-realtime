@@ -50,13 +50,13 @@ public class PlaybackOptions
     /// Upper bound for the speed multiplier accepted from client requests.
     /// Values above this are silently clamped to prevent flooding SignalR connections.
     /// </summary>
-    public double MaxSpeedMultiplier { get; set; } = 64.0;
+    public double MaxSpeedMultiplier { get; set; } = 8.0;
 
     /// <summary>
     /// Lower bound for the speed multiplier accepted from client requests.
-    /// A value of 0.1 produces one-tenth of real-time playback speed.
+    /// A value of 0.25 produces one-quarter of real-time playback speed.
     /// </summary>
-    public double MinSpeedMultiplier { get; set; } = 0.1;
+    public double MinSpeedMultiplier { get; set; } = 0.25;
 
     /// <summary>
     /// Minimum interval in milliseconds enforced between successive frame emissions,

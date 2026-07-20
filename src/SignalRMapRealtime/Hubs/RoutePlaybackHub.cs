@@ -30,6 +30,7 @@ using SignalRMapRealtime.Authentication; // Hotfix: Added for ApiKeyAuthenticati
 ///   <item><see cref="StopPlayback"/> – terminate a session</item>
 ///   <item><see cref="SeekTo"/> – reposition the playback cursor</item>
 ///   <item><see cref="SetSpeed"/> – change the playback speed multiplier</item>
+/// <item><see cref="SetPlaybackSpeed"/> – update playback speed with 0.25×–8× range</item>
 ///   <item><see cref="SubscribeToPlayback"/> – join an existing session's frame stream</item>
 ///   <item><see cref="UnsubscribeFromPlayback"/> – leave a session's frame stream</item>
 ///   <item><see cref="GetPlaybackState"/> – poll current session state</item>
@@ -240,6 +241,50 @@ public class RoutePlaybackHub : Hub
         {
             _logger.LogError(ex, "Error setting speed for playback {PlaybackId}", playbackId);
             await Clients.Caller.SendAsync("PlaybackError", new { PlaybackId = playbackId, Error = ex.Message }).ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>
+    /// Updates the playback speed multiplier on a running or paused session.
+    /// The value is clamped to the range 0.25× to 8× as specified.
+    /// A <c>PlaybackSpeedChanged</c> event is broadcast to all members of the session group.
+    /// </summary>
+    /// <param name="sessionId">Unique identifier of the tracking session.</param>
+    /// <param name="multiplier">Desired speed factor (1.0 = real-time, 4.0 = 4× faster).</param>
+    public async Task SetPlaybackSpeed(int sessionId, double multiplier)
+    {
+        try
+        {
+            // Find the playback session that corresponds to this tracking session ID
+            var activePlaybacks = await _playbackService.GetActivePlaybacksAsync().ConfigureAwait(false);
+            var playbackState = activePlaybacks.FirstOrDefault(s => s.TrackingSessionId == sessionId);
+
+            if (playbackState == null)
+            {
+                await Clients.Caller.SendAsync("PlaybackError", new
+                {
+                    SessionId = sessionId,
+                    Error = $"No active playback session found for tracking session {sessionId}."
+                }).ConfigureAwait(false);
+                return;
+            }
+
+            // Clamp the multiplier to 0.25x-8x as specified in the requirements
+            var clampedMultiplier = Math.Clamp(multiplier, 0.25, 8.0);
+            await _playbackService.SetPlaybackSpeedAsync(playbackState.PlaybackId, clampedMultiplier).ConfigureAwait(false);
+            var updatedState = await _playbackService.GetPlaybackStateAsync(playbackState.PlaybackId).ConfigureAwait(false);
+
+            await Clients.Group(PlaybackGroup(playbackState.PlaybackId)).SendAsync("PlaybackSpeedChanged", new
+            {
+                PlaybackId = playbackState.PlaybackId,
+                SessionId = sessionId,
+                SpeedMultiplier = updatedState?.SpeedMultiplier ?? clampedMultiplier
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error setting playback speed for session {SessionId}", sessionId);
+            await Clients.Caller.SendAsync("PlaybackError", new { SessionId = sessionId, Error = ex.Message }).ConfigureAwait(false);
         }
     }
 
