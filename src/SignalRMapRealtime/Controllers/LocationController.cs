@@ -251,4 +251,47 @@ public class LocationController : ControllerBase
             return BadRequest(ErrorResponse.ServerError("Failed to retrieve nearest assets", HttpContext.TraceIdentifier));
         }
     }
+
+    /// <summary>
+    /// Gets paginated location history for a specific vehicle with optional time range filtering.
+    /// Results are ordered by newest first (descending by timestamp).
+    /// </summary>
+    /// <param name="vehicleId">Vehicle ID to get location history for.</param>
+    /// <param name="pageNumber">Page number (1-indexed, default: 1)</param>
+    /// <param name="pageSize">Number of items per page (default: 20, max: 100)</param>
+    /// <param name="startTime">Optional start time for filtering (inclusive, ISO 8601 format).</param>
+    /// <param name="endTime">Optional end time for filtering (inclusive, ISO 8601 format).</param>
+    [HttpGet("vehicle/{vehicleId}/history")]
+    public async Task<IActionResult> GetVehicleLocationHistory(
+        [FromRoute] int vehicleId,
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 20,
+        [FromQuery] DateTime? startTime = null,
+        [FromQuery] DateTime? endTime = null)
+    {
+        try
+        {
+            var (validPageNumber, validPageSize) = PaginationExtensions.NormalizePaginationParameters(pageNumber, pageSize, 100);
+
+            var result = await _locationService.GetVehicleLocationHistoryAsync(
+                vehicleId,
+                validPageNumber,
+                validPageSize,
+                startTime,
+                endTime);
+
+            var response = ApiResponse<PaginatedResponse<LocationDto>>.SuccessResponse(
+                result,
+                "Vehicle location history retrieved successfully",
+                200,
+                HttpContext.TraceIdentifier);
+
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving vehicle {VehicleId} location history. TraceId: {TraceId}", vehicleId, HttpContext.TraceIdentifier);
+            return BadRequest(ErrorResponse.ServerError("Failed to retrieve vehicle location history", HttpContext.TraceIdentifier));
+        }
+    }
 }

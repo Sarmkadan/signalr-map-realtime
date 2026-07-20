@@ -148,6 +148,25 @@ public interface ILocationService
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>A task representing the asynchronous operation, containing the number of deleted records.</returns>
     Task<int> CleanupOldLocationsAsync(int daysOld = 90, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets paginated location history for a vehicle with time range filtering.
+    /// Results are ordered by newest first (descending by RecordedAt).
+    /// </summary>
+    /// <param name="vehicleId">The ID of the vehicle.</param>
+    /// <param name="pageNumber">Page number (1-indexed).</param>
+    /// <param name="pageSize">Number of items per page.</param>
+    /// <param name="startTime">Optional start time for filtering (inclusive).</param>
+    /// <param name="endTime">Optional end time for filtering (inclusive).</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>A task representing the asynchronous operation, containing the paginated response of location DTOs.</returns>
+    Task<PaginatedResponse<LocationDto>> GetVehicleLocationHistoryAsync(
+        int vehicleId,
+        int pageNumber,
+        int pageSize,
+        DateTime? startTime = null,
+        DateTime? endTime = null,
+        CancellationToken cancellationToken = default);
 }
 
 /// <summary>

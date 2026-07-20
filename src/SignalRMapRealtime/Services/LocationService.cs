@@ -344,4 +344,72 @@ public class LocationService : ILocationService
         _logger.LogInformation("Cleaned up {Count} old locations", count);
         return count;
     }
+
+    /// <summary>
+    /// Gets paginated location history for a vehicle with time range filtering.
+    /// Results are ordered by newest first (descending by RecordedAt).
+    /// </summary>
+    /// <param name="vehicleId">The ID of the vehicle.</param>
+    /// <param name="pageNumber">Page number (1-indexed).</param>
+    /// <param name="pageSize">Number of items per page.</param>
+    /// <param name="startTime">Optional start time for filtering (inclusive).</param>
+    /// <param name="endTime">Optional end time for filtering (inclusive).</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>A task representing the asynchronous operation, containing the paginated response of location DTOs.</returns>
+    public async Task<PaginatedResponse<LocationDto>> GetVehicleLocationHistoryAsync(
+        int vehicleId,
+        int pageNumber,
+        int pageSize,
+        DateTime? startTime = null,
+        DateTime? endTime = null,
+        CancellationToken cancellationToken = default)
+    {
+        _logger.LogDebug(
+            "Retrieving paginated location history for vehicle {VehicleId}: page {PageNumber}, size {PageSize}, startTime {StartTime}, endTime {EndTime}",
+            vehicleId,
+            pageNumber,
+            pageSize,
+            startTime?.ToString("o") ?? "null",
+            endTime?.ToString("o") ?? "null");
+
+        // Normalize pagination parameters
+        var (validPageNumber, validPageSize) = Utilities.PaginationExtensions.NormalizePaginationParameters(pageNumber, pageSize, 100);
+
+        // Get all locations for the vehicle
+        var locations = await _locationRepository.GetAllAsync(cancellationToken).ConfigureAwait(false);
+
+        // Filter by vehicle ID
+        var vehicleLocations = locations.Where(l => l.VehicleId == vehicleId).ToList();
+
+        // Apply time range filters if specified
+        if (startTime.HasValue)
+        {
+            vehicleLocations = vehicleLocations.Where(l => l.RecordedAt >= startTime.Value).ToList();
+        }
+
+        if (endTime.HasValue)
+        {
+            vehicleLocations = vehicleLocations.Where(l => l.RecordedAt <= endTime.Value).ToList();
+        }
+
+        // Order by newest first
+        var orderedLocations = vehicleLocations
+            .OrderByDescending(l => l.RecordedAt)
+            .ToList();
+
+        // Create paginated response
+        var result = PaginatedResponse<LocationDto>.FromList(
+            _mapper.Map<IEnumerable<LocationDto>>(orderedLocations),
+            validPageNumber,
+            validPageSize);
+
+        _logger.LogInformation(
+            "Retrieved {Count} locations for vehicle {VehicleId} (page {PageNumber}/{TotalPages})",
+            result.Items.Count,
+            vehicleId,
+            result.PageNumber,
+            result.TotalPages);
+
+        return result;
+    }
 }
