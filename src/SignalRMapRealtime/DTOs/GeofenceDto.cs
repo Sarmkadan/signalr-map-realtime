@@ -46,6 +46,9 @@ public class GeofenceDto
 
     /// <summary>Identifier of the user who created the zone.</summary>
     public string? CreatedBy { get; set; }
+
+/// <summary>Maximum dwell time in minutes before a dwell alert is triggered.</summary>
+public int MaxDwellMinutes { get; set; } = 60;
 }
 
 /// <summary>Payload for registering a new geofence zone.</summary>
@@ -80,6 +83,9 @@ public class CreateGeofenceDto
 
     /// <summary>Identifier of the user registering the zone.</summary>
     public string? CreatedBy { get; set; }
+
+/// <summary>Maximum dwell time in minutes before a dwell alert is triggered.</summary>
+public int MaxDwellMinutes { get; set; } = 60;
 }
 
 /// <summary>Alert payload emitted when a tracked vehicle crosses a geofence boundary.</summary>

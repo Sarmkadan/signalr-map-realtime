@@ -61,6 +61,9 @@ public class Geofence
     /// <summary>UTC timestamp of the last modification.</summary>
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
+/// <summary>Maximum dwell time in minutes before a dwell alert is triggered.</summary>
+public int MaxDwellMinutes { get; set; } = 60;
+
     /// <summary>Identifier of the user who created this zone.</summary>
     public string? CreatedBy { get; set; }
 

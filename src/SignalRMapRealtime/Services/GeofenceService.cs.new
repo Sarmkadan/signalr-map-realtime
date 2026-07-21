@@ -2,7 +2,7 @@
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
-// =============================================================================
+// =====================================================================
 
 namespace SignalRMapRealtime.Services;
 
@@ -37,6 +37,7 @@ public interface IGeofenceService
     /// Evaluates a vehicle's position against all active zones and returns discrete boundary-crossing alerts.
     /// Publishes a <see cref="GeofenceViolationEvent"/> for each detected transition.
     /// Entry and exit alerts are only emitted on state change — repeated positions inside a zone produce no duplicates.
+    /// Also checks for dwell-time violations when vehicles remain inside geofences longer than configured thresholds.
     /// </summary>
     /// <param name="vehicleId">Identifier of the vehicle whose location is being checked.</param>
     /// <param name="latitude">Current latitude in decimal degrees.</param>
@@ -128,11 +129,38 @@ public sealed class GeofenceService : IGeofenceService
         var previousIds = _presence.GetOrAdd(vehicleId, _ => new HashSet<Guid>());
         var alerts = new List<GeofenceAlertDto>();
 
-        foreach (var id in currentIds.Except(previousIds).ToList())
-            await EmitAlertAsync(alerts, id, vehicleId, latitude, longitude, "Entered").ConfigureAwait(false);
+        // Track dwell-time for vehicles entering geofences
+        foreach (var id in currentIds)
+        {
+            if (!previousIds.Contains(id))
+            {
+                // Vehicle entered this geofence
+                await EmitAlertAsync(alerts, id, vehicleId, latitude, longitude, "Entered").ConfigureAwait(false);
+                _dwellStartTimes[(vehicleId, id)] = DateTime.UtcNow;
+            }
+            else
+            {
+                // Vehicle already in geofence - check for dwell-time violation
+                if (_dwellStartTimes.TryGetValue((vehicleId, id), out var entryTime))
+                {
+                    var dwellDuration = DateTime.UtcNow - entryTime;
+                    var maxDwell = _zones[id].MaxDwellMinutes;
 
+                    if (dwellDuration.TotalMinutes >= maxDwell)
+                    {
+                        // Dwell-time threshold exceeded - emit dwell event
+                        await EmitDwellEventAsync(id, vehicleId, latitude, longitude, entryTime, dwellDuration.TotalMinutes, maxDwell).ConfigureAwait(false);
+                    }
+                }
+            }
+        }
+
+        // Check for exits and cleanup dwell tracking
         foreach (var id in previousIds.Except(currentIds).ToList())
+        {
             await EmitAlertAsync(alerts, id, vehicleId, latitude, longitude, "Exited").ConfigureAwait(false);
+            _dwellStartTimes.TryRemove((vehicleId, id), out _);
+        }
 
         _presence[vehicleId] = currentIds;
 
@@ -170,6 +198,34 @@ public sealed class GeofenceService : IGeofenceService
         });
     }
 
+    private async Task EmitDwellEventAsync(
+        Guid zoneId, Guid vehicleId, double latitude, double longitude,
+        DateTime enteredAt, double dwellDurationMinutes, int maxDwellMinutes)
+    {
+        if (!_zones.TryGetValue(zoneId, out var zone))
+            return;
+
+        var dwellEvent = new GeofenceDwellEvent
+        {
+            GeofenceId = zone.Id,
+            GeofenceName = zone.Name,
+            VehicleId = vehicleId,
+            Latitude = latitude,
+            Longitude = longitude,
+            EnteredAt = enteredAt,
+            DwellDurationMinutes = dwellDurationMinutes,
+            MaxDwellMinutes = maxDwellMinutes,
+        };
+
+        // Try to get vehicle registration and name from the last location
+        // This would typically be populated by the calling code
+        _logger.LogWarning(
+            "Geofence dwell detected: vehicle {VehicleId} has dwelled in zone '{ZoneName}' ({ZoneId}) for {DwellDurationMinutes:F1} minutes (threshold: {MaxDwellMinutes} minutes).",
+            vehicleId, zone.Name, zone.Id, dwellDurationMinutes, maxDwellMinutes);
+
+        await _eventBus.PublishAsync(dwellEvent).ConfigureAwait(false);
+    }
+
     private static GeofenceDto MapToDto(Geofence zone) => new()
     {
         Id = zone.Id,
@@ -184,7 +240,7 @@ public sealed class GeofenceService : IGeofenceService
         CreatedAt = zone.CreatedAt,
         UpdatedAt = zone.UpdatedAt,
         CreatedBy = zone.CreatedBy,
-    MaxDwellMinutes = zone.MaxDwellMinutes,
+        MaxDwellMinutes = zone.MaxDwellMinutes,
     };
 }
 
