@@ -9,6 +9,7 @@ namespace SignalRMapRealtime.Controllers;
 using Microsoft.AspNetCore.Mvc;
 using SignalRMapRealtime.Data.Repositories;
 using SignalRMapRealtime.DTOs;
+using SignalRMapRealtime.Formatters;
 using SignalRMapRealtime.Models;
 using SignalRMapRealtime.Utilities;
 
@@ -110,9 +111,9 @@ public class RouteController : ControllerBase
             if (!ModelState.IsValid)
                 return BadRequest(ErrorResponse.ValidationError(
                     ModelState.Values
-                        .SelectMany(v => v.Errors)
-                        .GroupBy(e => "ValidationError")
-                        .ToDictionary(g => g.Key, g => g.Select(e => e.ErrorMessage).ToArray()),
+                    .SelectMany(v => v.Errors)
+                    .GroupBy(e => "ValidationError")
+                    .ToDictionary(g => g.Key, g => g.Select(e => e.ErrorMessage).ToArray()),
                     "Validation failed",
                     HttpContext.TraceIdentifier));
 
@@ -261,6 +262,40 @@ public class RouteController : ControllerBase
         {
             _logger.LogError(ex, "Error calculating route {RouteId}. TraceId: {TraceId}", id, HttpContext.TraceIdentifier);
             return StatusCode(500, ErrorResponse.ServerError("Failed to calculate route", HttpContext.TraceIdentifier));
+        }
+    }
+
+    /// <summary>
+    /// Exports a route as GeoJSON LineString format.
+    /// Returns the route geometry and metadata for mapping applications.
+    /// </summary>
+    [HttpGet("{id}/geojson")]
+    [Produces("application/geo+json")]
+    public async Task<IActionResult> ExportRouteAsGeoJson(int id)
+    {
+        try
+        {
+            var route = await _routeRepository.GetByIdAsync(id);
+
+            if (route is null)
+                return NotFound(ErrorResponse.NotFoundError($"Route with ID {id} not found", HttpContext.TraceIdentifier));
+
+            var waypoints = route.Waypoints
+                .OrderBy(w => w.Sequence)
+                .Select(w => (w.Latitude, w.Longitude))
+                .ToList();
+
+            if (waypoints.Count == 0)
+                return NotFound(ErrorResponse.NotFoundError($"Route with ID {id} has no waypoints", HttpContext.TraceIdentifier));
+
+            var geoJson = GeoJsonSerializer.SerializeRoute(route, waypoints);
+
+            return Content(geoJson, "application/geo+json");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error exporting route {RouteId} as GeoJSON. TraceId: {TraceId}", id, HttpContext.TraceIdentifier);
+            return StatusCode(500, ErrorResponse.ServerError("Failed to export route as GeoJSON", HttpContext.TraceIdentifier));
         }
     }
 
