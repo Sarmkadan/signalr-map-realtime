@@ -83,6 +83,7 @@ public enum SegmentType
 /// <param name="Bearing">Heading direction in degrees (0–360, clockwise from north), if recorded.</param>
 /// <param name="Altitude">Altitude above sea level in metres, if recorded.</param>
 /// <param name="DistanceCoveredKm">Cumulative distance travelled from the session start, in kilometres.</param>
+/// <param name="RemainingDistanceKm">Remaining distance to the end of the route from this frame's position, in kilometres.</param>
 /// <param name="CompletionPercentage">Journey progress as a whole-number percentage from 0 to 100.</param>
 /// <param name="ElapsedTime">Time elapsed since the beginning of the tracked session at this frame.</param>
 /// <param name="Address">Reverse-geocoded address at this location, if available.</param>
@@ -97,6 +98,7 @@ public record PlaybackFrameDto(
     double? Bearing,
     double? Altitude,
     double DistanceCoveredKm,
+    double? RemainingDistanceKm,
     int CompletionPercentage,
     TimeSpan ElapsedTime,
     string? Address);

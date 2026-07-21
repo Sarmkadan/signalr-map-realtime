@@ -350,6 +350,9 @@ public sealed class RoutePlaybackService : IRoutePlaybackService, IAsyncDisposab
         var loc = locations[frameIndex];
         var totalFrames = locations.Count;
         var completion = totalFrames > 1 ? frameIndex * 100 / (totalFrames - 1) : 100;
+    var totalDistanceKm = cumulativeDistances[^1];
+    var distanceCoveredKm = Math.Round(cumulativeDistances[frameIndex], 3);
+    var remainingDistanceKm = totalDistanceKm - distanceCoveredKm;
 
         return new PlaybackFrameDto(
             PlaybackId: playbackId,
@@ -361,7 +364,8 @@ public sealed class RoutePlaybackService : IRoutePlaybackService, IAsyncDisposab
             Speed: loc.Speed,
             Bearing: loc.Bearing,
             Altitude: loc.Altitude,
-            DistanceCoveredKm: Math.Round(cumulativeDistances[frameIndex], 3),
+            DistanceCoveredKm: distanceCoveredKm,
+                RemainingDistanceKm: Math.Round(remainingDistanceKm, 3),
             CompletionPercentage: completion,
             ElapsedTime: loc.RecordedAt - locations[0].RecordedAt,
             Address: loc.Address);
@@ -598,6 +602,9 @@ public sealed class RoutePlaybackService : IRoutePlaybackService, IAsyncDisposab
         /// <summary>UTC timestamp of the last recorded location.</summary>
         public DateTime PlaybackEnd => Locations.Count > 0 ? Locations[^1].RecordedAt : DateTime.MinValue;
 
+/// <summary>Total distance of the entire route in kilometers.</summary>
+public double TotalDistanceKm { get; }
+
         public PlaybackState(Guid playbackId, int trackingSessionId, IReadOnlyList<Location> locations, double speedMultiplier)
         {
             PlaybackId = playbackId;
@@ -605,6 +612,7 @@ public sealed class RoutePlaybackService : IRoutePlaybackService, IAsyncDisposab
             Locations = locations;
             SpeedMultiplier = speedMultiplier;
             CumulativeDistances = BuildCumulativeDistances(locations);
+    TotalDistanceKm = ComputeTotalDistance(locations);
         }
 
         private static double[] BuildCumulativeDistances(IReadOnlyList<Location> locations)

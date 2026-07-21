@@ -163,6 +163,7 @@ public class PlaybackServiceTests
             Bearing: 180.0,
             Altitude: null,
             DistanceCoveredKm: 22.6,
+    RemainingDistanceKm: 22.6,
             CompletionPercentage: 50,
             ElapsedTime: TimeSpan.FromMinutes(30),
             Address: null);
