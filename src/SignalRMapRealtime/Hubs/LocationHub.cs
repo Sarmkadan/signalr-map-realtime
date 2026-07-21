@@ -9,6 +9,7 @@ namespace SignalRMapRealtime.Hubs;
 using Microsoft.AspNetCore.SignalR;
 using SignalRMapRealtime.DTOs;
 using SignalRMapRealtime.Services;
+using SignalRMapRealtime.Data.Repositories;
 using SignalRMapRealtime.Constants;
 using Microsoft.AspNetCore.Authorization; // Hotfix: Added for [Authorize] attribute
 using SignalRMapRealtime.Authentication; // Hotfix: Added for ApiKeyAuthenticationOptions
@@ -23,22 +24,25 @@ public class LocationHub : Hub
     private readonly ILocationService _locationService;
     private readonly IVehicleService _vehicleService;
     private readonly ITrackingService _trackingService;
+    private readonly RouteRepository _routeRepository;
     private readonly LocationUpdateThrottler _throttler;
     private readonly ILogger<LocationHub> _logger;
 
     /// <summary>
     /// Initializes a new instance of LocationHub.
     /// </summary>
-    public LocationHub(ILocationService locationService, IVehicleService vehicleService, ITrackingService trackingService, LocationUpdateThrottler throttler, ILogger<LocationHub> logger)
+    public LocationHub(ILocationService locationService, IVehicleService vehicleService, ITrackingService trackingService, RouteRepository routeRepository, LocationUpdateThrottler throttler, ILogger<LocationHub> logger)
     {
         ArgumentNullException.ThrowIfNull(locationService);
         ArgumentNullException.ThrowIfNull(vehicleService);
         ArgumentNullException.ThrowIfNull(trackingService);
+        ArgumentNullException.ThrowIfNull(routeRepository);
         ArgumentNullException.ThrowIfNull(throttler);
         ArgumentNullException.ThrowIfNull(logger);
         _locationService = locationService;
         _vehicleService = vehicleService;
         _trackingService = trackingService;
+        _routeRepository = routeRepository;
         _throttler = throttler;
         _logger = logger;
     }
@@ -79,10 +83,10 @@ public class LocationHub : Hub
 
             var location = await _locationService.RecordLocationAsync(locationDto).ConfigureAwait(false);
 
-            // Broadcast to all connected clients
-            await Clients.All.SendAsync("LocationUpdated", location).ConfigureAwait(false);
+            // Broadcast to vehicle-specific listeners only
+            await Clients.Group($"vehicle-{locationDto.VehicleId}").SendAsync("LocationUpdated", location).ConfigureAwait(false);
 
-            // Notify vehicle-specific listeners
+            // Notify vehicle-specific listeners for real-time updates
             await Clients.Group($"vehicle-{locationDto.VehicleId}").SendAsync("VehicleLocationUpdated", location).ConfigureAwait(false);
 
             _logger.LogInformation("Location updated for vehicle {VehicleId}", locationDto.VehicleId);
@@ -104,7 +108,7 @@ public class LocationHub : Hub
         try
         {
             _throttler.Remove(vehicleId);
-            await Clients.All.SendAsync("AssetRemoved", vehicleId).ConfigureAwait(false);
+            await Clients.Group($"vehicle-{vehicleId}").SendAsync("AssetRemoved", vehicleId).ConfigureAwait(false);
             _logger.LogInformation("Asset removed notification sent for vehicle {VehicleId}", vehicleId);
         }
         catch (Exception ex)
@@ -144,7 +148,7 @@ public class LocationHub : Hub
     {
         try
         {
-            await Clients.All.SendAsync("VehicleStatusChanged", new { vehicleId, newStatus, timestamp = DateTime.UtcNow }).ConfigureAwait(false);
+            await Clients.Group($"vehicle-{vehicleId}").SendAsync("VehicleStatusChanged", new { vehicleId, newStatus, timestamp = DateTime.UtcNow }).ConfigureAwait(false);
             _logger.LogInformation("Vehicle {VehicleId} status changed to {NewStatus}", vehicleId, newStatus);
         }
         catch (Exception ex)
@@ -213,7 +217,19 @@ public class LocationHub : Hub
     {
         try
         {
-            await Clients.All.SendAsync("RouteProgressUpdated", new { routeId, completionPercentage, status, timestamp = DateTime.UtcNow }).ConfigureAwait(false);
+            // Get the route to determine which vehicle to notify
+            var route = await _routeRepository.GetRouteWithDetailsAsync(routeId).ConfigureAwait(false);
+            var vehicleId = route?.VehicleId ?? 0;
+
+            if (vehicleId > 0)
+            {
+                await Clients.Group($"vehicle-{vehicleId}").SendAsync("RouteProgressUpdated", new { routeId, completionPercentage, status, timestamp = DateTime.UtcNow }).ConfigureAwait(false);
+            }
+            else
+            {
+                _logger.LogWarning("Route {RouteId} has no associated vehicle, cannot send progress update", routeId);
+            }
+
             _logger.LogInformation("Route {RouteId} progress: {CompletionPercentage}%", routeId, completionPercentage);
         }
         catch (Exception ex)
@@ -230,7 +246,7 @@ public class LocationHub : Hub
         try
         {
             var alert = new { vehicleId, alertType, message, timestamp = DateTime.UtcNow };
-            await Clients.All.SendAsync("Alert", alert).ConfigureAwait(false);
+            await Clients.Group($"vehicle-{vehicleId}").SendAsync("Alert", alert).ConfigureAwait(false);
             _logger.LogWarning("Alert for vehicle {VehicleId}: {AlertType} - {Message}", vehicleId, alertType, message);
         }
         catch (Exception ex)
@@ -264,7 +280,7 @@ public class LocationHub : Hub
         try
         {
             var status = new { fleetName, onlineCount, totalCount, percentage = (onlineCount * 100) / totalCount, timestamp = DateTime.UtcNow };
-            await Clients.All.SendAsync("FleetStatusUpdated", status).ConfigureAwait(false);
+            await Clients.Group($"fleet-{fleetName}").SendAsync("FleetStatusUpdated", status).ConfigureAwait(false);
             _logger.LogInformation("Fleet {FleetName} status: {OnlineCount}/{TotalCount} online", fleetName, onlineCount, totalCount);
         }
         catch (Exception ex)
@@ -285,6 +301,41 @@ public class LocationHub : Hub
         catch (Exception ex)
         {
             _logger.LogError("Error handling ping: {Message}", ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// Subscribes a client to real-time updates for a specific fleet.
+    /// </summary>
+    public async Task SubscribeToFleet(string fleetName)
+    {
+        try
+        {
+            await Groups.AddToGroupAsync(Context.ConnectionId, $"fleet-{fleetName}").ConfigureAwait(false);
+            await Clients.Caller.SendAsync("SubscribedToFleet", fleetName).ConfigureAwait(false);
+            _logger.LogInformation("Client {ConnectionId} subscribed to fleet {FleetName}", Context.ConnectionId, fleetName);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError("Error subscribing to fleet: {Message}", ex.Message);
+            await Clients.Caller.SendAsync("Error", "Failed to subscribe to fleet").ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>
+    /// Unsubscribes a client from real-time updates for a specific fleet.
+    /// </summary>
+    public async Task UnsubscribeFromFleet(string fleetName)
+    {
+        try
+        {
+            await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"fleet-{fleetName}").ConfigureAwait(false);
+            await Clients.Caller.SendAsync("UnsubscribedFromFleet", fleetName).ConfigureAwait(false);
+            _logger.LogInformation("Client {ConnectionId} unsubscribed from fleet {FleetName}", Context.ConnectionId, fleetName);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError("Error unsubscribing from fleet: {Message}", ex.Message);
         }
     }
 }
