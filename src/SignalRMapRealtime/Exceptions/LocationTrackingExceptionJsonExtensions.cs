@@ -1,32 +1,19 @@
 #nullable enable
-
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
 // =====================================================================
 
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace SignalRMapRealtime.Exceptions;
 
 /// <summary>
 /// Provides JSON serialization and deserialization extensions for <see cref="LocationTrackingException"/> and its derived types.
+/// Uses unified exception JSON serialization for consistent format across all SignalRMapRealtime exceptions.
 /// </summary>
-/// <remarks>
-/// This class uses <see cref="JsonSerializer"/> with camelCase naming policy and ignores null values during serialization.
-/// </remarks>
 public static class LocationTrackingExceptionJsonExtensions
 {
-    private static readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web)
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        WriteIndented = false,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-        PropertyNameCaseInsensitive = true,
-        Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) }
-    };
-
     /// <summary>
     /// Converts a <see cref="LocationTrackingException"/> to a JSON string.
     /// </summary>
@@ -37,12 +24,7 @@ public static class LocationTrackingExceptionJsonExtensions
     public static string ToJson(this LocationTrackingException value, bool indented = false)
     {
         ArgumentNullException.ThrowIfNull(value);
-
-        var options = indented
-            ? new JsonSerializerOptions(_jsonOptions) { WriteIndented = true }
-            : _jsonOptions;
-
-        return JsonSerializer.Serialize(value, options);
+        return ExceptionJsonExtensions.ToJson(value, includeTypeInfo: true, indented);
     }
 
     /// <summary>
@@ -51,19 +33,11 @@ public static class LocationTrackingExceptionJsonExtensions
     /// <param name="json">The JSON string to deserialize.</param>
     /// <returns>The deserialized exception if successful; otherwise, null.</returns>
     /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is null or empty.</exception>
-/// <exception cref="JsonException">Thrown when the JSON is malformed and cannot be deserialized.</exception>
+    /// <exception cref="JsonException">Thrown when the JSON is malformed and cannot be deserialized.</exception>
     public static LocationTrackingException? FromJson(string json)
     {
         ArgumentException.ThrowIfNullOrEmpty(json);
-
-        try
-        {
-            return JsonSerializer.Deserialize<LocationTrackingException>(json, _jsonOptions);
-        }
-        catch (JsonException)
-        {
-            return null;
-        }
+        return ExceptionJsonExtensions.FromJson(json) as LocationTrackingException;
     }
 
     /// <summary>
@@ -73,15 +47,14 @@ public static class LocationTrackingExceptionJsonExtensions
     /// <param name="value">Receives the deserialized exception if successful.</param>
     /// <returns>True if deserialization succeeded; otherwise, false. When false, <paramref name="value"/> will be null.</returns>
     /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is null or empty.</exception>
-/// <exception cref="JsonException">Thrown when the JSON is malformed and cannot be deserialized.</exception>
     public static bool TryFromJson(string json, out LocationTrackingException? value)
     {
         ArgumentException.ThrowIfNullOrEmpty(json);
 
         try
         {
-            value = JsonSerializer.Deserialize<LocationTrackingException>(json, _jsonOptions);
-            return true;
+            value = ExceptionJsonExtensions.FromJson(json) as LocationTrackingException;
+            return value != null;
         }
         catch (JsonException)
         {

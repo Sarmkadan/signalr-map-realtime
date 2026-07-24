@@ -2,7 +2,7 @@
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
-// =============================================================================
+// =====================================================================
 
 namespace SignalRMapRealtime.Exceptions;
 
@@ -21,6 +21,8 @@ public class LocationTrackingException : SignalrMapRealtimeException
     /// <summary>
     /// Initializes a new instance of LocationTrackingException with a message.
     /// </summary>
+    /// <param name="message">The error message.</param>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="message"/> is null.</exception>
     public LocationTrackingException(string message) : base(message)
     {
     }
@@ -28,6 +30,9 @@ public class LocationTrackingException : SignalrMapRealtimeException
     /// <summary>
     /// Initializes a new instance of LocationTrackingException with a message and inner exception.
     /// </summary>
+    /// <param name="message">The error message.</param>
+    /// <param name="innerException">The inner exception.</param>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="message"/> is null.</exception>
     public LocationTrackingException(string message, Exception innerException) : base(message, innerException)
     {
     }
@@ -44,8 +49,9 @@ public class VehicleNotFoundException : LocationTrackingException
     /// <summary>
     /// Initializes a new instance with vehicle ID.
     /// </summary>
+    /// <param name="vehicleId">The vehicle ID that was not found.</param>
     public VehicleNotFoundException(int vehicleId)
-        : base($"Vehicle with ID {vehicleId} was not found.")
+    : base($"Vehicle with ID {vehicleId} was not found.")
     {
         VehicleId = vehicleId;
     }
@@ -53,8 +59,10 @@ public class VehicleNotFoundException : LocationTrackingException
     /// <summary>
     /// Initializes a new instance with vehicle ID and custom message.
     /// </summary>
+    /// <param name="vehicleId">The vehicle ID that was not found.</param>
+    /// <param name="message">Custom error message.</param>
     public VehicleNotFoundException(int vehicleId, string message)
-        : base(message)
+    : base(message)
     {
         VehicleId = vehicleId;
     }
@@ -74,8 +82,10 @@ public class InvalidLocationException : LocationTrackingException
     /// <summary>
     /// Initializes a new instance with coordinates.
     /// </summary>
+    /// <param name="latitude">The invalid latitude value.</param>
+    /// <param name="longitude">The invalid longitude value.</param>
     public InvalidLocationException(double latitude, double longitude)
-        : base($"Invalid location coordinates: Latitude={latitude}, Longitude={longitude}")
+    : base($"Invalid location coordinates: Latitude={latitude}, Longitude={longitude}")
     {
         Latitude = latitude;
         Longitude = longitude;
@@ -84,8 +94,10 @@ public class InvalidLocationException : LocationTrackingException
     /// <summary>
     /// Initializes a new instance with custom message.
     /// </summary>
+    /// <param name="message">Custom error message.</param>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="message"/> is null.</exception>
     public InvalidLocationException(string message)
-        : base(message)
+    : base(message)
     {
     }
 }
@@ -101,8 +113,9 @@ public class AssetNotFoundException : LocationTrackingException
     /// <summary>
     /// Initializes a new instance with asset ID.
     /// </summary>
+    /// <param name="assetId">The asset ID that was not found.</param>
     public AssetNotFoundException(int assetId)
-        : base($"Asset with ID {assetId} was not found.")
+    : base($"Asset with ID {assetId} was not found.")
     {
         AssetId = assetId;
     }
@@ -119,8 +132,9 @@ public class TrackingSessionNotFoundException : LocationTrackingException
     /// <summary>
     /// Initializes a new instance with session ID.
     /// </summary>
+    /// <param name="sessionId">The session ID that was not found.</param>
     public TrackingSessionNotFoundException(int sessionId)
-        : base($"Tracking session with ID {sessionId} was not found.")
+    : base($"Tracking session with ID {sessionId} was not found.")
     {
         SessionId = sessionId;
     }

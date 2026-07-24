@@ -5,16 +5,10 @@ namespace SignalRMapRealtime.Exceptions;
 
 /// <summary>
 /// Provides JSON serialization and deserialization extensions for <see cref="ValidationException"/>.
+/// Uses unified exception JSON serialization for consistent format across all SignalRMapRealtime exceptions.
 /// </summary>
 public static class ValidationExceptionJsonExtensions
 {
-    private static readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web)
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        WriteIndented = false,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-    };
-
     /// <summary>
     /// Serializes a <see cref="ValidationException"/> instance to a JSON string.
     /// </summary>
@@ -25,12 +19,7 @@ public static class ValidationExceptionJsonExtensions
     public static string ToJson(this ValidationException value, bool indented = false)
     {
         ArgumentNullException.ThrowIfNull(value);
-
-        var options = indented
-            ? new JsonSerializerOptions(_jsonOptions) { WriteIndented = true }
-            : _jsonOptions;
-
-        return JsonSerializer.Serialize(value, options);
+        return ExceptionJsonExtensions.ToJson(value, includeTypeInfo: true, indented);
     }
 
     /// <summary>
@@ -47,7 +36,7 @@ public static class ValidationExceptionJsonExtensions
             return null;
         }
 
-        return JsonSerializer.Deserialize<ValidationException>(json, _jsonOptions);
+        return ExceptionJsonExtensions.FromJson(json) as ValidationException;
     }
 
     /// <summary>
@@ -64,7 +53,7 @@ public static class ValidationExceptionJsonExtensions
         try
         {
             value = FromJson(json);
-            return true;
+            return value != null;
         }
         catch (JsonException)
         {
