@@ -68,8 +68,29 @@ public class VehicleController : ControllerBase
     {
         try
         {
-            ArgumentOutOfRangeException.ThrowIfLessThan(pageNumber, 1);
-            ArgumentOutOfRangeException.ThrowIfLessThan(pageSize, 1);
+            // Validate pagination parameters to prevent DoS via unbounded result sets
+            const int maxPageSize = 100;
+            const int maxPageNumber = 10000;
+
+            if (pageNumber < 1)
+            {
+                throw new ArgumentOutOfRangeException(nameof(pageNumber), "Page number must be at least 1");
+            }
+
+            if (pageNumber > maxPageNumber)
+            {
+                throw new ArgumentOutOfRangeException(nameof(pageNumber), $"Page number cannot exceed {maxPageNumber}");
+            }
+
+            if (pageSize < 1)
+            {
+                throw new ArgumentOutOfRangeException(nameof(pageSize), "Page size must be at least 1");
+            }
+
+            if (pageSize > maxPageSize)
+            {
+                throw new ArgumentOutOfRangeException(nameof(pageSize), $"Page size cannot exceed {maxPageSize}");
+            }
 
             // Check if cursor-based pagination is being used
             var isCursorPagination = !string.IsNullOrEmpty(cursor);
@@ -144,7 +165,18 @@ public class VehicleController : ControllerBase
         string? cursor,
         string? status = null)
     {
-        ArgumentOutOfRangeException.ThrowIfLessThan(pageSize, 1);
+        // Validate pageSize to prevent DoS via unbounded result sets
+        const int maxPageSize = 100;
+
+        if (pageSize < 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(pageSize), "Page size must be at least 1");
+        }
+
+        if (pageSize > maxPageSize)
+        {
+            throw new ArgumentOutOfRangeException(nameof(pageSize), $"Page size cannot exceed {maxPageSize}");
+        }
 
         // Get all vehicles from service
         var vehicles = await _vehicleService.GetAllVehiclesAsync();
