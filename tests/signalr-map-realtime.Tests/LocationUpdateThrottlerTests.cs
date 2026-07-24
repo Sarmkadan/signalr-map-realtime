@@ -1,9 +1,11 @@
 using FluentAssertions;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NSubstitute;
 using SignalRMapRealtime.Configuration;
 using SignalRMapRealtime.Domain.Enums;
+using SignalRMapRealtime.Hubs;
 using SignalRMapRealtime.Services;
 using Xunit;
 
@@ -13,12 +15,14 @@ public class LocationUpdateThrottlerTests
 {
     private readonly IOptions<ThrottleOptions> _options;
     private readonly ILogger<LocationUpdateThrottler> _logger;
+    private readonly IHubContext<LocationHub> _hubContext;
     private readonly LocationUpdateThrottler _throttler;
 
     public LocationUpdateThrottlerTests()
     {
         _options = Substitute.For<IOptions<ThrottleOptions>>();
         _logger = Substitute.For<ILogger<LocationUpdateThrottler>>();
+        _hubContext = Substitute.For<IHubContext<LocationHub>>();
 
         var throttleOptions = new ThrottleOptions
         {
@@ -29,11 +33,13 @@ public class LocationUpdateThrottlerTests
             MotorcycleIntervalSeconds = 3,
             PortableIntervalSeconds = 15,
             FixedAssetIntervalSeconds = 60,
-            DroneIntervalSeconds = 2
+            DroneIntervalSeconds = 2,
+            CoalesceFlushIntervalMilliseconds = 300,
+            MaxBufferSizePerVehicle = 100
         };
 
         _options.Value.Returns(throttleOptions);
-        _throttler = new LocationUpdateThrottler(_options, _logger);
+        _throttler = new LocationUpdateThrottler(_options, _logger, _hubContext);
     }
 
     [Fact]
@@ -43,7 +49,7 @@ public class LocationUpdateThrottlerTests
         var disabledOptions = new ThrottleOptions { Enabled = false };
         var disabledOptionsMock = Substitute.For<IOptions<ThrottleOptions>>();
         disabledOptionsMock.Value.Returns(disabledOptions);
-        var disabledThrottler = new LocationUpdateThrottler(disabledOptionsMock, _logger);
+        var disabledThrottler = new LocationUpdateThrottler(disabledOptionsMock, _logger, _hubContext);
 
         // Act
         var result = disabledThrottler.ShouldThrottle(1, AssetType.DeliveryVan);

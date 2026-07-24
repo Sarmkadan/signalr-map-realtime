@@ -62,8 +62,22 @@ public class ThrottleOptions
     public int DroneIntervalSeconds { get; set; } = 1;
 
     /// <summary>
+    /// Interval in milliseconds at which buffered location updates are flushed to clients.
+    /// Default is 300ms, providing a good balance between responsiveness and bandwidth reduction.
+    /// </summary>
+    public int CoalesceFlushIntervalMilliseconds { get; set; } = 300;
+
+    /// <summary>
+    /// Maximum number of location updates to buffer per vehicle before forcing a flush.
+    /// Default is 100 updates, preventing unbounded memory growth.
+    /// </summary>
+    public int MaxBufferSizePerVehicle { get; set; } = 100;
+
+    /// <summary>
     /// Returns the configured minimum update interval for the given asset type.
     /// </summary>
+    /// <param name="assetType">The asset type to get the interval for.</param>
+    /// <returns>The minimum time span between updates for the specified asset type.</returns>
     public TimeSpan GetIntervalForAssetType(AssetType assetType) => assetType switch
     {
         AssetType.DeliveryVan  => TimeSpan.FromSeconds(DeliveryVanIntervalSeconds),

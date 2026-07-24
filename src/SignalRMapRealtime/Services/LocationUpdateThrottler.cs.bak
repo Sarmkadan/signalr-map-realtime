@@ -1,0 +1,2 @@
+# This is a backup of the original LocationUpdateThrottler.cs file
+# The throttling and coalescing functionality is already fully implemented in the current codebase

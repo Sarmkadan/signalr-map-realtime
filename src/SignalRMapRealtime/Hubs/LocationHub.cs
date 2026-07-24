@@ -67,35 +67,44 @@ public class LocationHub : Hub
     }
 
     /// <summary>
-    /// Receives and broadcasts a location update for a vehicle in real-time.
-    /// Updates are subject to per-asset-type throttling configured in LocationThrottle settings.
+    /// Receives and processes a location update for a vehicle in real-time.
+    /// Updates are subject to per-asset-type throttling and coalescing configured in LocationThrottle settings.
     /// </summary>
+    /// <param name="locationDto">The location data to record and broadcast.</param>
+    /// <exception cref="ArgumentNullException">Thrown when locationDto is null.</exception>
     public async Task SendLocationUpdate(CreateLocationDto locationDto)
     {
         try
         {
-            // Apply per-asset-type throttle to reduce unnecessary SignalR traffic.
+            ArgumentNullException.ThrowIfNull(locationDto);
+
+            // Get vehicle to determine asset type for throttling configuration
             var vehicle = await _vehicleService.GetVehicleAsync(locationDto.VehicleId).ConfigureAwait(false);
-            if (vehicle is not null && _throttler.ShouldThrottle(locationDto.VehicleId, vehicle.AssetType))
+            if (vehicle is null)
             {
-                _logger.LogDebug("Location update throttled for vehicle {VehicleId} (asset type: {AssetType})", locationDto.VehicleId, vehicle.AssetType);
+                _logger.LogWarning("Vehicle {VehicleId} not found, cannot process location update", locationDto.VehicleId);
+                await Clients.Caller.SendAsync("Error", "Vehicle not found").ConfigureAwait(false);
                 return;
             }
 
+            // Record the location in the database
             var location = await _locationService.RecordLocationAsync(locationDto).ConfigureAwait(false);
 
-            // Broadcast to vehicle-specific listeners only
-            await Clients.Group($"vehicle-{locationDto.VehicleId}").SendAsync("LocationUpdated", location).ConfigureAwait(false);
+            // Add to coalescing buffer - this will handle throttling and batching
+            var buffered = _throttler.AddToBuffer(location, vehicle.AssetType);
 
-            // Notify vehicle-specific listeners for real-time updates
-            await Clients.Group($"vehicle-{locationDto.VehicleId}").SendAsync("VehicleLocationUpdated", location).ConfigureAwait(false);
+            if (!buffered)
+            {
+                _logger.LogDebug("Location update not buffered for vehicle {VehicleId} (throttled or disabled)", locationDto.VehicleId);
+                return;
+            }
 
-            _logger.LogInformation("Location updated for vehicle {VehicleId}", locationDto.VehicleId);
+            _logger.LogInformation("Location buffered for vehicle {VehicleId} (asset type: {AssetType})", locationDto.VehicleId, vehicle.AssetType);
         }
         catch (Exception ex)
         {
-            _logger.LogError("Error sending location update: {Message}", ex.Message);
-            await Clients.Caller.SendAsync("Error", "Failed to update location").ConfigureAwait(false);
+            _logger.LogError(ex, "Error processing location update for vehicle {VehicleId}: {Message}", locationDto.VehicleId, ex.Message);
+            await Clients.Caller.SendAsync("Error", "Failed to process location update").ConfigureAwait(false);
         }
     }
 

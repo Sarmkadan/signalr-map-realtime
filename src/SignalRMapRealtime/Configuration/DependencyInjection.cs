@@ -6,11 +6,14 @@
 
 namespace SignalRMapRealtime.Configuration;
 
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models; // Added this line
 using SignalRMapRealtime.Data;
 using SignalRMapRealtime.Data.Repositories;
+using SignalRMapRealtime.Hubs;
 using SignalRMapRealtime.Services;
 
 /// <summary>
@@ -72,7 +75,13 @@ public static class DependencyInjection
 
         // Location update throttler (singleton so state is shared across hub instances)
         services.Configure<ThrottleOptions>(configuration.GetSection(ThrottleOptions.SectionName));
-        services.AddSingleton<LocationUpdateThrottler>();
+services.AddSingleton<LocationUpdateThrottler>(provider =>
+{
+    var options = provider.GetRequiredService<IOptions<ThrottleOptions>>();
+    var logger = provider.GetRequiredService<ILogger<LocationUpdateThrottler>>();
+    var hubContext = provider.GetRequiredService<IHubContext<LocationHub>>();
+    return new LocationUpdateThrottler(options, logger, hubContext);
+});
 
         // AutoMapper
         services.AddAutoMapper(typeof(AutoMapperProfile).Assembly);
