@@ -19,7 +19,7 @@ using Microsoft.Extensions.Caching.Memory;
 
 public class Program
 {
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
 
@@ -130,6 +130,13 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
+// Subscribe stale detection event handlers to the event bus
+using (var scope = app.Services.CreateScope())
+{
+var eventBus = scope.ServiceProvider.GetRequiredService<IEventBus>();
+await eventBus.SubscribeStaleDetectionEventHandlersAsync(scope.ServiceProvider).ConfigureAwait(false);
+}
+
 // Middleware configuration
 // Error handling should be first to catch all exceptions
 app.UseErrorHandling();
@@ -193,6 +200,6 @@ app.MapGet("/api/info", () =>
 var port = app.Configuration["PORT"] ?? "5000";
 app.Logger.LogInformation($"Application starting on port {port}...");
 
-        app.Run($"http://0.0.0.0:{port}");
+        await app.RunAsync($"http://0.0.0.0:{port}");
     }
 }
