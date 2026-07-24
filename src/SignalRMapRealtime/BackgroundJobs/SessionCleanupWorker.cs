@@ -6,6 +6,7 @@
 
 namespace SignalRMapRealtime.BackgroundJobs;
 
+using Microsoft.EntityFrameworkCore;
 using SignalRMapRealtime.Data;
 using SignalRMapRealtime.Domain.Enums;
 
@@ -21,6 +22,7 @@ public class SessionCleanupWorker : BackgroundService
     private readonly TimeSpan _executionInterval = TimeSpan.FromHours(1);
     private readonly TimeSpan _sessionInactivityThreshold = TimeSpan.FromHours(24);
     private readonly TimeSpan _locationArchiveThreshold = TimeSpan.FromDays(30);
+    private const int ArchiveBatchSize = 5000;
 
     public SessionCleanupWorker(ILogger<SessionCleanupWorker> logger, IServiceProvider serviceProvider)
     {
@@ -70,27 +72,24 @@ public class SessionCleanupWorker : BackgroundService
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
         var cutoffTime = DateTime.UtcNow - _sessionInactivityThreshold;
+        var now = DateTime.UtcNow;
 
-        var inactiveSessions = dbContext.TrackingSessions
+        // Set-based update: a single UPDATE statement instead of loading every
+        // stale session into the change tracker and issuing per-row updates.
+        var updated = await dbContext.TrackingSessions
             .Where(s => s.Status == SessionStatus.Active && s.UpdatedAt < cutoffTime)
-            .ToList();
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(s => s.Status, SessionStatus.Completed)
+                .SetProperty(s => s.UpdatedAt, now), cancellationToken)
+            .ConfigureAwait(false);
 
-        if (inactiveSessions.Count == 0)
+        if (updated == 0)
         {
             _logger.LogDebug("No inactive sessions found for cleanup");
             return;
         }
 
-        _logger.LogInformation("Found {Count} inactive sessions to clean up", inactiveSessions.Count);
-
-        foreach (var session in inactiveSessions)
-        {
-            session.Status = SessionStatus.Completed;
-            session.UpdatedAt = DateTime.UtcNow;
-        }
-
-        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-        _logger.LogInformation("Cleaned up {Count} inactive sessions", inactiveSessions.Count);
+        _logger.LogInformation("Cleaned up {Count} inactive sessions", updated);
     }
 
     /// <summary>
@@ -104,23 +103,30 @@ public class SessionCleanupWorker : BackgroundService
 
         var cutoffTime = DateTime.UtcNow - _locationArchiveThreshold;
 
-        var oldLocations = dbContext.Locations
-            .Where(l => l.CreatedAt < cutoffTime)
-            .ToList();
+        // Set-based delete in bounded batches. Loading months of GPS rows into
+        // the change tracker just to delete them exhausts memory on real data;
+        // batching keeps individual DELETE statements (and their locks) small.
+        var totalDeleted = 0;
+        int deleted;
+        do
+        {
+            deleted = await dbContext.Locations
+                .Where(l => l.CreatedAt < cutoffTime)
+                .OrderBy(l => l.Id)
+                .Take(ArchiveBatchSize)
+                .ExecuteDeleteAsync(cancellationToken)
+                .ConfigureAwait(false);
+            totalDeleted += deleted;
+        }
+        while (deleted == ArchiveBatchSize && !cancellationToken.IsCancellationRequested);
 
-        if (oldLocations.Count == 0)
+        if (totalDeleted == 0)
         {
             _logger.LogDebug("No old locations found for archival");
             return;
         }
 
-        _logger.LogInformation("Found {Count} old locations to archive", oldLocations.Count);
-
-        // In production, export to archive storage (e.g., Azure Blob, S3) before deleting
-        dbContext.Locations.RemoveRange(oldLocations);
-        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-
-        _logger.LogInformation("Archived {Count} old locations", oldLocations.Count);
+        _logger.LogInformation("Archived {Count} old locations", totalDeleted);
     }
 }
 

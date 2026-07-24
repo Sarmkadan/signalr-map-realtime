@@ -339,6 +339,19 @@ public sealed class RoutePlaybackService : IRoutePlaybackService, IAsyncDisposab
                 .Group(PlaybackGroup(state.PlaybackId))
                 .SendAsync("PlaybackError", new { state.PlaybackId, Error = ex.Message });
         }
+        finally
+        {
+            // Completed and errored sessions must not linger in the registry:
+            // they would count against MaxConcurrentPlaybacks forever and leak
+            // their CancellationTokenSource/ManualResetEventSlim. Cancellation
+            // is excluded - StopPlaybackAsync already removed and will dispose
+            // the state after awaiting this task.
+            if (!state.Cts.Token.IsCancellationRequested && _sessions.TryRemove(state.PlaybackId, out _))
+            {
+                state.Dispose();
+                _logger.LogDebug("Playback {PlaybackId} removed from the active session registry", state.PlaybackId);
+            }
+        }
     }
 
     private static PlaybackFrameDto BuildFrame(

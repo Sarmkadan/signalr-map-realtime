@@ -1,9 +1,0 @@
-feat: add UserDtoExtensions with utility methods
-
-Adds a new extension class for UserDto with four fully implemented methods:
-- FormatUserSummary: Creates a formatted user summary string
-- ToDisplayModel: Converts to display-ready model with formatted dates
-- ValidateRequiredFields: Validates essential user fields
-- GetContactInformation: Extracts available contact information
-
-All methods include proper guard clauses, use modern C# features, and follow XML documentation standards.

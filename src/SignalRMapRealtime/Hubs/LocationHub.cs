@@ -279,7 +279,7 @@ public class LocationHub : Hub
     {
         try
         {
-            var status = new { fleetName, onlineCount, totalCount, percentage = (onlineCount * 100) / totalCount, timestamp = DateTime.UtcNow };
+            var status = new { fleetName, onlineCount, totalCount, percentage = totalCount > 0 ? (onlineCount * 100) / totalCount : 0, timestamp = DateTime.UtcNow };
             await Clients.Group($"fleet-{fleetName}").SendAsync("FleetStatusUpdated", status).ConfigureAwait(false);
             _logger.LogInformation("Fleet {FleetName} status: {OnlineCount}/{TotalCount} online", fleetName, onlineCount, totalCount);
         }
