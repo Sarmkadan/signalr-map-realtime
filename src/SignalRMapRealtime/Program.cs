@@ -66,6 +66,9 @@ builder.Services.AddScoped<ICacheService, MemoryCacheService>();
 // Event bus registration
 builder.Services.AddEventBus();
 
+// Register stale detection event handlers
+builder.Services.AddStaleDetectionEventHandlers();
+
 // Notification service registration
 builder.Services.AddScoped<INotificationService, InMemoryNotificationService>();
 

@@ -11,6 +11,7 @@ using SignalRMapRealtime.DTOs;
 using SignalRMapRealtime.Services;
 using SignalRMapRealtime.Data.Repositories;
 using SignalRMapRealtime.Constants;
+using SignalRMapRealtime.Events;
 using Microsoft.AspNetCore.Authorization; // Hotfix: Added for [Authorize] attribute
 using SignalRMapRealtime.Authentication; // Hotfix: Added for ApiKeyAuthenticationOptions
 
@@ -336,6 +337,83 @@ public class LocationHub : Hub
         catch (Exception ex)
         {
             _logger.LogError("Error unsubscribing from fleet: {Message}", ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// Broadcasts a vehicle stale event to all clients subscribed to a specific vehicle.
+    /// Clients can use this to gray-out or hide the vehicle marker on the map.
+    /// </summary>
+    /// <param name="vehicleId">The vehicle ID to broadcast to.</param>
+    /// <param name="vehicleRegistration">The vehicle registration number.</param>
+    /// <param name="staleSince">When the vehicle became stale (UTC).</param>
+    /// <param name="staleWindowMinutes">The stale detection window in minutes.</param>
+    /// <param name="timeSinceLastUpdateMinutes">Time elapsed since last update when vehicle was marked stale (in minutes).</param>
+    /// <exception cref="ArgumentException">Thrown when vehicleId is less than or equal to 0.</exception>
+    public async Task NotifyVehicleStaleAsync(int vehicleId, string vehicleRegistration, DateTime staleSince, int staleWindowMinutes, double timeSinceLastUpdateMinutes)
+    {
+        try
+        {
+            ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(vehicleId, 0);
+            ArgumentException.ThrowIfNullOrEmpty(vehicleRegistration);
+
+            var @event = new VehicleStaleEvent
+            {
+                VehicleId = vehicleId,
+                VehicleRegistration = vehicleRegistration,
+                VehicleName = vehicleRegistration, // Use registration as name for simplicity
+                LastUpdateTime = staleSince.AddMinutes(-timeSinceLastUpdateMinutes),
+                StaleSince = staleSince,
+                StaleWindowMinutes = staleWindowMinutes,
+                TimeSinceLastUpdateMinutes = timeSinceLastUpdateMinutes,
+                IsRecovery = false,
+                WasPreviouslyStale = false
+            };
+
+            await Clients.Group($"vehicle-{vehicleId}").SendAsync("VehicleStale", @event).ConfigureAwait(false);
+            _logger.LogInformation("Vehicle stale notification sent for vehicle {VehicleId}", vehicleId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error notifying vehicle stale for vehicle {VehicleId}: {Message}", vehicleId, ex.Message);
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// Broadcasts a vehicle active event to all clients subscribed to a specific vehicle.
+    /// Clients can use this to restore or show the vehicle marker on the map.
+    /// </summary>
+    /// <param name="vehicleId">The vehicle ID to broadcast to.</param>
+    /// <param name="vehicleRegistration">The vehicle registration number.</param>
+    /// <param name="recoveryTime">When the vehicle became active again (UTC).</param>
+    /// <param name="staleWindowMinutes">The stale detection window in minutes.</param>
+    /// <param name="timeInStaleStateMinutes">Time the vehicle spent in stale state (in minutes).</param>
+    /// <exception cref="ArgumentException">Thrown when vehicleId is less than or equal to 0.</exception>
+    public async Task NotifyVehicleActiveAsync(int vehicleId, string vehicleRegistration, DateTime recoveryTime, int staleWindowMinutes, double timeInStaleStateMinutes)
+    {
+        try
+        {
+            ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(vehicleId, 0);
+            ArgumentException.ThrowIfNullOrEmpty(vehicleRegistration);
+
+            var @event = new VehicleActiveEvent
+            {
+                VehicleId = vehicleId,
+                VehicleRegistration = vehicleRegistration,
+                VehicleName = vehicleRegistration, // Use registration as name for simplicity
+                RecoveryTime = recoveryTime,
+                StaleWindowMinutes = staleWindowMinutes,
+                TimeInStaleStateMinutes = timeInStaleStateMinutes
+            };
+
+            await Clients.Group($"vehicle-{vehicleId}").SendAsync("VehicleActive", @event).ConfigureAwait(false);
+            _logger.LogInformation("Vehicle active notification sent for vehicle {VehicleId}", vehicleId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error notifying vehicle active for vehicle {VehicleId}: {Message}", vehicleId, ex.Message);
+            throw;
         }
     }
 }
