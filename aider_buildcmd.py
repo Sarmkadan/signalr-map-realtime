@@ -5,9 +5,9 @@ Utility script for the Aider tool.
 Usage:
     python3 aider_buildcmd.py <command> [args...]
 
-The script changes to the repository root and executes the given command
-using subprocess.run, forwarding the exit code. It is intentionally minimal
-and has no external dependencies.
+The script changes to the repository root (the SignalRMapRealtime project) and
+executes the given command using subprocess.run, forwarding the exit code.
+It is intentionally minimal and has no external dependencies.
 """
 
 import os
@@ -31,8 +31,12 @@ def run_cmd(command: list[str]) -> int:
 
 def main() -> int:
     """Entry point."""
-    # Change to the repository root
-    repo_root = "/home/redrocket/task-factory/workdir/signalr-map-realtime"
+    # Determine the repository root where the SignalRMapRealtime project lives.
+    # This script is expected to be located at /home/redrocket/task-factory/
+    # (i.e., one level above the 'workdir' folder). Adjust the path accordingly.
+    repo_root = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "workdir", "signalr-map-realtime")
+    )
     try:
         os.chdir(repo_root)
     except Exception as exc:
