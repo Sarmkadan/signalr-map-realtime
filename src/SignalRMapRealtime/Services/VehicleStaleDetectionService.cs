@@ -21,7 +21,7 @@ using SignalRMapRealtime.Events;
 public class VehicleStaleDetectionService : BackgroundService
 {
     private readonly ILogger<VehicleStaleDetectionService> _logger;
-    private readonly IEventBus _eventBus;
+    private readonly IDomainEventDispatcher _eventDispatcher;
     private readonly VehicleRepository _vehicleRepository;
     private readonly LocationRepository _locationRepository;
     private readonly SignalrMapRealtimeOptions _options;
@@ -32,25 +32,25 @@ public class VehicleStaleDetectionService : BackgroundService
     /// Initializes a new instance of the VehicleStaleDetectionService.
     /// </summary>
     /// <param name="logger">Logger for tracking service operations.</param>
-    /// <param name="eventBus">Event bus for publishing domain events.</param>
+    /// <param name="eventDispatcher">Domain event dispatcher for publishing domain events.</param>
     /// <param name="vehicleRepository">Repository for accessing vehicle data.</param>
     /// <param name="locationRepository">Repository for accessing location data.</param>
     /// <param name="options">Application configuration options.</param>
     public VehicleStaleDetectionService(
         ILogger<VehicleStaleDetectionService> logger,
-        IEventBus eventBus,
+        IDomainEventDispatcher eventDispatcher,
         VehicleRepository vehicleRepository,
         LocationRepository locationRepository,
         IOptions<SignalrMapRealtimeOptions> options)
     {
         ArgumentNullException.ThrowIfNull(logger);
-        ArgumentNullException.ThrowIfNull(eventBus);
+        ArgumentNullException.ThrowIfNull(eventDispatcher);
         ArgumentNullException.ThrowIfNull(vehicleRepository);
         ArgumentNullException.ThrowIfNull(locationRepository);
         ArgumentNullException.ThrowIfNull(options);
 
         _logger = logger;
-        _eventBus = eventBus;
+        _eventDispatcher = eventDispatcher;
         _vehicleRepository = vehicleRepository;
         _locationRepository = locationRepository;
         _options = options.Value;
@@ -156,7 +156,7 @@ public class VehicleStaleDetectionService : BackgroundService
                         WasPreviouslyStale = false
                     };
 
-                    await _eventBus.PublishAsync(staleEvent).ConfigureAwait(false);
+                    await _eventDispatcher.DispatchAsync(staleEvent).ConfigureAwait(false);
                     _logger.LogInformation("Published VehicleStaleEvent for vehicle {VehicleId}", vehicleId);
                 }
             }
@@ -219,7 +219,7 @@ public class VehicleStaleDetectionService : BackgroundService
                                     TimeInStaleStateMinutes = timeInStaleState.TotalMinutes
                                 };
 
-                                await _eventBus.PublishAsync(activeEvent).ConfigureAwait(false);
+                                await _eventDispatcher.DispatchAsync(activeEvent).ConfigureAwait(false);
                                 _logger.LogInformation("Published VehicleActiveEvent for vehicle {VehicleId}", vehicleId);
                             }
                         }

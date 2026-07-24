@@ -14,7 +14,7 @@ using SignalRMapRealtime.Services;
 /// This ensures that when a vehicle becomes stale, all connected map clients are notified
 /// so they can gray-out or hide the vehicle marker.
 /// </summary>
-public class VehicleStaleEventHandler
+public class VehicleStaleEventHandler : IEventHandler<VehicleStaleEvent>
 {
     private readonly ISignalRNotificationService _notificationService;
     private readonly ILogger<VehicleStaleEventHandler> _logger;

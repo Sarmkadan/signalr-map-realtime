@@ -16,7 +16,7 @@ public static class StaleDetectionEventExtensions
 {
     /// <summary>
     /// Registers the stale detection event handlers with the dependency injection container.
-    /// This sets up the event bus subscribers for VehicleStaleEvent and VehicleActiveEvent.
+    /// This sets up the domain event dispatcher and SignalR notification service.
     /// </summary>
     /// <param name="services">The service collection to register with.</param>
     /// <returns>The service collection for method chaining.</returns>
@@ -29,6 +29,9 @@ public static class StaleDetectionEventExtensions
         services.AddScoped<VehicleStaleEventHandler>();
         services.AddScoped<VehicleActiveEventHandler>();
 
+        // Register the domain event dispatcher
+        services.AddDomainEventDispatcher();
+
         // Register the stale detection service
         services.AddVehicleStaleDetectionService();
 
@@ -36,24 +39,55 @@ public static class StaleDetectionEventExtensions
     }
 
     /// <summary>
-    /// Subscribes the stale detection event handlers to the event bus.
-    /// This should be called during application startup to wire up the event handlers.
+    /// Configures the domain event dispatcher to automatically handle stale detection events.
+    /// This should be called during application startup to wire up the event dispatcher.
     /// </summary>
-    /// <param name="eventBus">The event bus to subscribe to.</param>
-    /// <param name="serviceProvider">The service provider for resolving handler instances.</param>
-    /// <returns>A task representing the asynchronous operation.</returns>
-    public static async Task SubscribeStaleDetectionEventHandlersAsync(this IEventBus eventBus, IServiceProvider serviceProvider)
+    /// <param name="services">The service collection to configure.</param>
+    /// <returns>The service collection for method chaining.</returns>
+    public static IServiceCollection ConfigureStaleDetectionEventDispatching(this IServiceCollection services)
     {
-        ArgumentNullException.ThrowIfNull(eventBus);
+        // This method is intentionally left for future extensibility
+        // The actual event dispatching is handled automatically by the DomainEventDispatcher
+        return services;
+    }
+
+    /// <summary>
+    /// Creates a service scope and dispatches domain events using the domain event dispatcher.
+    /// This is a convenience method for application startup configuration.
+    /// </summary>
+    /// <param name="eventDispatcher">The domain event dispatcher.</param>
+    /// <param name="event">The domain event to dispatch.</param>
+    /// <param name="serviceProvider">The service provider for resolving handlers.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    public static async Task DispatchEventAsync(
+        this IDomainEventDispatcher eventDispatcher,
+        DomainEvent @event,
+        IServiceProvider serviceProvider)
+    {
+        ArgumentNullException.ThrowIfNull(eventDispatcher);
+        ArgumentNullException.ThrowIfNull(@event);
         ArgumentNullException.ThrowIfNull(serviceProvider);
 
-        // Create handler instances using the service provider
-        using var scope = serviceProvider.CreateScope();
-        var staleHandler = scope.ServiceProvider.GetRequiredService<VehicleStaleEventHandler>();
-        var activeHandler = scope.ServiceProvider.GetRequiredService<VehicleActiveEventHandler>();
+        await eventDispatcher.DispatchAsync(@event, serviceProvider).ConfigureAwait(false);
+    }
 
-        // Subscribe to events
-        eventBus.Subscribe<VehicleStaleEvent>(staleHandler.HandleAsync);
-        eventBus.Subscribe<VehicleActiveEvent>(activeHandler.HandleAsync);
+    /// <summary>
+    /// Creates a service scope and dispatches domain events using the domain event dispatcher.
+    /// This is a convenience method for application startup configuration.
+    /// </summary>
+    /// <param name="eventDispatcher">The domain event dispatcher.</param>
+    /// <param name="event">The domain event to dispatch.</param>
+    /// <param name="scope">The service scope containing the service provider.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    public static async Task DispatchEventAsync(
+        this IDomainEventDispatcher eventDispatcher,
+        DomainEvent @event,
+        IServiceScope scope)
+    {
+        ArgumentNullException.ThrowIfNull(eventDispatcher);
+        ArgumentNullException.ThrowIfNull(@event);
+        ArgumentNullException.ThrowIfNull(scope);
+
+        await eventDispatcher.DispatchAsync(@event, scope).ConfigureAwait(false);
     }
 }

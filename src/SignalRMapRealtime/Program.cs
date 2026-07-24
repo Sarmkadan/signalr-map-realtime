@@ -68,8 +68,9 @@ builder.Services.AddSwaggerDocumentation();
 builder.Services.AddMemoryCache();
 builder.Services.AddScoped<ICacheService, MemoryCacheService>();
 
-// Event bus registration
+// Event bus and dispatcher registration
 builder.Services.AddEventBus();
+builder.Services.AddDomainEventDispatcher();
 
 // Register stale detection event handlers
 builder.Services.AddStaleDetectionEventHandlers();
@@ -130,12 +131,6 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-// Subscribe stale detection event handlers to the event bus
-using (var scope = app.Services.CreateScope())
-{
-var eventBus = scope.ServiceProvider.GetRequiredService<IEventBus>();
-await eventBus.SubscribeStaleDetectionEventHandlersAsync(scope.ServiceProvider).ConfigureAwait(false);
-}
 
 // Middleware configuration
 // Error handling should be first to catch all exceptions

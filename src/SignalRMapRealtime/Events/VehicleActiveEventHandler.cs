@@ -14,7 +14,7 @@ using SignalRMapRealtime.Services;
 /// This ensures that when a previously stale vehicle becomes active again, all connected map clients
 /// are notified so they can restore or show the vehicle marker on the map.
 /// </summary>
-public class VehicleActiveEventHandler
+public class VehicleActiveEventHandler : IEventHandler<VehicleActiveEvent>
 {
     private readonly ISignalRNotificationService _notificationService;
     private readonly ILogger<VehicleActiveEventHandler> _logger;
