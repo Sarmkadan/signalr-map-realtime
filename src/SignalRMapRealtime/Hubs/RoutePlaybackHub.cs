@@ -56,6 +56,7 @@ using SignalRMapRealtime.Authentication; // Hotfix: Added for ApiKeyAuthenticati
 /// </list>
 /// </para>
 /// </remarks>
+[Authorize(AuthenticationSchemes = ApiKeyAuthenticationOptions.DefaultScheme)]
 public class RoutePlaybackHub : Hub
 {
     private readonly IRoutePlaybackService _playbackService;

@@ -2,7 +2,7 @@
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
-// =============================================================================
+// =====================================================================
 
 namespace SignalRMapRealtime.Authentication;
 
@@ -46,9 +46,9 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthentic
 
         if (string.IsNullOrEmpty(apiKey))
         {
-            _logger.LogWarning("API Key not found in header '{ApiKeyHeaderName}' or query parameter '{ApiKeyQueryParamName}'.",
-                               AuthenticationConstants.ApiKeyHeaderName, AuthenticationConstants.ApiKeyQueryParamName);
-            return AuthenticateResult.Fail($"API Key not found in header '{AuthenticationConstants.ApiKeyHeaderName}' or query parameter '{AuthenticationConstants.ApiKeyQueryParamName}'.");
+            _logger.LogWarning("API Key not found in header '{ApiKeyHeaderName}', query parameter '{ApiKeyQueryParamName}', or access_token parameter.",
+                AuthenticationConstants.ApiKeyHeaderName, AuthenticationConstants.ApiKeyQueryParamName);
+            return AuthenticateResult.Fail($"API Key not found in header '{AuthenticationConstants.ApiKeyHeaderName}', query parameter '{AuthenticationConstants.ApiKeyQueryParamName}', or access_token parameter.");
         }
 
         if (!IsValidApiKey(apiKey))
@@ -57,21 +57,31 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthentic
             return AuthenticateResult.Fail("Invalid API Key.");
         }
 
-        var claims = new[] {
+        var claims = new List<Claim>
+        {
             new Claim(ClaimTypes.NameIdentifier, "API_User"),
             new Claim(ClaimTypes.Name, "API_User")
         };
+
+        // Add role claims based on API key
+        var roles = GetRolesForApiKey(apiKey);
+        foreach (var role in roles)
+        {
+            claims.Add(new Claim(ClaimTypes.Role, role));
+        }
+
         var identity = new ClaimsIdentity(claims, Scheme.Name);
         var principal = new ClaimsPrincipal(identity);
         var ticket = new AuthenticationTicket(principal, Scheme.Name);
 
-        _logger.LogInformation("API Key authenticated successfully.");
+        _logger.LogInformation("API Key authenticated successfully with roles: {Roles}", string.Join(", ", roles));
         return AuthenticateResult.Success(ticket);
     }
 
     /// <summary>
-    /// Extracts API key from request headers or query parameters.
-    /// Checks X-API-Key header first, then api_key query parameter.
+    /// Extracts API key from request headers, query parameters, or access_token parameter.
+    /// Checks X-API-Key header first, then api_key query parameter, then access_token query parameter.
+    /// The access_token parameter is used by SignalR clients for WebSocket connections where headers are not available.
     /// </summary>
     private string? ExtractApiKey()
     {
@@ -81,10 +91,17 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthentic
             return headerValue.ToString();
         }
 
-        // Check query parameter
+        // Check api_key query parameter
         if (Request.Query.TryGetValue(AuthenticationConstants.ApiKeyQueryParamName, out var queryValue))
         {
             return queryValue.ToString();
+        }
+
+        // Check access_token query parameter (standard SignalR WebSocket authentication)
+        // This allows clients to authenticate via query string when using WebSocket transport
+        if (Request.Query.TryGetValue("access_token", out var accessTokenValue))
+        {
+            return accessTokenValue.ToString();
         }
 
         return null;
@@ -106,6 +123,36 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthentic
         if (string.IsNullOrWhiteSpace(validApiKey)) return false; // Configuration error
 
         return apiKey == validApiKey;
+    }
+
+    /// <summary>
+    /// Determines the roles for the authenticated user based on the API key.
+    /// </summary>
+    private IEnumerable<string> GetRolesForApiKey(string apiKey)
+    {
+        // Check if this is the main API key
+        var validApiKey = _configuration["Authentication:ApiKey"];
+        if (string.IsNullOrWhiteSpace(validApiKey) || apiKey != validApiKey)
+        {
+            yield break;
+        }
+
+        // Get configured roles for this API key from configuration
+        var rolesConfig = _configuration.GetSection("ApiKeyAuthentication:Roles");
+        if (rolesConfig.Exists())
+        {
+            foreach (var role in rolesConfig.Get<string[]>() ?? Array.Empty<string>())
+            {
+                if (!string.IsNullOrWhiteSpace(role))
+                {
+                    yield return role.Trim();
+                }
+            }
+        }
+
+        // Default roles for the main API key
+        yield return "device";
+        yield return "ingest";
     }
 
     /// <summary>
