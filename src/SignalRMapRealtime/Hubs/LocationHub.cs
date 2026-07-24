@@ -204,6 +204,47 @@ public class LocationHub : Hub
     }
 
     /// <summary>
+    /// Subscribes a client to real-time updates for multiple vehicles at once.
+    /// This is useful for map viewports showing multiple vehicles or fleet dashboards.
+    /// </summary>
+    /// <param name="ids">Array of vehicle IDs to subscribe to.</param>
+    /// <exception cref="ArgumentNullException">Thrown when ids is null.</exception>
+    /// <exception cref="ArgumentException">Thrown when ids array is empty or contains invalid vehicle IDs.</exception>
+    public async Task SubscribeToVehicles(int[] ids)
+    {
+        try
+        {
+            ArgumentNullException.ThrowIfNull(ids);
+
+            if (ids.Length == 0)
+            {
+                _logger.LogWarning("Empty vehicle IDs array provided for subscription");
+                await Clients.Caller.SendAsync("Error", "No vehicle IDs provided").ConfigureAwait(false);
+                return;
+            }
+
+            foreach (var vehicleId in ids)
+            {
+                if (vehicleId <= 0)
+                {
+                    _logger.LogWarning("Invalid vehicle ID {VehicleId} in subscription request", vehicleId);
+                    continue;
+                }
+
+                await Groups.AddToGroupAsync(Context.ConnectionId, $"vehicle-{vehicleId}").ConfigureAwait(false);
+                _logger.LogInformation("Client {ConnectionId} subscribed to vehicle {VehicleId}", Context.ConnectionId, vehicleId);
+            }
+
+            await Clients.Caller.SendAsync("SubscribedToVehicles", ids).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error subscribing to vehicles");
+            await Clients.Caller.SendAsync("Error", "Failed to subscribe to vehicles").ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>
     /// Requests the latest location for a vehicle from the client.
     /// </summary>
     public async Task RequestVehicleLocation(int vehicleId)
