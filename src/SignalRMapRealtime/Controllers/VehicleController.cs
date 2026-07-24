@@ -38,6 +38,18 @@ public class VehicleController : ControllerBase
     }
 
     /// <summary>
+    /// Gets a comma-separated list of valid vehicle status values for error messages.
+    /// </summary>
+    /// <returns>Comma-separated string of valid status values.</returns>
+    private static string GetValidStatusValues()
+    {
+        var validValues = Enum.GetValues<VehicleStatus>()
+            .Select(v => v.ToString())
+            .ToArray();
+        return string.Join(", ", validValues);
+    }
+
+    /// <summary>
     /// Gets all vehicles with pagination.
     /// Optionally filter by status (Active, Inactive, Maintenance).
     /// Supports both offset-based and cursor-based pagination.
@@ -92,6 +104,17 @@ public class VehicleController : ControllerBase
                 throw new ArgumentOutOfRangeException(nameof(pageSize), $"Page size cannot exceed {maxPageSize}");
             }
 
+        // Validate status parameter if provided
+        if (!string.IsNullOrEmpty(status))
+        {
+            if (!Enum.TryParse<VehicleStatus>(status, true, out _))
+            {
+                throw new ArgumentException(
+                    $"Invalid status value '{status}'. Valid values are: {GetValidStatusValues()}",
+                    nameof(status));
+            }
+        }
+
             // Check if cursor-based pagination is being used
             var isCursorPagination = !string.IsNullOrEmpty(cursor);
 
@@ -121,8 +144,11 @@ public class VehicleController : ControllerBase
                     {
                         var vehicles = await _vehicleService.GetAllVehiclesAsync();
 
-                        if (!string.IsNullOrEmpty(status) && Enum.TryParse<VehicleStatus>(status, true, out var parsedStatus))
-                            vehicles = vehicles.Where(v => v.Status == parsedStatus).ToList();
+        if (!string.IsNullOrEmpty(status))
+        {
+            var parsedStatus = Enum.Parse<VehicleStatus>(status, true);
+            vehicles = vehicles.Where(v => v.Status == parsedStatus).ToList();
+        }
 
                         return PaginatedResponse<VehicleDto>.FromList(vehicles, validPageNumber, validPageSize);
                     },
@@ -178,12 +204,25 @@ public class VehicleController : ControllerBase
             throw new ArgumentOutOfRangeException(nameof(pageSize), $"Page size cannot exceed {maxPageSize}");
         }
 
+        // Validate status parameter if provided
+        if (!string.IsNullOrEmpty(status))
+        {
+            if (!Enum.TryParse<VehicleStatus>(status, true, out _))
+            {
+                throw new ArgumentException(
+                    $"Invalid status value '{status}'. Valid values are: {GetValidStatusValues()}",
+                    nameof(status));
+            }
+        }
+
         // Get all vehicles from service
         var vehicles = await _vehicleService.GetAllVehiclesAsync();
 
         // Apply status filter if provided
-        if (!string.IsNullOrEmpty(status) && Enum.TryParse<VehicleStatus>(status, true, out var parsedStatus))
+        // Status has already been validated above, so we can safely parse it
+        if (!string.IsNullOrEmpty(status))
         {
+            var parsedStatus = Enum.Parse<VehicleStatus>(status, true);
             vehicles = vehicles.Where(v => v.Status == parsedStatus).ToList();
         }
 
