@@ -40,45 +40,163 @@ public class VehicleController : ControllerBase
     /// <summary>
     /// Gets all vehicles with pagination.
     /// Optionally filter by status (Active, Inactive, Maintenance).
+    /// Supports both offset-based and cursor-based pagination.
     /// </summary>
+    /// <remarks>
+    /// Offset-based pagination (default):
+    /// - Use <c>pageNumber</c> and <c>pageSize</c> query parameters
+    /// - Page numbers start at 1
+    /// - Not stable when vehicles are added/updated between requests
+    ///
+    /// Cursor-based pagination (recommended for live feeds):
+    /// - Use <c>cursor</c> query parameter instead of <c>pageNumber</c>
+    /// - Returns <c>nextCursor</c> in response for subsequent requests
+    /// - Stable pagination even when data changes between requests
+    /// - More efficient for large datasets and real-time updates
+    /// </remarks>
+    /// <param name="pageNumber">Page number for offset-based pagination (1-based).</param>
+    /// <param name="pageSize">Number of items per page (max 100).</param>
+    /// <param name="status">Optional vehicle status filter (Active, Inactive, Maintenance).</param>
+    /// <param name="cursor">Cursor token for cursor-based pagination. If provided, uses cursor-based pagination.</param>
+    /// <returns>Paginated list of vehicles with metadata.</returns>
     [HttpGet]
     public async Task<IActionResult> GetVehicles(
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 20,
-        [FromQuery] string? status = null)
+        [FromQuery] string? status = null,
+        [FromQuery] string? cursor = null)
     {
         try
         {
-            var (validPageNumber, validPageSize) = PaginationExtensions.NormalizePaginationParameters(pageNumber, pageSize, 100);
+            ArgumentOutOfRangeException.ThrowIfLessThan(pageNumber, 1);
+            ArgumentOutOfRangeException.ThrowIfLessThan(pageSize, 1);
 
-            var cacheKey = $"vehicles:page:{validPageNumber}:size:{validPageSize}:status:{status}";
+            // Check if cursor-based pagination is being used
+            var isCursorPagination = !string.IsNullOrEmpty(cursor);
 
-            var result = await _cacheService.GetOrCreateAsync(
-                cacheKey,
-                async () =>
-                {
-                    var vehicles = await _vehicleService.GetAllVehiclesAsync();
+            if (isCursorPagination)
+            {
+                // Cursor-based pagination - more stable for live data feeds
+                var result = await GetVehiclesWithCursorAsync(pageSize, cursor, status);
 
-                    if (!string.IsNullOrEmpty(status) && Enum.TryParse<VehicleStatus>(status, true, out var parsedStatus))
-                        vehicles = vehicles.Where(v => v.Status == parsedStatus).ToList();
+                var response = ApiResponse<PaginatedResponse<VehicleDto>>.SuccessResponse(
+                    result,
+                    "Vehicles retrieved successfully",
+                    200,
+                    HttpContext.TraceIdentifier);
 
-                    return PaginatedResponse<VehicleDto>.FromList(vehicles, validPageNumber, validPageSize);
-                },
-                TimeSpan.FromSeconds(300));
+                return Ok(response);
+            }
+            else
+            {
+                // Offset-based pagination (existing behavior)
+                var (validPageNumber, validPageSize) = PaginationExtensions.NormalizePaginationParameters(pageNumber, pageSize, 100);
 
-            var response = ApiResponse<PaginatedResponse<VehicleDto>>.SuccessResponse(
-                result,
-                "Vehicles retrieved successfully",
-                200,
-                HttpContext.TraceIdentifier);
+                var cacheKey = $"vehicles:page:{validPageNumber}:size:{validPageSize}:status:{status}";
 
-            return Ok(response);
+                var result = await _cacheService.GetOrCreateAsync(
+                    cacheKey,
+                    async () =>
+                    {
+                        var vehicles = await _vehicleService.GetAllVehiclesAsync();
+
+                        if (!string.IsNullOrEmpty(status) && Enum.TryParse<VehicleStatus>(status, true, out var parsedStatus))
+                            vehicles = vehicles.Where(v => v.Status == parsedStatus).ToList();
+
+                        return PaginatedResponse<VehicleDto>.FromList(vehicles, validPageNumber, validPageSize);
+                    },
+                    TimeSpan.FromSeconds(300));
+
+                var response = ApiResponse<PaginatedResponse<VehicleDto>>.SuccessResponse(
+                    result,
+                    "Vehicles retrieved successfully",
+                    200,
+                    HttpContext.TraceIdentifier);
+
+                return Ok(response);
+            }
+        }
+        catch (ArgumentOutOfRangeException ex)
+        {
+            _logger.LogWarning(ex, "Invalid pagination parameters. TraceId: {TraceId}", HttpContext.TraceIdentifier);
+            return BadRequest(ErrorResponse.ValidationError(
+                new Dictionary<string, string[]> { { "pagination", new[] { ex.Message } } },
+                "Invalid pagination parameters",
+                HttpContext.TraceIdentifier));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving vehicles. TraceId: {TraceId}", HttpContext.TraceIdentifier);
             return StatusCode(500, ErrorResponse.ServerError("Failed to retrieve vehicles", HttpContext.TraceIdentifier));
         }
+    }
+
+    /// <summary>
+    /// Gets vehicles using cursor-based pagination for stable pagination when data changes frequently.
+    /// Uses keyset pagination on Id to ensure stable results even when new vehicles are added.
+    /// </summary>
+    /// <param name="pageSize">Number of vehicles per page.</param>
+    /// <param name="cursor">Cursor token from previous response (null for first page).</param>
+    /// <param name="status">Optional status filter.</param>
+    /// <returns>Paginated response with cursor information.</returns>
+    private async Task<PaginatedResponse<VehicleDto>> GetVehiclesWithCursorAsync(
+        int pageSize,
+        string? cursor,
+        string? status = null)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(pageSize, 1);
+
+        // Get all vehicles from service
+        var vehicles = await _vehicleService.GetAllVehiclesAsync();
+
+        // Apply status filter if provided
+        if (!string.IsNullOrEmpty(status) && Enum.TryParse<VehicleStatus>(status, true, out var parsedStatus))
+        {
+            vehicles = vehicles.Where(v => v.Status == parsedStatus).ToList();
+        }
+
+        // Sort by Id for stable cursor-based pagination
+        // Using Id ensures stable ordering even when UpdatedAt changes frequently
+        var sortedVehicles = vehicles
+            .OrderBy(v => v.Id)
+            .ThenBy(v => v.UpdatedAt)
+            .ToList();
+
+        // Convert to DTOs and apply cursor-based pagination
+        // Note: We convert to list first to ensure stable ordering before pagination
+        var vehicleDtos = sortedVehicles
+            .Select(v => new VehicleDto
+            {
+                Id = v.Id,
+                Name = v.Name,
+                RegistrationNumber = v.RegistrationNumber,
+                Status = v.Status,
+                AssetType = v.AssetType,
+                DriverId = v.DriverId,
+                Manufacturer = v.Manufacturer,
+                ModelYear = v.ModelYear,
+                MaxSpeed = v.MaxSpeed,
+                FuelLevel = v.FuelLevel,
+                IsOnline = v.IsOnline,
+                LastLocation = v.LastLocation != null ? new LocationDto
+                {
+                    Latitude = v.LastLocation.Latitude,
+                    Longitude = v.LastLocation.Longitude,
+                    Timestamp = v.LastLocation.Timestamp,
+                    Speed = v.LastLocation.Speed,
+                    Heading = v.LastLocation.Heading
+                } : null,
+                Make = v.Make,
+                Model = v.Model,
+                Year = v.Year,
+                LicensePlate = v.LicensePlate,
+                CreatedAt = v.CreatedAt,
+                UpdatedAt = v.UpdatedAt
+            })
+            .ToList();
+
+        // Use cursor-based pagination with stable ordering
+        return PaginatedResponse<VehicleDto>.FromCursorList(vehicleDtos, pageSize, cursor);
     }
 
     /// <summary>
