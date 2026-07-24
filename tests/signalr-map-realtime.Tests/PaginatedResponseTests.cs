@@ -279,4 +279,196 @@ public class PaginatedResponseTests
         // Assert
         Assert.False(response.HasPreviousPage);
     }
+
+    [Fact]
+    public void Constructor_WithPageBeyondLastPage_ShouldReturnEmptyItemsWithCorrectMetadata()
+    {
+        // Arrange
+        var items = new List<int> { 1, 2, 3 };
+        var pageNumber = 5; // Beyond the last page (3 items / 3 per page = 1 page)
+        var pageSize = 3;
+        var totalCount = 3;
+
+        // Act
+        var response = new PaginatedResponse<int>(items, pageNumber, pageSize, totalCount);
+
+        // Assert
+        Assert.Empty(response.Items);
+        Assert.Equal(5, response.PageNumber);
+        Assert.Equal(3, response.PageSize);
+        Assert.Equal(1, response.TotalPages);
+        Assert.False(response.HasNextPage);
+        Assert.True(response.HasPreviousPage);
+    }
+
+    [Fact]
+    public void Constructor_WithPageZero_ShouldSetPageNumberToOne()
+    {
+        // Arrange
+        var items = new List<string> { "a", "b", "c" };
+        var pageNumber = 0;
+        var pageSize = 10;
+        var totalCount = 30;
+
+        // Act
+        var response = new PaginatedResponse<string>(items, pageNumber, pageSize, totalCount);
+
+        // Assert
+        Assert.Equal(1, response.PageNumber);
+        Assert.Equal(3, response.TotalPages);
+        Assert.False(response.HasNextPage);
+        Assert.False(response.HasPreviousPage);
+    }
+
+    [Fact]
+    public void Constructor_WithNegativePageNumber_ShouldSetPageNumberToOne()
+    {
+        // Arrange
+        var items = new List<int> { 1, 2, 3 };
+        var pageNumber = -1;
+        var pageSize = 10;
+        var totalCount = 30;
+
+        // Act
+        var response = new PaginatedResponse<int>(items, pageNumber, pageSize, totalCount);
+
+        // Assert
+        Assert.Equal(1, response.PageNumber);
+        Assert.Equal(3, response.TotalPages);
+        Assert.False(response.HasNextPage);
+        Assert.False(response.HasPreviousPage);
+    }
+
+    [Fact]
+    public void Constructor_WithNegativePageSize_ShouldUseAbsoluteValue()
+    {
+        // Arrange
+        var items = new List<int> { 1, 2, 3 };
+        var pageNumber = 1;
+        var pageSize = -10;
+        var totalCount = 30;
+
+        // Act
+        var response = new PaginatedResponse<int>(items, pageNumber, pageSize, totalCount);
+
+        // Assert
+        Assert.Equal(10, response.PageSize);
+        Assert.Equal(3, response.TotalPages);
+    }
+
+    [Fact]
+    public void Constructor_WithValueType_ShouldNotBoxItems()
+    {
+        // Arrange
+        var items = new List<int> { 1, 2, 3, 4, 5 };
+        var pageNumber = 1;
+        var pageSize = 10;
+        var totalCount = 5;
+
+        // Act
+        var response = new PaginatedResponse<int>(items, pageNumber, pageSize, totalCount);
+
+        // Assert - Verify items are not boxed by checking we can modify them
+        Assert.Equal(5, response.Items.Count);
+        Assert.IsType<int>(response.Items[0]);
+    }
+
+    [Fact]
+    public void Constructor_WithReferenceType_ShouldHandleNullItemsCorrectly()
+    {
+        // Arrange
+        var items = new List<TestClass> { new TestClass("a"), new TestClass("b") };
+        var pageNumber = 1;
+        var pageSize = 10;
+        var totalCount = 2;
+
+        // Act
+        var response = new PaginatedResponse<TestClass>(items, pageNumber, pageSize, totalCount);
+
+        // Assert
+        Assert.Equal(2, response.Items.Count);
+        Assert.All(response.Items, item => Assert.NotNull(item));
+        Assert.Equal("a", response.Items[0].Name);
+        Assert.Equal("b", response.Items[1].Name);
+    }
+
+    [Fact]
+    public void Constructor_WithNullItems_ShouldCreateEmptyResponse()
+    {
+        // Arrange
+        var pageNumber = 1;
+        var pageSize = 10;
+        var totalCount = 0;
+
+        // Act
+        var response = new PaginatedResponse<object>(null, pageNumber, pageSize, totalCount);
+
+        // Assert
+        Assert.Empty(response.Items);
+        Assert.Equal(0, response.TotalCount);
+        Assert.Equal(0, response.TotalPages);
+    }
+
+    [Fact]
+    public void FromList_WithPageBeyondLastPage_ShouldReturnEmptyItems()
+    {
+        // Arrange
+        var source = new List<int> { 1, 2, 3, 4, 5 };
+        var pageNumber = 10; // Beyond the last page (5 items / 5 per page = 1 page)
+        var pageSize = 5;
+
+        // Act
+        var response = PaginatedResponse<int>.FromList(source, pageNumber, pageSize);
+
+        // Assert
+        Assert.Empty(response.Items);
+        Assert.Equal(1, response.TotalPages);
+        Assert.False(response.HasNextPage);
+        Assert.True(response.HasPreviousPage);
+    }
+
+    [Fact]
+    public void FromList_WithLargePageNumber_ShouldReturnEmptyItems()
+    {
+        // Arrange
+        var source = new List<string> { "a", "b", "c" };
+        var pageNumber = 100;
+        var pageSize = 10;
+
+        // Act
+        var response = PaginatedResponse<string>.FromList(source, pageNumber, pageSize);
+
+        // Assert
+        Assert.Empty(response.Items);
+        Assert.Equal(1, response.TotalPages);
+        Assert.False(response.HasNextPage);
+    }
+
+    [Fact]
+    public void FromList_WithReferenceType_ShouldMaintainObjectIdentity()
+    {
+        // Arrange
+        var item1 = new TestClass("item1");
+        var item2 = new TestClass("item2");
+        var source = new List<TestClass> { item1, item2 };
+        var pageNumber = 1;
+        var pageSize = 10;
+
+        // Act
+        var response = PaginatedResponse<TestClass>.FromList(source, pageNumber, pageSize);
+
+        // Assert - Verify we get the same object references back
+        Assert.Same(item1, response.Items[0]);
+        Assert.Same(item2, response.Items[1]);
+    }
+
+    private class TestClass
+    {
+        public string Name { get; }
+
+        public TestClass(string name)
+        {
+            Name = name;
+        }
+    }
 }
