@@ -47,6 +47,11 @@ builder.Services.AddOptions<SignalrMapRealtimeOptions>()
     .Bind(builder.Configuration.GetSection(SignalrMapRealtimeOptions.SectionName))
     .ValidateDataAnnotations();
 
+// Webhook configuration registration
+builder.Services.AddOptions<WebhookOptions>()
+    .Bind(builder.Configuration.GetSection(WebhookOptions.SectionName))
+    .ValidateDataAnnotations();
+
 // Hotfix: Add API Key authentication for SignalR hubs and API endpoints.
 // This ensures that unauthorized requests are properly rejected with a 401,
 // preventing clients from entering a reconnection loop due to unhandled authentication failures.
