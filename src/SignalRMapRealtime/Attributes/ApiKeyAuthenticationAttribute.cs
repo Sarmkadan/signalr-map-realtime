@@ -9,6 +9,8 @@ namespace SignalRMapRealtime.Attributes;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using SignalRMapRealtime.Models;
+using System.Security.Cryptography;
+using System.Text;
 
 /// <summary>
 /// Custom authorization filter attribute for API key authentication.
@@ -79,7 +81,11 @@ public class ApiKeyAuthenticationAttribute : Attribute, IAsyncAuthorizationFilte
 
     /// <summary>
     /// Validates the API key against the value configured under "Authentication:ApiKey".
+    /// Uses constant-time comparison to prevent timing attacks.
     /// </summary>
+    /// <param name="apiKey">The API key to validate.</param>
+    /// <param name="configuration">The application configuration.</param>
+    /// <returns>True if the API key is valid; otherwise, false.</returns>
     private static bool IsValidApiKey(string apiKey, IConfiguration? configuration)
     {
         if (string.IsNullOrWhiteSpace(apiKey))
@@ -89,7 +95,12 @@ public class ApiKeyAuthenticationAttribute : Attribute, IAsyncAuthorizationFilte
         if (string.IsNullOrWhiteSpace(validApiKey))
             return false;
 
-        return apiKey == validApiKey;
+        // Use constant-time comparison to prevent timing attacks
+        // Convert both strings to byte arrays using UTF-8 encoding for consistent comparison
+        ReadOnlySpan<byte> apiKeyBytes = Encoding.UTF8.GetBytes(apiKey);
+        ReadOnlySpan<byte> validApiKeyBytes = Encoding.UTF8.GetBytes(validApiKey);
+
+        return CryptographicOperations.FixedTimeEquals(apiKeyBytes, validApiKeyBytes);
     }
 }
 

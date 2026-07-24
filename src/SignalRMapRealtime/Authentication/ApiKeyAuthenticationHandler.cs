@@ -7,9 +7,11 @@
 namespace SignalRMapRealtime.Authentication;
 
 using System.Security.Claims;
+using System.Text;
 using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
+using System.Security.Cryptography;
 
 /// <summary>
 /// Implements API Key authentication for ASP.NET Core applications.
@@ -111,7 +113,10 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthentic
     /// Validates if the API key is valid.
     /// In production, this would check against a database, cache, or configuration.
     /// Currently uses simple validation against known keys defined in configuration.
+    /// Uses constant-time comparison to prevent timing attacks.
     /// </summary>
+    /// <param name="apiKey">The API key to validate.</param>
+    /// <returns>True if the API key is valid; otherwise, false.</returns>
     private bool IsValidApiKey(string apiKey)
     {
         // TODO: Implement actual API key validation against a secure store.
@@ -120,19 +125,40 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthentic
 
         // Placeholder validation - reject empty or obviously invalid keys
         if (string.IsNullOrWhiteSpace(apiKey)) return false;
-        if (string.IsNullOrWhiteSpace(validApiKey)) return false; // Configuration error
+        if (string.IsNullOrWhiteSpace(validApiKey))
+        {
+            _logger.LogError("API key configuration is missing. Check Authentication:ApiKey in configuration.");
+            return false; // Configuration error
+        }
 
-        return apiKey == validApiKey;
+        // Use constant-time comparison to prevent timing attacks
+        // Convert both strings to byte arrays using UTF-8 encoding for consistent comparison
+        ReadOnlySpan<byte> apiKeyBytes = Encoding.UTF8.GetBytes(apiKey);
+        ReadOnlySpan<byte> validApiKeyBytes = Encoding.UTF8.GetBytes(validApiKey);
+
+        return CryptographicOperations.FixedTimeEquals(apiKeyBytes, validApiKeyBytes);
     }
 
     /// <summary>
     /// Determines the roles for the authenticated user based on the API key.
+    /// Uses constant-time comparison to prevent timing attacks.
     /// </summary>
+    /// <param name="apiKey">The API key to validate.</param>
+    /// <returns>Collection of role names for the authenticated user.</returns>
     private IEnumerable<string> GetRolesForApiKey(string apiKey)
     {
-        // Check if this is the main API key
+        // Check if this is the main API key using constant-time comparison
         var validApiKey = _configuration["Authentication:ApiKey"];
-        if (string.IsNullOrWhiteSpace(validApiKey) || apiKey != validApiKey)
+        if (string.IsNullOrWhiteSpace(validApiKey))
+        {
+            _logger.LogError("API key configuration is missing. Check Authentication:ApiKey in configuration.");
+            yield break;
+        }
+
+        // Use constant-time comparison
+        ReadOnlySpan<byte> apiKeyBytes = Encoding.UTF8.GetBytes(apiKey);
+        ReadOnlySpan<byte> validApiKeyBytes = Encoding.UTF8.GetBytes(validApiKey);
+        if (!CryptographicOperations.FixedTimeEquals(apiKeyBytes, validApiKeyBytes))
         {
             yield break;
         }
