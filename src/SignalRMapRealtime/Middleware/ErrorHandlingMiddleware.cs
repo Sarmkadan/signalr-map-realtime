@@ -2,12 +2,13 @@
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
-// =============================================================================
+// =====================================================================
 
 namespace SignalRMapRealtime.Middleware;
 
 using System.Net;
 using System.Text.Json;
+using SignalRMapRealtime.Exceptions;
 using SignalRMapRealtime.Models;
 
 /// <summary>
@@ -56,55 +57,138 @@ public class ErrorHandlingMiddleware
     {
         context.Response.ContentType = "application/json";
 
-        var response = exception switch
+        ErrorResponse response;
+
+        // Handle domain-specific exceptions first
+        if (exception is LocationTrackingException locationTrackingException)
         {
-            ArgumentNullException ex => CreateErrorResponse(
-                HttpStatusCode.BadRequest,
-                $"Required parameter missing: {ex.ParamName}",
-                "ARGUMENT_NULL",
-                ex),
+            response = HandleLocationTrackingException(context, locationTrackingException);
+        }
+        else if (exception is ValidationException validationException)
+        {
+            response = HandleValidationException(context, validationException);
+        }
+        else if (exception is ConfigurationException configurationException)
+        {
+            response = HandleConfigurationException(context, configurationException);
+        }
+        else
+        {
+            // Handle standard .NET exceptions
+            response = exception switch
+            {
+                ArgumentNullException ex => CreateErrorResponse(
+                    HttpStatusCode.BadRequest,
+                    $"Required parameter missing: {ex.ParamName}",
+                    "ARGUMENT_NULL",
+                    ex),
 
-            ArgumentException ex => CreateErrorResponse(
-                HttpStatusCode.BadRequest,
-                $"Invalid argument: {ex.Message}",
-                "ARGUMENT_INVALID",
-                ex),
+                ArgumentException ex => CreateErrorResponse(
+                    HttpStatusCode.BadRequest,
+                    $"Invalid argument: {ex.Message}",
+                    "ARGUMENT_INVALID",
+                    ex),
 
-            InvalidOperationException ex => CreateErrorResponse(
-                HttpStatusCode.BadRequest,
-                "The requested operation is not valid in the current state",
-                "INVALID_OPERATION",
-                ex),
+                InvalidOperationException ex => CreateErrorResponse(
+                    HttpStatusCode.BadRequest,
+                    "The requested operation is not valid in the current state",
+                    "INVALID_OPERATION",
+                    ex),
 
-            KeyNotFoundException ex => CreateErrorResponse(
-                HttpStatusCode.NotFound,
-                "The requested resource was not found",
-                "RESOURCE_NOT_FOUND",
-                ex),
+                KeyNotFoundException ex => CreateErrorResponse(
+                    HttpStatusCode.NotFound,
+                    "The requested resource was not found",
+                    "RESOURCE_NOT_FOUND",
+                    ex),
 
-            UnauthorizedAccessException ex => CreateErrorResponse(
-                HttpStatusCode.Unauthorized,
-                "You do not have permission to access this resource",
-                "UNAUTHORIZED",
-                ex),
+                UnauthorizedAccessException ex => CreateErrorResponse(
+                    HttpStatusCode.Unauthorized,
+                    "You do not have permission to access this resource",
+                    "UNAUTHORIZED",
+                    ex),
 
-            NotImplementedException ex => CreateErrorResponse(
-                HttpStatusCode.NotImplemented,
-                "This feature is not implemented yet",
-                "NOT_IMPLEMENTED",
-                ex),
+                NotImplementedException ex => CreateErrorResponse(
+                    HttpStatusCode.NotImplemented,
+                    "This feature is not implemented yet",
+                    "NOT_IMPLEMENTED",
+                    ex),
 
-            _ => CreateErrorResponse(
-                HttpStatusCode.InternalServerError,
-                "An unexpected error occurred. Please try again later.",
-                "INTERNAL_SERVER_ERROR",
-                exception)
-        };
+                _ => CreateErrorResponse(
+                    HttpStatusCode.InternalServerError,
+                    "An unexpected error occurred. Please try again later.",
+                    "INTERNAL_SERVER_ERROR",
+                    exception)
+            };
+        }
 
         context.Response.StatusCode = response.StatusCode;
 
         var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
         return context.Response.WriteAsJsonAsync(response, options);
+    }
+
+    /// <summary>
+    /// Handles LocationTrackingException and its derived types.
+    /// Maps specific exception types to appropriate HTTP status codes and error codes.
+    /// </summary>
+    private ErrorResponse HandleLocationTrackingException(HttpContext context, LocationTrackingException exception)
+    {
+        return exception switch
+        {
+            VehicleNotFoundException ex => ErrorResponse.NotFoundError(
+                ex.Message,
+                context.TraceIdentifier),
+
+            AssetNotFoundException ex => ErrorResponse.NotFoundError(
+                ex.Message,
+                context.TraceIdentifier),
+
+            TrackingSessionNotFoundException ex => ErrorResponse.NotFoundError(
+                ex.Message,
+                context.TraceIdentifier),
+
+            InvalidLocationException ex => ErrorResponse.ValidationError(
+                new Dictionary<string, string[]>
+                {
+                    { "coordinates", new[] { ex.Message } }
+                },
+                ex.Message,
+                context.TraceIdentifier),
+
+            _ => CreateErrorResponse(
+                HttpStatusCode.BadRequest,
+                exception.Message,
+                "LOCATION_TRACKING_ERROR",
+                exception)
+        };
+    }
+
+    /// <summary>
+    /// Handles ValidationException and extracts validation errors.
+    /// </summary>
+    private ErrorResponse HandleValidationException(HttpContext context, ValidationException exception)
+    {
+        var errors = exception.Errors.ToDictionary(
+            e => e,
+            e => new[] { e }
+        );
+
+        return ErrorResponse.ValidationError(
+            errors,
+            exception.Message,
+            context.TraceIdentifier);
+    }
+
+    /// <summary>
+    /// Handles ConfigurationException.
+    /// </summary>
+    private ErrorResponse HandleConfigurationException(HttpContext context, ConfigurationException exception)
+    {
+        return CreateErrorResponse(
+            HttpStatusCode.InternalServerError,
+            exception.Message,
+            "CONFIGURATION_ERROR",
+            exception);
     }
 
     /// <summary>
