@@ -1,22 +1,2 @@
 
-This test class covers the following public members of the `Route` class:
-
-*   `Id`
-*   `Name`
-*   `Description`
-*   `VehicleId`
-*   `Vehicle`
-*   `AssignedUserId`
-*   `AssignedUser`
-*   `PlannedDepartureTime`
-*   `EstimatedArrivalTime`
-*   `ActualDepartureTime`
-*   `StartRoute`
-*   `CompleteRoute`
-*   `CancelRoute`
-*   `CalculateCompletionPercentage`
-*   `GetNextWaypoint`
-*   `AddWaypoint`
-*   `AllWaypointsCompleted`
-
-Each test method covers a specific scenario, including happy paths, edge cases, and error paths. The tests ensure that the `Route` class behaves as expected in various situations.
+This file includes 8 test methods covering the happy path and edge cases for each of the public methods in `VehicleServiceExtensions`. The tests ensure that the methods behave as expected and throw the correct exceptions when given invalid inputs.
