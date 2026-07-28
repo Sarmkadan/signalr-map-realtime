@@ -1,2 +1,2 @@
 
-This test class covers the happy path for each major public method in `LocationRepository` and includes edge cases and error paths. The tests use the `InMemoryDbContext` to create a test database and populate it with test data. The tests then call the methods under test and assert that the results are as expected.
+This test class covers the happy path for each major public method in `RouteRepository` and includes edge cases and error paths. The tests use the `InMemoryDbContext` to create a test database and populate it with test data. The tests then call the methods under test and assert that the results are as expected.
