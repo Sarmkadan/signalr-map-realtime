@@ -1,2 +1,2 @@
 
-This file includes 8 test methods covering the happy path and edge cases for each of the public methods in `VehicleServiceExtensions`. The tests ensure that the methods behave as expected and throw the correct exceptions when given invalid inputs.
+This test class covers the happy path for each major public method in `TrackingSessionRepository` and includes edge cases and error paths. The tests use the `InMemoryDbContext` to create a test database and populate it with test data. The tests then call the methods under test and assert that the results are as expected.
