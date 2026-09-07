@@ -17,12 +17,23 @@ using SignalRMapRealtime.Domain.Enums;
 /// </summary>
 public class SessionCleanupWorker : BackgroundService
 {
+    // Cleanup runs hourly after the initial execution.
+    private static readonly TimeSpan ExecutionInterval = TimeSpan.FromHours(1);
+
+    // Sessions without updates for a day are considered inactive.
+    private static readonly TimeSpan SessionInactivityThreshold = TimeSpan.FromHours(24);
+
+    // Location history older than 30 days is archived.
+    private static readonly TimeSpan LocationArchiveThreshold = TimeSpan.FromDays(30);
+
+    // Failed cleanup attempts are retried after a short back-off.
+    private static readonly TimeSpan FailureBackoff = TimeSpan.FromSeconds(30);
+
+    // Bound archive deletes to limit statement size and lock duration.
+    private const int ArchiveBatchSize = 5000;
+
     private readonly ILogger<SessionCleanupWorker> _logger;
     private readonly IServiceProvider _serviceProvider;
-    private readonly TimeSpan _executionInterval = TimeSpan.FromHours(1);
-    private readonly TimeSpan _sessionInactivityThreshold = TimeSpan.FromHours(24);
-    private readonly TimeSpan _locationArchiveThreshold = TimeSpan.FromDays(30);
-    private const int ArchiveBatchSize = 5000;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SessionCleanupWorker"/> class.
@@ -42,16 +53,26 @@ public class SessionCleanupWorker : BackgroundService
     {
         _logger.LogInformation("Session cleanup worker started");
 
+        using var timer = new PeriodicTimer(ExecutionInterval);
+
         while (!stoppingToken.IsCancellationRequested)
         {
             try
             {
-                await CleanupInactiveSessions(stoppingToken).ConfigureAwait(false);
-                await ArchiveOldLocations(stoppingToken).ConfigureAwait(false);
+                await using (var scope = _serviceProvider.CreateAsyncScope())
+                {
+                    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-                await Task.Delay(_executionInterval, stoppingToken).ConfigureAwait(false);
+                    await CleanupInactiveSessionsAsync(dbContext, stoppingToken).ConfigureAwait(false);
+                    await ArchiveOldLocationsAsync(dbContext, stoppingToken).ConfigureAwait(false);
+                }
+
+                if (!await timer.WaitForNextTickAsync(stoppingToken).ConfigureAwait(false))
+                {
+                    break;
+                }
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
                 _logger.LogInformation("Session cleanup worker is stopping");
                 break;
@@ -60,7 +81,15 @@ public class SessionCleanupWorker : BackgroundService
             {
                 _logger.LogError(ex, "Error in session cleanup worker");
                 // Continue on error to prevent worker from stopping
-                await Task.Delay(TimeSpan.FromSeconds(30), stoppingToken).ConfigureAwait(false);
+                try
+                {
+                    await Task.Delay(FailureBackoff, stoppingToken).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+                {
+                    _logger.LogInformation("Session cleanup worker is stopping");
+                    break;
+                }
             }
         }
 
@@ -71,12 +100,11 @@ public class SessionCleanupWorker : BackgroundService
     /// Marks inactive tracking sessions as completed.
     /// A session is considered inactive if no location updates in the last 24 hours.
     /// </summary>
-    private async Task CleanupInactiveSessions(CancellationToken cancellationToken)
+    private async Task CleanupInactiveSessionsAsync(
+        ApplicationDbContext dbContext,
+        CancellationToken cancellationToken)
     {
-        using var scope = _serviceProvider.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-
-        var cutoffTime = DateTime.UtcNow - _sessionInactivityThreshold;
+        var cutoffTime = DateTime.UtcNow - SessionInactivityThreshold;
         var now = DateTime.UtcNow;
 
         // Set-based update: a single UPDATE statement instead of loading every
@@ -101,12 +129,11 @@ public class SessionCleanupWorker : BackgroundService
     /// Archives (deletes) old location records to maintain database performance.
     /// Keeps only the last 30 days of location data.
     /// </summary>
-    private async Task ArchiveOldLocations(CancellationToken cancellationToken)
+    private async Task ArchiveOldLocationsAsync(
+        ApplicationDbContext dbContext,
+        CancellationToken cancellationToken)
     {
-        using var scope = _serviceProvider.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-
-        var cutoffTime = DateTime.UtcNow - _locationArchiveThreshold;
+        var cutoffTime = DateTime.UtcNow - LocationArchiveThreshold;
 
         // Set-based delete in bounded batches. Loading months of GPS rows into
         // the change tracker just to delete them exhausts memory on real data;
