@@ -24,8 +24,13 @@ public class SessionCleanupWorker : BackgroundService
     private readonly TimeSpan _locationArchiveThreshold = TimeSpan.FromDays(30);
     private const int ArchiveBatchSize = 5000;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SessionCleanupWorker"/> class.
+    /// </summary>
     public SessionCleanupWorker(ILogger<SessionCleanupWorker> logger, IServiceProvider serviceProvider)
     {
+        ArgumentNullException.ThrowIfNull(logger);
+        ArgumentNullException.ThrowIfNull(serviceProvider);
         _logger = logger;
         _serviceProvider = serviceProvider;
     }
