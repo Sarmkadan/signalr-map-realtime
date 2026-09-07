@@ -6,6 +6,7 @@
 
 namespace SignalRMapRealtime.Services;
 
+using System.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SignalRMapRealtime.DTOs;
@@ -59,6 +60,11 @@ public sealed class ClusteringService : IClusteringService
     {
         ArgumentNullException.ThrowIfNull(request);
 
+        _logger.LogDebug(
+            "Starting cluster computation for time window {From} to {To} with grid resolution {GridSize}",
+            request.From, request.To, request.GridCellKm);
+        var stopwatch = Stopwatch.StartNew();
+
         var points = await LoadPointsAsync(request, cancellationToken).ConfigureAwait(false);
         var cellKm = Math.Max(0.1, request.GridCellKm);
         var cells = BucketIntoGrid(points, cellKm);
@@ -77,9 +83,9 @@ public sealed class ClusteringService : IClusteringService
                 MaxLongitude: cell.Max(p => p.Lon));
         }).ToList();
 
-        _logger.LogDebug(
-            "Clustered {PointCount} points into {ClusterCount} clusters (grid cell {GridKm} km)",
-            points.Count, clusters.Count, cellKm);
+        _logger.LogInformation(
+            "Completed cluster computation for {PointCount} input points with {ClusterCount} clusters in {ElapsedMilliseconds} ms",
+            points.Count, clusters.Count, stopwatch.ElapsedMilliseconds);
 
         return new ClusterResponseDto
         {
@@ -94,6 +100,11 @@ public sealed class ClusteringService : IClusteringService
         ClusterQueryRequest request, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
+
+        _logger.LogDebug(
+            "Starting heatmap computation for time window {From} to {To} with grid resolution {GridSize}",
+            request.From, request.To, request.GridCellKm);
+        var stopwatch = Stopwatch.StartNew();
 
         var points = await LoadPointsAsync(request, cancellationToken).ConfigureAwait(false);
         var cellKm = Math.Max(0.1, request.GridCellKm);
@@ -111,9 +122,9 @@ public sealed class ClusteringService : IClusteringService
         .OrderByDescending(h => h.Intensity)
         .ToList();
 
-        _logger.LogDebug(
-            "Built heatmap from {PointCount} samples across {TileCount} tiles (peak density {MaxCount})",
-            points.Count, heatPoints.Count, maxCount);
+        _logger.LogInformation(
+            "Completed heatmap computation for {PointCount} input points with {TileCount} tiles in {ElapsedMilliseconds} ms",
+            points.Count, heatPoints.Count, stopwatch.ElapsedMilliseconds);
 
         return new HeatmapResponseDto
         {
