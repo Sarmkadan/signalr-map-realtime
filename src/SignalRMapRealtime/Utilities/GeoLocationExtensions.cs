@@ -20,6 +20,18 @@ public static class GeoLocationExtensions
     private const double EarthRadiusKm = 6371.0;
 
     /// <summary>
+    /// Approximate distance in kilometers represented by one degree of latitude.
+    /// </summary>
+    private const double KilometersPerDegreeLatitude = 111.32;
+
+    private const double MilesPerKilometer = 0.621371;
+    private const double MetersPerKilometer = 1000.0;
+    private const double MaximumLatitudeDegrees = 90.0;
+    private const double MaximumLongitudeDegrees = 180.0;
+    private const double DegreesInHalfCircle = 180.0;
+    private const double DegreesInFullCircle = 360.0;
+
+    /// <summary>
     /// Calculates the distance between two GPS coordinates using Haversine formula.
     /// Returns distance in kilometers.
     /// </summary>
@@ -67,21 +79,21 @@ public static class GeoLocationExtensions
     /// </summary>
     /// <param name="kilometers">Distance in kilometers.</param>
     /// <returns>Distance in miles.</returns>
-    public static double KilometersToMiles(this double kilometers) => kilometers * 0.621371;
+    public static double KilometersToMiles(this double kilometers) => kilometers * MilesPerKilometer;
 
     /// <summary>
     /// Converts distance from miles to kilometers.
     /// </summary>
     /// <param name="miles">Distance in miles.</param>
     /// <returns>Distance in kilometers.</returns>
-    public static double MilesToKilometers(this double miles) => miles / 0.621371;
+    public static double MilesToKilometers(this double miles) => miles / MilesPerKilometer;
 
     /// <summary>
     /// Converts distance from kilometers to meters.
     /// </summary>
     /// <param name="kilometers">Distance in kilometers.</param>
     /// <returns>Distance in meters.</returns>
-    public static double KilometersToMeters(this double kilometers) => kilometers * 1000.0;
+    public static double KilometersToMeters(this double kilometers) => kilometers * MetersPerKilometer;
 
     /// <summary>
     /// Validates if latitude is within valid range (-90 to 90).
@@ -90,7 +102,7 @@ public static class GeoLocationExtensions
     /// <returns>True if valid, false otherwise.</returns>
     public static bool IsValidLatitude(this double latitude)
     {
-        return latitude >= -90.0 && latitude <= 90.0;
+        return latitude >= -MaximumLatitudeDegrees && latitude <= MaximumLatitudeDegrees;
     }
 
     /// <summary>
@@ -100,7 +112,7 @@ public static class GeoLocationExtensions
     /// <returns>True if valid, false otherwise.</returns>
     public static bool IsValidLongitude(this double longitude)
     {
-        return longitude >= -180.0 && longitude <= 180.0;
+        return longitude >= -MaximumLongitudeDegrees && longitude <= MaximumLongitudeDegrees;
     }
 
     /// <summary>
@@ -139,7 +151,7 @@ public static class GeoLocationExtensions
     public static string GetCardinalDirection(this double bearing)
     {
         // Normalize bearing to 0-360 range
-        bearing = ((bearing % 360) + 360) % 360;
+        bearing = ((bearing % DegreesInFullCircle) + DegreesInFullCircle) % DegreesInFullCircle;
 
         return bearing switch
         {
@@ -199,8 +211,9 @@ public static class GeoLocationExtensions
         ArgumentNullException.ThrowIfNull(centerPoint);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(radiusKm);
 
-        const double latChange = 111.32; // 1 degree latitude ≈ 111.32 km
-        var lonChange = 111.32 * Math.Cos(centerPoint.Latitude * Math.PI / 180.0);
+        var latChange = KilometersPerDegreeLatitude;
+        var lonChange = KilometersPerDegreeLatitude *
+                        Math.Cos(centerPoint.Latitude * Math.PI / DegreesInHalfCircle);
 
         var latOffset = radiusKm / latChange;
         var lonOffset = radiusKm / lonChange;
@@ -262,16 +275,16 @@ public static class GeoLocationExtensions
                 Math.Sin(DegreesToRadians(lat1)) * Math.Cos(DegreesToRadians(lat2)) * Math.Cos(dLon);
 
         var bearing = RadiansToDegrees(Math.Atan2(y, x));
-        return (bearing + 360) % 360; // Normalize to 0-360
+        return (bearing + DegreesInFullCircle) % DegreesInFullCircle; // Normalize to 0-360
     }
 
     /// <summary>
     /// Converts degrees to radians.
     /// </summary>
-    private static double DegreesToRadians(double degrees) => degrees * Math.PI / 180.0;
+    private static double DegreesToRadians(double degrees) => degrees * Math.PI / DegreesInHalfCircle;
 
     /// <summary>
     /// Converts radians to degrees.
     /// </summary>
-    private static double RadiansToDegrees(double radians) => radians * 180.0 / Math.PI;
+    private static double RadiansToDegrees(double radians) => radians * DegreesInHalfCircle / Math.PI;
 }
