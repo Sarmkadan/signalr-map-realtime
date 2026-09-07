@@ -7,7 +7,7 @@
 namespace SignalRMapRealtime.Tests;
 
 using FluentAssertions;
-using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 using SignalRMapRealtime.Domain.Models;
 using SignalRMapRealtime.DTOs;
@@ -25,10 +25,47 @@ public class GeofenceServiceTests
     /// </summary>
     /// <param name="eventBus">The event bus to use. Defaults to a mock event bus.</param>
     /// <returns>A new instance of the GeofenceService class.</returns>
-    private static GeofenceService CreateService(IEventBus? eventBus = null)
+    private static GeofenceService CreateService(
+        IEventBus? eventBus = null,
+        ILogger<GeofenceService>? logger = null)
     {
         eventBus ??= Substitute.For<IEventBus>();
-        return new GeofenceService(eventBus, NullLogger<GeofenceService>.Instance);
+        logger ??= Substitute.For<ILogger<GeofenceService>>();
+        return new GeofenceService(eventBus, logger);
+    }
+
+    /// <summary>
+    /// Tests that the constructor rejects a null event bus.
+    /// </summary>
+    [Fact]
+    public void Constructor_NullEventBus_ThrowsArgumentNullException()
+    {
+        // Arrange
+        var logger = Substitute.For<ILogger<GeofenceService>>();
+
+        // Act
+        Action act = () => new GeofenceService(null!, logger);
+
+        // Assert
+        act.Should().Throw<ArgumentNullException>()
+            .WithParameterName("eventBus");
+    }
+
+    /// <summary>
+    /// Tests that the constructor rejects a null logger.
+    /// </summary>
+    [Fact]
+    public void Constructor_NullLogger_ThrowsArgumentNullException()
+    {
+        // Arrange
+        var eventBus = Substitute.For<IEventBus>();
+
+        // Act
+        Action act = () => new GeofenceService(eventBus, null!);
+
+        // Assert
+        act.Should().Throw<ArgumentNullException>()
+            .WithParameterName("logger");
     }
 
     /// <summary>
@@ -172,7 +209,8 @@ public class GeofenceServiceTests
     public async Task CheckLocation_VehicleExitsZone_EmitsExitedAlert()
     {
         // Arrange
-        var service = CreateService();
+        var eventBus = Substitute.For<IEventBus>();
+        var service = CreateService(eventBus);
         await service.RegisterZoneAsync(new CreateGeofenceDto
         {
             Name = "Depot",
@@ -194,6 +232,9 @@ public class GeofenceServiceTests
         // Assert
         alerts.Should().HaveCount(1);
         alerts[0].ViolationType.Should().Be("Exited");
+        await eventBus.Received(1).PublishAsync(Arg.Is<GeofenceViolationEvent>(
+            publishedEvent => publishedEvent.VehicleId == vehicleId
+                && publishedEvent.ViolationType == "Exited"));
     }
 
     /// <summary>
@@ -203,7 +244,8 @@ public class GeofenceServiceTests
     public async Task CheckLocation_VehicleRemainsInsideZone_ProducesNoDuplicateAlerts()
     {
         // Arrange
-        var service = CreateService();
+        var eventBus = Substitute.For<IEventBus>();
+        var service = CreateService(eventBus);
         await service.RegisterZoneAsync(new CreateGeofenceDto
         {
             Name = "Parking Lot",
@@ -222,5 +264,8 @@ public class GeofenceServiceTests
 
         // Assert — no new alert on second check while already inside
         secondAlerts.Should().BeEmpty();
+        await eventBus.Received(1).PublishAsync(Arg.Is<GeofenceViolationEvent>(
+            publishedEvent => publishedEvent.VehicleId == vehicleId
+                && publishedEvent.ViolationType == "Entered"));
     }
 }
