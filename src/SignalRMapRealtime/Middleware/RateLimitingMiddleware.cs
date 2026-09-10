@@ -24,15 +24,20 @@ public class RateLimitingMiddleware
     // In-memory store for tracking requests: Key = "ip:address" or "user:id", Value = list of request timestamps
     private static readonly Dictionary<string, List<DateTime>> RequestTracker = new();
     private static readonly object LockObject = new();
+    private static int _requestCount = 0;
+    private static readonly int PruneEveryNRequests = 1000;
+    private static readonly int PruneWhenSizeExceeds = 10000;
+    private static int _windowSizeSeconds;
 
     /// <summary>
     /// Initializes the rate limiting middleware.
     /// </summary>
     public RateLimitingMiddleware(RequestDelegate next, ILogger<RateLimitingMiddleware> logger, IOptions<RateLimitingOptions> options)
     {
-        _next = next;
-        _logger = logger;
-        _options = options.Value;
+        _next = next ?? throw new ArgumentNullException(nameof(next));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _options = options?.Value ?? throw new ArgumentNullException(nameof(options));
+        _windowSizeSeconds = _options.WindowSizeSeconds;
     }
 
     /// <summary>
@@ -203,12 +208,47 @@ public class RateLimitingMiddleware
 
             timestamps.Add(DateTime.UtcNow);
 
-            // Clean up old requests to prevent memory bloat
+            // Increment request counter and possibly prune
+            _requestCount++;
+            if (_requestCount >= PruneEveryNRequests || RequestTracker.Count > PruneWhenSizeExceeds)
+            {
+                _requestCount = 0;
+                PruneOldEntries();
+            }
+
+            // Clean up old requests for this client to prevent memory bloat
             if (timestamps.Count > 1000)
             {
-                var cutoffTime = DateTime.UtcNow.AddSeconds(-_options.WindowSizeSeconds);
+                var cutoffTime = DateTime.UtcNow.AddSeconds(-_windowSizeSeconds);
                 timestamps.RemoveAll(t => t < cutoffTime);
             }
+        }
+    }
+
+    /// <summary>
+    /// Sweeps all client entries to remove outdated timestamps and empty entries.
+    /// </summary>
+    private static void PruneOldEntries()
+    {
+        var cutoffTime = DateTime.UtcNow.AddSeconds(-_windowSizeSeconds);
+        var keysToRemove = new List<string>();
+
+        foreach (var kvp in RequestTracker)
+        {
+            var timestamps = kvp.Value;
+            // Remove outdated timestamps
+            timestamps.RemoveAll(t => t < cutoffTime);
+            // If list becomes empty, mark for removal
+            if (timestamps.Count == 0)
+            {
+                keysToRemove.Add(kvp.Key);
+            }
+        }
+
+        // Remove empty entries
+        foreach (var key in keysToRemove)
+        {
+            RequestTracker.Remove(key);
         }
     }
 
