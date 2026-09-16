@@ -1,21 +1,21 @@
+#nullable enable
+
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
 // =============================================================================
 
-using SignalRMapRealtime.Configuration;
-using SignalRMapRealtime.Authentication;
-using SignalRMapRealtime.Data;
-using SignalRMapRealtime.Hubs;
-using SignalRMapRealtime.Services;
-using SignalRMapRealtime.Events;
-using SignalRMapRealtime.Integration;
-using SignalRMapRealtime.BackgroundJobs;
-using SignalRMapRealtime.Middleware;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
-
-#nullable enable
+using SignalRMapRealtime.Authentication;
+using SignalRMapRealtime.BackgroundJobs;
+using SignalRMapRealtime.Configuration;
+using SignalRMapRealtime.Data;
+using SignalRMapRealtime.Events;
+using SignalRMapRealtime.Hubs;
+using SignalRMapRealtime.Integration;
+using SignalRMapRealtime.Middleware;
+using SignalRMapRealtime.Services;
 
 public class Program
 {
@@ -102,9 +102,9 @@ public class Program
             options.AddPolicy("AllowSpecificOrigins", policy =>
             {
                 policy.WithOrigins(allowedOrigins)
-                      .AllowAnyHeader()
-                      .AllowAnyMethod()
-                      .AllowCredentials();
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .AllowCredentials();
             });
         });
 
