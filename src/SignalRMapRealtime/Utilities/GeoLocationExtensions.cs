@@ -60,16 +60,24 @@ public static class GeoLocationExtensions
     public static double DistanceBetween(double lat1, double lon1, double lat2, double lon2)
     {
         if (!lat1.IsValidLatitude())
+        {
             throw new ArgumentException($"Invalid latitude: {lat1}. Must be between -90 and 90.", nameof(lat1));
+        }
 
         if (!lon1.IsValidLongitude())
+        {
             throw new ArgumentException($"Invalid longitude: {lon1}. Must be between -180 and 180.", nameof(lon1));
+        }
 
         if (!lat2.IsValidLatitude())
+        {
             throw new ArgumentException($"Invalid latitude: {lat2}. Must be between -90 and 90.", nameof(lat2));
+        }
 
         if (!lon2.IsValidLongitude())
+        {
             throw new ArgumentException($"Invalid longitude: {lon2}. Must be between -180 and 180.", nameof(lon2));
+        }
 
         return CalculateDistance(lat1, lon1, lat2, lon2);
     }
@@ -190,9 +198,11 @@ public static class GeoLocationExtensions
         ArgumentNullException.ThrowIfNull(centerPoint);
 
         var distance = DistanceBetween(
-            location.Latitude, location.Longitude,
-            centerPoint.Latitude, centerPoint.Longitude
-        );
+            location.Latitude,
+            location.Longitude,
+            centerPoint.Latitude,
+            centerPoint.Longitude);
+
         return distance <= radiusKm;
     }
 
@@ -222,8 +232,7 @@ public static class GeoLocationExtensions
             centerPoint.Latitude - latOffset,
             centerPoint.Longitude - lonOffset,
             centerPoint.Latitude + latOffset,
-            centerPoint.Longitude + lonOffset
-        );
+            centerPoint.Longitude + lonOffset);
     }
 
     /// <summary>
