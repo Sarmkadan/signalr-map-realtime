@@ -110,6 +110,7 @@ public class Vehicle
     {
         if (LastLocation?.Speed is null || MaxSpeed is null)
             return false;
+
         return LastLocation.Speed > MaxSpeed;
     }
 
