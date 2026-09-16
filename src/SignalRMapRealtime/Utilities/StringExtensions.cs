@@ -81,13 +81,15 @@ public static class StringExtensions
     {
         ArgumentNullException.ThrowIfNull(value);
 
-        if (string.IsNullOrWhiteSpace(value)) return string.Empty;
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return string.Empty;
+        }
 
         return System.Text.RegularExpressions.Regex.Replace(
             value,
             "(?<!^)(?=[A-Z])",
-            "-"
-        ).ToLowerInvariant();
+            "-").ToLowerInvariant();
     }
 
     /// <summary>
@@ -101,13 +103,15 @@ public static class StringExtensions
     {
         ArgumentNullException.ThrowIfNull(value);
 
-        if (string.IsNullOrWhiteSpace(value)) return string.Empty;
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return string.Empty;
+        }
 
         return System.Text.RegularExpressions.Regex.Replace(
             value,
             "(?<!^)(?=[A-Z])",
-            "_"
-        ).ToLowerInvariant();
+            "_").ToLowerInvariant();
     }
 
     /// <summary>
@@ -124,9 +128,15 @@ public static class StringExtensions
         ArgumentOutOfRangeException.ThrowIfNegative(startIndex);
         ArgumentOutOfRangeException.ThrowIfNegative(length);
 
-        if (string.IsNullOrWhiteSpace(value)) return string.Empty;
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return string.Empty;
+        }
 
-        if (startIndex >= value.Length) return string.Empty;
+        if (startIndex >= value.Length)
+        {
+            return string.Empty;
+        }
 
         var availableLength = value.Length - startIndex;
         var actualLength = Math.Min(length, availableLength);
@@ -149,7 +159,10 @@ public static class StringExtensions
     {
         ArgumentNullException.ThrowIfNull(charsToRemove);
 
-        if (string.IsNullOrWhiteSpace(value)) return string.Empty;
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return string.Empty;
+        }
 
         return new string(value.Where(c => !charsToRemove.Contains(c)).ToArray());
     }
@@ -166,7 +179,10 @@ public static class StringExtensions
     {
         ArgumentNullException.ThrowIfNull(substring);
 
-        if (string.IsNullOrWhiteSpace(value) || string.IsNullOrWhiteSpace(substring)) return 0;
+        if (string.IsNullOrWhiteSpace(value) || string.IsNullOrWhiteSpace(substring))
+        {
+            return 0;
+        }
 
         return (value.Length - value.Replace(substring, string.Empty).Length) / substring.Length;
     }
@@ -181,7 +197,10 @@ public static class StringExtensions
     {
         ArgumentNullException.ThrowIfNull(value);
 
-        if (string.IsNullOrWhiteSpace(value)) return string.Empty;
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return string.Empty;
+        }
 
         return new string(value.Reverse().ToArray());
     }
@@ -198,7 +217,10 @@ public static class StringExtensions
     {
         ArgumentOutOfRangeException.ThrowIfNegative(count);
 
-        if (string.IsNullOrWhiteSpace(value) || count < 1) return string.Empty;
+        if (string.IsNullOrWhiteSpace(value) || count < 1)
+        {
+            return string.Empty;
+        }
 
         return string.Concat(Enumerable.Repeat(value, count));
     }
@@ -217,7 +239,10 @@ public static class StringExtensions
     {
         ArgumentNullException.ThrowIfNull(pattern);
 
-        if (string.IsNullOrWhiteSpace(value)) return false;
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return false;
+        }
 
         return System.Text.RegularExpressions.Regex.IsMatch(value, pattern);
     }
@@ -248,9 +273,15 @@ public static class StringExtensions
         ArgumentOutOfRangeException.ThrowIfNegative(visibleStart);
         ArgumentOutOfRangeException.ThrowIfNegative(visibleEnd);
 
-        if (string.IsNullOrWhiteSpace(value)) return string.Empty;
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return string.Empty;
+        }
 
-        if (value.Length <= visibleStart + visibleEnd) return value;
+        if (value.Length <= visibleStart + visibleEnd)
+        {
+            return value;
+        }
 
         var start = value.Substring(0, visibleStart);
         var end = value.Substring(value.Length - visibleEnd);
