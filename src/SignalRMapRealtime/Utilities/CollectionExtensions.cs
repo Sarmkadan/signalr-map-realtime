@@ -149,6 +149,7 @@ public static class CollectionExtensions
             {
                 chunk.Add(enumerator.Current);
             }
+
             yield return chunk;
         }
     }
@@ -290,6 +291,7 @@ public static class CollectionExtensions
                 result[key] = valueSelector(item);
             }
         }
+
         return result;
     }
 
@@ -311,6 +313,7 @@ public static class CollectionExtensions
             int randomIndex = random.Next(i + 1);
             (list[i], list[randomIndex]) = (list[randomIndex], list[i]);
         }
+
         return list;
     }
 }
