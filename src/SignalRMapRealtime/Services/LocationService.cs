@@ -24,6 +24,10 @@ using SignalRMapRealtime.Models;
 /// <summary>
 /// Service for managing location tracking operations.
 /// </summary>
+/// <remarks>
+/// Validates coordinates against <see cref="LocationConstants"/>, persists location points,
+/// and provides history, statistics, and proximity queries over tracked vehicles.
+/// </remarks>
 public class LocationService : ILocationService
 {
     private readonly LocationRepository _locationRepository;
@@ -34,6 +38,11 @@ public class LocationService : ILocationService
     /// <summary>
     /// Initializes a new instance of LocationService.
     /// </summary>
+    /// <param name="locationRepository">Repository used to persist and query location points.</param>
+    /// <param name="vehicleRepository">Repository used to look up and update vehicles.</param>
+    /// <param name="mapper">AutoMapper instance used to map entities to DTOs.</param>
+    /// <param name="logger">Logger for service diagnostics.</param>
+    /// <exception cref="ArgumentNullException">Thrown when any argument is <c>null</c>.</exception>
     public LocationService(
         LocationRepository locationRepository,
         VehicleRepository vehicleRepository,
@@ -53,6 +62,12 @@ public class LocationService : ILocationService
     /// <summary>
     /// Records a new location point for a vehicle with validation and persistence.
     /// </summary>
+    /// <param name="locationDto">The location data to record.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>A task whose result is the persisted location as a <see cref="LocationDto"/>.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="locationDto"/> is <c>null</c>.</exception>
+    /// <exception cref="InvalidLocationException">Thrown when the coordinates are outside valid geographic bounds.</exception>
+    /// <exception cref="VehicleNotFoundException">Thrown when the referenced vehicle does not exist.</exception>
     public async Task<LocationDto> RecordLocationAsync(CreateLocationDto locationDto, CancellationToken cancellationToken = default)
     {
         _logger.LogInformation(
@@ -115,6 +130,9 @@ public class LocationService : ILocationService
     /// <summary>
     /// Gets the latest location for a vehicle.
     /// </summary>
+    /// <param name="vehicleId">The ID of the vehicle.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>A task whose result is the latest location, or <c>null</c> if none exists.</returns>
     public async Task<LocationDto?> GetLatestLocationAsync(int vehicleId, CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Retrieving latest location for vehicle {VehicleId}", vehicleId);
@@ -125,6 +143,11 @@ public class LocationService : ILocationService
     /// <summary>
     /// Gets location history for a vehicle within a time range.
     /// </summary>
+    /// <param name="vehicleId">The ID of the vehicle.</param>
+    /// <param name="startTime">The start of the time range.</param>
+    /// <param name="endTime">The end of the time range.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>A task whose result is the matching locations as <see cref="LocationDto"/> items.</returns>
     public async Task<IEnumerable<LocationDto>> GetLocationHistoryAsync(int vehicleId, DateTime startTime, DateTime endTime, CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Retrieving location history for vehicle {VehicleId} from {StartTime} to {EndTime}", vehicleId, startTime, endTime);
@@ -135,6 +158,10 @@ public class LocationService : ILocationService
     /// <summary>
     /// Gets locations in the last N hours.
     /// </summary>
+    /// <param name="vehicleId">The ID of the vehicle.</param>
+    /// <param name="hoursBack">How many hours back from now to include. Defaults to 24.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>A task whose result is the recent locations as <see cref="LocationDto"/> items.</returns>
     public async Task<IEnumerable<LocationDto>> GetRecentLocationsAsync(int vehicleId, int hoursBack = 24, CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Retrieving recent locations for vehicle {VehicleId} (last {HoursBack} hours)", vehicleId, hoursBack);
@@ -145,6 +172,11 @@ public class LocationService : ILocationService
     /// <summary>
     /// Finds locations within a geographic radius.
     /// </summary>
+    /// <param name="centerLat">Latitude of the search center, in degrees.</param>
+    /// <param name="centerLng">Longitude of the search center, in degrees.</param>
+    /// <param name="radiusKm">Search radius in kilometers. Defaults to 1.0.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>A task whose result is the locations within the radius as <see cref="LocationDto"/> items.</returns>
     public async Task<IEnumerable<LocationDto>> GetLocationsNearbyAsync(double centerLat, double centerLng, double radiusKm = 1.0, CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Searching for locations near {CenterLat}, {CenterLng} within {RadiusKm} km radius", centerLat, centerLng, radiusKm);
@@ -155,6 +187,15 @@ public class LocationService : ILocationService
     /// <summary>
     /// Gets location statistics for a vehicle.
     /// </summary>
+    /// <remarks>
+    /// Total distance is the sum of straight-line distances between consecutive points,
+    /// ordered by <c>RecordedAt</c>.
+    /// </remarks>
+    /// <param name="vehicleId">The ID of the vehicle.</param>
+    /// <param name="startTime">The start of the time range.</param>
+    /// <param name="endTime">The end of the time range.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>A task whose result contains point count, speed statistics, and total distance in kilometers.</returns>
     public async Task<LocationStatsDto> GetLocationStatsAsync(int vehicleId, DateTime startTime, DateTime endTime, CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Calculating location statistics for vehicle {VehicleId} from {StartTime} to {EndTime}", vehicleId, startTime, endTime);
@@ -189,6 +230,9 @@ public class LocationService : ILocationService
     /// <summary>
     /// Gets locations by type.
     /// </summary>
+    /// <param name="locationType">The location type to filter by.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>A task whose result is the matching locations as <see cref="LocationDto"/> items.</returns>
     public async Task<IEnumerable<LocationDto>> GetLocationsByTypeAsync(LocationType locationType, CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Retrieving locations with type {LocationType}", locationType);
@@ -199,6 +243,15 @@ public class LocationService : ILocationService
     /// <summary>
     /// Updates location information.
     /// </summary>
+    /// <remarks>
+    /// Only non-null speed, bearing, and location type values are applied.
+    /// Address and notes are applied only when they are not null or whitespace.
+    /// </remarks>
+    /// <param name="locationId">The ID of the location to update.</param>
+    /// <param name="locationDto">The fields to update.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>A task whose result is the updated location as a <see cref="LocationDto"/>.</returns>
+    /// <exception cref="InvalidLocationException">Thrown when the location does not exist.</exception>
     public async Task<LocationDto> UpdateLocationAsync(Guid locationId, UpdateLocationDto locationDto, CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Updating location {LocationId}", locationId);
@@ -231,6 +284,10 @@ public class LocationService : ILocationService
     /// <summary>
     /// Gets all locations.
     /// </summary>
+    /// <param name="pageNumber">Page number to return.</param>
+    /// <param name="pageSize">Number of items per page.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>A task whose result is the requested page of locations.</returns>
     public async Task<PaginatedResponse<LocationDto>> GetLocationsAsync(int pageNumber, int pageSize, CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Retrieving paginated locations: page {PageNumber}, size {PageSize}", pageNumber, pageSize);
@@ -242,6 +299,9 @@ public class LocationService : ILocationService
     /// <summary>
     /// Gets a location by its ID.
     /// </summary>
+    /// <param name="id">The ID of the location.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>A task whose result is the location, or <c>null</c> if not found.</returns>
     public async Task<LocationDto?> GetLocationByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Retrieving location by ID {LocationId}", id);
@@ -252,6 +312,9 @@ public class LocationService : ILocationService
     /// <summary>
     /// Deletes a location by its ID.
     /// </summary>
+    /// <param name="id">The ID of the location to delete.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>A task whose result is <c>true</c> if the location was deleted, or <c>false</c> if it was not found.</returns>
     public async Task<bool> DeleteLocationAsync(Guid id, CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Deleting location {LocationId}", id);
@@ -273,6 +336,9 @@ public class LocationService : ILocationService
     /// <summary>
     /// Validates that coordinates are within geographic bounds.
     /// </summary>
+    /// <param name="latitude">Latitude in degrees.</param>
+    /// <param name="longitude">Longitude in degrees.</param>
+    /// <returns><c>true</c> if both coordinates are within the valid range; otherwise <c>false</c>.</returns>
     public bool ValidateCoordinates(double latitude, double longitude)
     {
         bool isValid = latitude >= LocationConstants.MinLatitude &&
@@ -291,6 +357,12 @@ public class LocationService : ILocationService
     /// <summary>
     /// Calculates distance between two geographic points.
     /// </summary>
+    /// <remarks>Uses the haversine formula on a spherical Earth model.</remarks>
+    /// <param name="lat1">Latitude of the first point, in degrees.</param>
+    /// <param name="lon1">Longitude of the first point, in degrees.</param>
+    /// <param name="lat2">Latitude of the second point, in degrees.</param>
+    /// <param name="lon2">Longitude of the second point, in degrees.</param>
+    /// <returns>The great-circle distance in kilometers.</returns>
     public double CalculateDistance(double lat1, double lon1, double lat2, double lon2)
     {
         const double earthRadiusKm = LocationConstants.EarthRadiusKm;
@@ -306,6 +378,11 @@ public class LocationService : ILocationService
     /// <summary>
     /// Retrieves the N closest tracked assets (latest location per vehicle) ordered by haversine distance.
     /// </summary>
+    /// <param name="latitude">Latitude of the reference point, in degrees.</param>
+    /// <param name="longitude">Longitude of the reference point, in degrees.</param>
+    /// <param name="count">Maximum number of assets to return.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>A task whose result is the nearest assets, closest first.</returns>
     public async Task<IEnumerable<LocationDto>> GetNearestAssets(double latitude, double longitude, int count, CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Retrieving {Count} nearest assets to lat {Latitude}, lon {Longitude}", count, latitude, longitude);
@@ -337,6 +414,9 @@ public class LocationService : ILocationService
     /// <summary>
     /// Cleans up old location records older than specified days.
     /// </summary>
+    /// <param name="daysOld">Age threshold in days. Records older than this are deleted. Defaults to 90.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>A task whose result is the number of deleted records.</returns>
     public async Task<int> CleanupOldLocationsAsync(int daysOld = 90, CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Cleaning up locations older than {DaysOld} days", daysOld);
