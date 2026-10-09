@@ -134,6 +134,14 @@ public sealed class ClusteringService : IClusteringService
         };
     }
 
+    /// <summary>
+    /// Loads raw coordinates for the query. When <see cref="ClusterQueryRequest.VehicleId"/> is set,
+    /// uses that vehicle's history; otherwise takes up to 10,000 recent locations and filters them by time window.
+    /// Defaults to the last 24 hours when <c>From</c> or <c>To</c> is not supplied.
+    /// </summary>
+    /// <param name="request">Query parameters including time window, optional vehicle filter, and bounding box.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Coordinates that pass the bounding-box filter.</returns>
     private async Task<List<(double Lat, double Lon)>> LoadPointsAsync(
         ClusterQueryRequest request, CancellationToken cancellationToken)
     {
@@ -162,6 +170,14 @@ public sealed class ClusteringService : IClusteringService
             .ToList();
     }
 
+    /// <summary>
+    /// Checks whether a coordinate lies inside the optional latitude/longitude bounds of the request.
+    /// Each bound is applied only when it has a value; bounds are inclusive.
+    /// </summary>
+    /// <param name="request">Query parameters carrying the optional bounding box.</param>
+    /// <param name="lat">Latitude of the point to test.</param>
+    /// <param name="lon">Longitude of the point to test.</param>
+    /// <returns><c>true</c> if the point is inside all specified bounds; otherwise <c>false</c>.</returns>
     private static bool IsWithinBounds(ClusterQueryRequest request, double lat, double lon)
     {
         if (request.MinLatitude.HasValue && lat < request.MinLatitude.Value) return false;
