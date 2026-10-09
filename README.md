@@ -1,5 +1,70 @@
 // ... (rest of the file remains the same)
 
+## Real-Time Map Hub
+
+SignalR hubs push vehicle and asset positions to map clients (Leaflet) without polling. Two hubs are mapped in `Program.cs`:
+
+| Hub | Endpoint | Purpose |
+|-----|----------|---------|
+| `LocationHub` | `/hubs/location` | Live positions, vehicle status, alerts, fleet status |
+| `RoutePlaybackHub` | `/hubs/playback` | Route playback progress for a single route |
+
+Both hubs require API key authentication (`ApiKeyAuthenticationOptions.DefaultScheme`).
+
+### Connecting
+
+```javascript
+const connection = new signalR.HubConnectionBuilder()
+    .withUrl("https://localhost:5001/hubs/location", {
+        headers: { "X-API-Key": "<client-api-key>" }
+    })
+    .withAutomaticReconnect()
+    .build();
+
+await connection.start();
+await connection.invoke("SubscribeToFleet", "north");
+await connection.invoke("RequestAllVehicleLocations");
+```
+
+### Subscriptions
+
+Subscriptions are SignalR groups managed by the hub:
+
+- `SubscribeToVehicle(int vehicleId)` / `UnsubscribeFromVehicle(int vehicleId)` - group `vehicle-{id}`
+- `SubscribeToVehicles(int[] ids)` - bulk version of the above
+- `SubscribeToFleet(string fleetName)` / `UnsubscribeFromFleet(string fleetName)` - group `fleet-{name}`
+
+### Client-to-server methods
+
+| Method | Behaviour |
+|--------|-----------|
+| `SendLocationUpdate(CreateLocationDto)` | Records a location, then buffers it through `LocationUpdateThrottler` (per asset type). Requires role `device` or `ingest`. |
+| `RequestAllVehicleLocations()` | Replies to the caller with `PositionSnapshot`. Use on reconnect to resync markers. |
+| `RequestVehicleLocation(int vehicleId)` | Replies with `VehicleLocation`. |
+| `RequestOnlineVehicleCount()` | Replies with `OnlineVehicleCount`. |
+| `NotifyAssetRemoved(int vehicleId)` | Broadcasts `AssetRemoved` and clears throttler state. Requires role `device` or `ingest`. |
+| `BroadcastVehicleStatusChange(int vehicleId, string newStatus)` | Broadcasts `VehicleStatusChanged`. Requires role `device` or `ingest`. |
+| `BroadcastRouteProgress(int routeId, int completionPercentage, string status)` | Broadcasts `RouteProgressUpdated` to the group of the vehicle assigned to the route. |
+| `SendAlert(int vehicleId, string alertType, string message)` | Broadcasts `Alert`. Requires role `device` or `ingest`. |
+| `BroadcastFleetStatus(string fleetName, int onlineCount, int totalCount)` | Broadcasts `FleetStatusUpdated` to the fleet group. |
+| `NotifyVehicleStaleAsync(...)` / `NotifyVehicleActiveAsync(...)` | Broadcast `VehicleStale` / `VehicleActive` events. Require role `device` or `ingest`. |
+| `Ping()` | Replies with `Pong`. |
+
+Errors are reported to the caller as an `Error` message with a short text, not as a thrown exception.
+
+### Server-to-client events
+
+`ReceiveLocationUpdate`, `PositionSnapshot`, `VehicleLocation`, `VehicleStatusChanged`, `AssetRemoved`, `RouteProgressUpdated`, `Alert`, `FleetStatusUpdated`, `VehicleStale`, `VehicleActive`, `GeofenceAlert`, `Error`.
+
+### Server-side broadcasting
+
+Application code should not use `IHubContext` directly. Use `MapHubService` (`src/SignalRMapRealtime/Hubs/MapHubService.cs`), which wraps the `LocationHub` context and exposes methods such as `BroadcastLocationAsync(group, location)`, `SendGeofenceAlertAsync(connectionId, alert)` and `BroadcastVehicleStatusAsync(vehicleId, status)`.
+
+### Configuration
+
+- `SignalRHubs:MaxConnectionsPerHub` in `SignalrMapRealtimeOptions` (range 100-50000, default 10000).
+- `LocationThrottle` section (`ThrottleOptions`) controls per-asset-type throttling and coalescing of incoming location updates.
+
 ## VehicleController
 
 `VehicleController` is an API controller that manages vehicle data, providing endpoints for CRUD operations on vehicles with status tracking. Vehicles represent entities being tracked on the map (cars, trucks, couriers, etc.). The controller supports pagination, filtering by status, and returns vehicle data in a standardized API response format.
