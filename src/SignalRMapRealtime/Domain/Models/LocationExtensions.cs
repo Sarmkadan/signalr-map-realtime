@@ -102,6 +102,25 @@ public static class LocationExtensions
     /// <param name="northEast">North-east corner of the bounding box. Cannot be null.</param>
     /// <returns>True if the location is within the bounding box.</returns>
     /// <exception cref="ArgumentNullException">Thrown if any parameter is null.</exception>
+    /// <summary>
+    /// Determines whether this location is stale, i.e. its <see cref="Location.Timestamp"/> is older
+    /// than the specified threshold relative to the current UTC time.
+    /// </summary>
+    /// <param name="location">The location to check. Cannot be null.</param>
+    /// <param name="threshold">The maximum acceptable age. Must be a positive duration.</param>
+    /// <returns>True if the location's timestamp is older than the threshold; otherwise false.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="location"/> is null.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="threshold"/> is zero or negative.</exception>
+    public static bool IsStale(this Location location, TimeSpan threshold)
+    {
+        ArgumentNullException.ThrowIfNull(location);
+
+        if (threshold <= TimeSpan.Zero)
+            throw new ArgumentOutOfRangeException(nameof(threshold), threshold, "Threshold must be a positive duration.");
+
+        return DateTime.UtcNow - location.Timestamp > threshold;
+    }
+
     public static bool IsWithinBoundingBox(this Location location, Location southWest, Location northEast)
     {
         ArgumentNullException.ThrowIfNull(location);
