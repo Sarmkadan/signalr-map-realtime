@@ -48,6 +48,12 @@ public class PagedRequest
     /// </summary>
     [StringLength(1000, ErrorMessage = "Filter cannot exceed 1000 characters")]
     public string? Filter { get; set; }
+
+    /// <summary>
+    /// Returns a string summarising the page number and page size of this request.
+    /// </summary>
+    public override string ToString() =>
+        $"Page {PageNumber}, Size {PageSize}";
 }
 
 /// <summary>
