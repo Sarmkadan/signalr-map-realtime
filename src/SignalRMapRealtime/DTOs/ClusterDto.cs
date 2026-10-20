@@ -67,6 +67,10 @@ public class ClusterResponseDto
 
     /// <summary>UTC timestamp at which clustering was computed.</summary>
     public DateTime ComputedAt { get; init; } = DateTime.UtcNow;
+
+    /// <inheritdoc />
+    public override string ToString() =>
+        $"ClusterResponseDto(Clusters={Clusters.Count}, TotalPoints={TotalPoints}, GridCellKm={GridCellKm}, ComputedAt={ComputedAt:O})";
 }
 
 /// <summary>Request parameters for a clustering or heatmap query.</summary>
