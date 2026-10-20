@@ -1,17 +1,44 @@
-# Contributing
+# Contributing to SignalR Map Realtime
 
-Thank you for contributing!
+Thank you for your interest in contributing to this project.
 
-## How to Contribute
-1. **Fork & Clone**: Fork the repository and clone your fork.
-2. **Branch**: Create a feature branch: `git checkout -b feature/your-feature`.
-3. **Change**: Make your changes, ensuring all tests pass (`dotnet test`).
-4. **Style**: Follow existing code style, using the provided `.editorconfig`.
-5. **Docs**: Add/update XML documentation for public APIs and update README.md if necessary.
-6. **Commit**: Commit with a clear, concise message (e.g., `feat: add feature`).
-7. **PR**: Open a Pull Request targeting the `main` branch.
+## Prerequisites
 
-## Guidelines
-- Keep PRs focused (one feature or fix per PR).
-- Ensure all tests pass before submitting.
-- By contributing, you agree that your contributions will be licensed under the MIT License.
+- [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) or later
+- A C#-capable editor (Visual Studio, Rider, VS Code with C# Dev Kit)
+
+## Building
+
+```bash
+dotnet build signalr-map-realtime.sln
+```
+
+## Running Tests
+
+```bash
+dotnet test signalr-map-realtime.sln
+```
+
+All tests must pass before submitting a pull request.
+
+## Coding Conventions
+
+- Follow standard C# naming conventions (PascalCase for public members, camelCase with underscore prefix for private fields)
+- Use 4-space indentation (no tabs)
+- Nullable reference types are enabled (`#nullable enable`) - avoid suppressing warnings without justification
+- Follow the `.editorconfig` in the repository root
+- Add XML documentation comments (`<summary>`) to all public types and members
+- Keep methods focused and reasonably short
+
+## Branching and Pull Requests
+
+1. Branch from `main` for all changes
+2. Use descriptive branch names: `feature/add-geofence-alerts`, `fix/location-validation`, `docs/update-readme`
+3. Keep PRs small and focused - one feature or fix per PR
+4. Write a clear PR description explaining what changed and why
+5. CI must pass before merge
+6. Commit messages should follow [Conventional Commits](https://www.conventionalcommits.org/) style (e.g. `feat: add stale location detection`, `fix: correct bounding box check`, `docs: update API reference`)
+
+## License
+
+By contributing, you agree that your contributions will be licensed under the MIT License.
