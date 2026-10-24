@@ -1,7 +1,7 @@
 ---
 name: Bug Report
 about: Report a bug to help improve signalr-map-realtime
-title: '[BUG] '
+title: '[Bug] '
 labels: bug
 assignees: ''
 ---
@@ -21,9 +21,9 @@ What you expected to happen.
 What actually happened.
 
 ## Environment
+- .NET version: [e.g., 8.0.100]
 - OS: [e.g., Windows 11, Ubuntu 22.04]
-- .NET Version: [e.g., 8.0]
-- Package Version: [e.g., 1.0.0]
+- Browser: [e.g., Chrome 130, Firefox 131] (if the bug is in the map UI)
 
-## Additional Context
-Add any other context, logs, or screenshots.
+## Logs/Screenshots
+Paste relevant logs (server output, browser console, SignalR errors) or attach screenshots.
