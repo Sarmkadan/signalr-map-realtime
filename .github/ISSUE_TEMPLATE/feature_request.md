@@ -1,13 +1,13 @@
 ---
 name: Feature Request
 about: Suggest a feature for signalr-map-realtime
-title: '[FEATURE] '
+title: '[Feature] '
 labels: enhancement
 assignees: ''
 ---
 
-## Problem Statement
-A clear description of the problem or limitation.
+## Problem
+A clear description of the problem or limitation you are running into.
 
 ## Proposed Solution
 Describe the solution you'd like to see.
