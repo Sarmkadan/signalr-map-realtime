@@ -241,12 +241,6 @@ public class SignalrMapRealtimeOptions
         public string HeaderName { get; set; } = "X-API-Key";
 
         /// <summary>
-        /// API key value (should be provided via secrets or environment variables in production).
-        /// </summary>
-        [StringLength(1000)]
-        public string? ApiKey { get; set; }
-
-        /// <summary>
         /// Require API key for all endpoints (including health checks).
         /// </summary>
         public bool Required { get; set; } = true;

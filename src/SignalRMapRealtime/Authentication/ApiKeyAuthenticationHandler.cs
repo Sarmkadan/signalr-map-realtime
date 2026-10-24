@@ -7,76 +7,77 @@
 namespace SignalRMapRealtime.Authentication;
 
 using System.Security.Claims;
-using System.Text;
 using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
-using System.Security.Cryptography;
 
 /// <summary>
 /// Implements API Key authentication for ASP.NET Core applications.
 /// This handler validates API keys provided in the "X-API-Key" header or "api_key" query parameter.
+/// Keys are matched against the SHA-256 hashes configured in <see cref="ApiKeyAuthenticationOptions.Keys"/>.
 /// </summary>
 public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthenticationOptions>
 {
-    private readonly IConfiguration _configuration;
     private readonly ILogger<ApiKeyAuthenticationHandler> _logger;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ApiKeyAuthenticationHandler"/> class.
+    /// </summary>
+    /// <param name="options">The monitor providing the <see cref="ApiKeyAuthenticationOptions"/> for this scheme.</param>
+    /// <param name="logger">The factory used to create the handler's logger.</param>
+    /// <param name="encoder">The URL encoder used by the base authentication handler.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="logger"/> is <see langword="null"/>.</exception>
     public ApiKeyAuthenticationHandler(
         IOptionsMonitor<ApiKeyAuthenticationOptions> options,
         ILoggerFactory logger,
-        UrlEncoder encoder,
-        IConfiguration configuration)
+        UrlEncoder encoder)
         : base(options, logger, encoder)
     {
-        _configuration = configuration;
+        ArgumentNullException.ThrowIfNull(logger);
+
         _logger = logger.CreateLogger<ApiKeyAuthenticationHandler>();
     }
 
     /// <summary>
     /// Authenticates the request by validating the provided API key.
+    /// On success the principal is named after the matched key and carries its scopes as role claims.
     /// </summary>
-    protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
+    protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {
         // Hotfix: Ensure the server properly authenticates API keys.
         // This resolves the client-side reconnection loop by allowing the server
         // to correctly reject unauthorized requests with a 401, preventing
         // clients from endlessly attempting to re-establish connections with invalid credentials.
 
-        string? apiKey = ExtractApiKey();
+        var apiKey = ExtractApiKey();
 
         if (string.IsNullOrEmpty(apiKey))
         {
             _logger.LogWarning("API Key not found in header '{ApiKeyHeaderName}', query parameter '{ApiKeyQueryParamName}', or access_token parameter.",
                 AuthenticationConstants.ApiKeyHeaderName, AuthenticationConstants.ApiKeyQueryParamName);
-            return AuthenticateResult.Fail($"API Key not found in header '{AuthenticationConstants.ApiKeyHeaderName}', query parameter '{AuthenticationConstants.ApiKeyQueryParamName}', or access_token parameter.");
+            return Task.FromResult(AuthenticateResult.Fail($"API Key not found in header '{AuthenticationConstants.ApiKeyHeaderName}', query parameter '{AuthenticationConstants.ApiKeyQueryParamName}', or access_token parameter."));
         }
 
-        if (!IsValidApiKey(apiKey))
+        var credential = FindCredential(apiKey);
+        if (credential is null)
         {
             _logger.LogWarning("Invalid API Key provided.");
-            return AuthenticateResult.Fail("Invalid API Key.");
+            return Task.FromResult(AuthenticateResult.Fail("Invalid API Key."));
         }
 
         var claims = new List<Claim>
         {
-            new Claim(ClaimTypes.NameIdentifier, "API_User"),
-            new Claim(ClaimTypes.Name, "API_User")
+            new(ClaimTypes.NameIdentifier, credential.Name),
+            new(ClaimTypes.Name, credential.Name)
         };
-
-        // Add role claims based on API key
-        var roles = GetRolesForApiKey(apiKey);
-        foreach (var role in roles)
-        {
-            claims.Add(new Claim(ClaimTypes.Role, role));
-        }
+        claims.AddRange(credential.Scopes.Select(scope => new Claim(ClaimTypes.Role, scope.Trim())));
 
         var identity = new ClaimsIdentity(claims, Scheme.Name);
-        var principal = new ClaimsPrincipal(identity);
-        var ticket = new AuthenticationTicket(principal, Scheme.Name);
+        var ticket = new AuthenticationTicket(new ClaimsPrincipal(identity), Scheme.Name);
 
-        _logger.LogInformation("API Key authenticated successfully with roles: {Roles}", string.Join(", ", roles));
-        return AuthenticateResult.Success(ticket);
+        _logger.LogInformation("API Key authenticated successfully for '{ApiKeyName}' with roles: {Roles}",
+            credential.Name, string.Join(", ", credential.Scopes));
+        return Task.FromResult(AuthenticateResult.Success(ticket));
     }
 
     /// <summary>
@@ -109,75 +110,25 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthentic
     }
 
     /// <summary>
-    /// Validates if the API key is valid.
-    /// In production, this would check against a database, cache, or configuration.
-    /// Currently uses simple validation against known keys defined in configuration.
-    /// Uses constant-time comparison to prevent timing attacks.
+    /// Finds the configured key that matches the presented API key.
+    /// The comparison is constant-time and runs over every configured key.
     /// </summary>
-    /// <param name="apiKey">The API key to validate.</param>
-    /// <returns>True if the API key is valid; otherwise, false.</returns>
-    private bool IsValidApiKey(string apiKey)
+    /// <param name="apiKey">The plaintext API key presented by the client.</param>
+    /// <returns>The matching credential, or <see langword="null"/> if the key is blank, unknown, or no keys are configured.</returns>
+    private ApiKeyCredential? FindCredential(string apiKey)
     {
-        // TODO: Implement actual API key validation against a secure store.
-        // For now, validate against a configured API key.
-        var validApiKey = _configuration["Authentication:ApiKey"];
-
-        // Placeholder validation - reject empty or obviously invalid keys
-        if (string.IsNullOrWhiteSpace(apiKey)) return false;
-        if (string.IsNullOrWhiteSpace(validApiKey))
+        if (string.IsNullOrWhiteSpace(apiKey))
         {
-            _logger.LogError("API key configuration is missing. Check Authentication:ApiKey in configuration.");
-            return false; // Configuration error
+            return null;
         }
 
-        // Use constant-time comparison to prevent timing attacks
-        // Convert both strings to byte arrays using UTF-8 encoding for consistent comparison
-        ReadOnlySpan<byte> apiKeyBytes = Encoding.UTF8.GetBytes(apiKey);
-        ReadOnlySpan<byte> validApiKeyBytes = Encoding.UTF8.GetBytes(validApiKey);
-
-        return CryptographicOperations.FixedTimeEquals(apiKeyBytes, validApiKeyBytes);
-    }
-
-    /// <summary>
-    /// Determines the roles for the authenticated user based on the API key.
-    /// Uses constant-time comparison to prevent timing attacks.
-    /// </summary>
-    /// <param name="apiKey">The API key to validate.</param>
-    /// <returns>Collection of role names for the authenticated user.</returns>
-    private IEnumerable<string> GetRolesForApiKey(string apiKey)
-    {
-        // Check if this is the main API key using constant-time comparison
-        var validApiKey = _configuration["Authentication:ApiKey"];
-        if (string.IsNullOrWhiteSpace(validApiKey))
+        if (Options.Keys.Count == 0)
         {
-            _logger.LogError("API key configuration is missing. Check Authentication:ApiKey in configuration.");
-            yield break;
+            _logger.LogError("No API keys are configured. Add entries under SignalRMapRealtime:ApiKeyAuthentication:Keys.");
+            return null;
         }
 
-        // Use constant-time comparison
-        ReadOnlySpan<byte> apiKeyBytes = Encoding.UTF8.GetBytes(apiKey);
-        ReadOnlySpan<byte> validApiKeyBytes = Encoding.UTF8.GetBytes(validApiKey);
-        if (!CryptographicOperations.FixedTimeEquals(apiKeyBytes, validApiKeyBytes))
-        {
-            yield break;
-        }
-
-        // Get configured roles for this API key from configuration
-        var rolesConfig = _configuration.GetSection("ApiKeyAuthentication:Roles");
-        if (rolesConfig.Exists())
-        {
-            foreach (var role in rolesConfig.Get<string[]>() ?? Array.Empty<string>())
-            {
-                if (!string.IsNullOrWhiteSpace(role))
-                {
-                    yield return role.Trim();
-                }
-            }
-        }
-
-        // Default roles for the main API key
-        yield return "device";
-        yield return "ingest";
+        return ApiKeyVerifier.Find(apiKey, Options.Keys);
     }
 
     /// <summary>
