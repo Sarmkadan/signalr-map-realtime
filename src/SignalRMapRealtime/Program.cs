@@ -60,7 +60,11 @@ public class Program
         // Hotfix: Add API Key authentication for SignalR hubs and API endpoints.
         // This ensures that unauthorized requests are properly rejected with a 401,
         // preventing clients from entering a reconnection loop due to unhandled authentication failures.
-        builder.Services.AddApiKeyAuthentication();
+        // Keys come from SignalRMapRealtime:ApiKeyAuthentication:Keys and store only SHA-256 hashes.
+        builder.Services.AddApiKeyAuthentication(options =>
+            options.Keys = builder.Configuration
+                .GetSection($"{SignalrMapRealtimeOptions.SectionName}:ApiKeyAuthentication:Keys")
+                .Get<List<ApiKeyCredential>>() ?? []);
         builder.Services.AddAuthorization();
 
         // Services registration

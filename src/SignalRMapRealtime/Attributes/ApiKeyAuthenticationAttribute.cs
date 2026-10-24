@@ -8,9 +8,9 @@ namespace SignalRMapRealtime.Attributes;
 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.Extensions.Options;
+using SignalRMapRealtime.Authentication;
 using SignalRMapRealtime.Models;
-using System.Security.Cryptography;
-using System.Text;
 
 /// <summary>
 /// Custom authorization filter attribute for API key authentication.
@@ -43,8 +43,8 @@ public class ApiKeyAuthenticationAttribute : Attribute, IAsyncAuthorizationFilte
             return Task.CompletedTask;
         }
 
-        // Validate API key against the configured value
-        if (!IsValidApiKey(apiKey, context.HttpContext.RequestServices.GetService(typeof(IConfiguration)) as IConfiguration))
+        // Validate API key against the configured keys
+        if (!IsValidApiKey(apiKey, context.HttpContext.RequestServices))
         {
             context.Result = new UnauthorizedObjectResult(new
             {
@@ -80,27 +80,22 @@ public class ApiKeyAuthenticationAttribute : Attribute, IAsyncAuthorizationFilte
     }
 
     /// <summary>
-    /// Validates the API key against the value configured under "Authentication:ApiKey".
-    /// Uses constant-time comparison to prevent timing attacks.
+    /// Validates the API key against the keys configured for the API Key scheme.
+    /// The key is matched by hash in constant time, the same way the authentication handler does it.
     /// </summary>
     /// <param name="apiKey">The API key to validate.</param>
-    /// <param name="configuration">The application configuration.</param>
+    /// <param name="services">The request services used to resolve the configured options.</param>
     /// <returns>True if the API key is valid; otherwise, false.</returns>
-    private static bool IsValidApiKey(string apiKey, IConfiguration? configuration)
+    private static bool IsValidApiKey(string apiKey, IServiceProvider services)
     {
         if (string.IsNullOrWhiteSpace(apiKey))
             return false;
 
-        var validApiKey = configuration?["Authentication:ApiKey"];
-        if (string.IsNullOrWhiteSpace(validApiKey))
-            return false;
+        var optionsMonitor = services.GetService(typeof(IOptionsMonitor<ApiKeyAuthenticationOptions>))
+            as IOptionsMonitor<ApiKeyAuthenticationOptions>;
+        var keys = optionsMonitor?.Get(ApiKeyAuthenticationOptions.DefaultScheme).Keys ?? [];
 
-        // Use constant-time comparison to prevent timing attacks
-        // Convert both strings to byte arrays using UTF-8 encoding for consistent comparison
-        ReadOnlySpan<byte> apiKeyBytes = Encoding.UTF8.GetBytes(apiKey);
-        ReadOnlySpan<byte> validApiKeyBytes = Encoding.UTF8.GetBytes(validApiKey);
-
-        return CryptographicOperations.FixedTimeEquals(apiKeyBytes, validApiKeyBytes);
+        return ApiKeyVerifier.Find(apiKey, keys) is not null;
     }
 }
 

@@ -3,7 +3,6 @@ using System.Security.Claims;
 using FluentAssertions;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NSubstitute;
@@ -15,13 +14,13 @@ namespace signalr_map_realtime.Tests.Authentication
 {
     public class ApiKeyAuthenticationHandlerTests
     {
-        private readonly IConfiguration _configuration;
+        private const string ValidApiKey = "test-api-key-123";
+
         private readonly ILoggerFactory _loggerFactory;
         private readonly ILogger<ApiKeyAuthenticationHandler> _logger;
 
         public ApiKeyAuthenticationHandlerTests()
         {
-            _configuration = Substitute.For<IConfiguration>();
             _loggerFactory = Substitute.For<ILoggerFactory>();
             _logger = Substitute.For<ILogger<ApiKeyAuthenticationHandler>>();
             _loggerFactory.CreateLogger<ApiKeyAuthenticationHandler>().Returns(_logger);
@@ -31,13 +30,10 @@ namespace signalr_map_realtime.Tests.Authentication
         public async Task HandleAuthenticateAsync_ValidApiKey_ReturnsAuthenticatedUserWithExpectedClaims()
         {
             // Arrange
-            var validApiKey = "test-api-key-123";
-            _configuration["Authentication:ApiKey"].Returns(validApiKey);
-
             var context = new DefaultHttpContext();
-            var handler = await CreateHandlerAsync(context);
+            var handler = await CreateHandlerAsync(context, CreateCredential("default", ValidApiKey, "device", "ingest"));
 
-            context.Request.Headers[AuthenticationConstants.ApiKeyHeaderName] = validApiKey;
+            context.Request.Headers[AuthenticationConstants.ApiKeyHeaderName] = ValidApiKey;
 
             // Act
             var authenticateResult = await handler.AuthenticateAsync();
@@ -55,8 +51,9 @@ namespace signalr_map_realtime.Tests.Authentication
 
             var claimsPrincipal = principal as ClaimsPrincipal;
             claimsPrincipal.Should().NotBeNull();
-            claimsPrincipal.FindFirst(ClaimTypes.NameIdentifier)?.Value.Should().Be("API_User");
-            claimsPrincipal.FindFirst(ClaimTypes.Name)?.Value.Should().Be("API_User");
+            claimsPrincipal.FindFirst(ClaimTypes.NameIdentifier)?.Value.Should().Be("default");
+            claimsPrincipal.FindFirst(ClaimTypes.Name)?.Value.Should().Be("default");
+            claimsPrincipal.FindAll(ClaimTypes.Role).Select(c => c.Value).Should().BeEquivalentTo(new[] { "device", "ingest" });
 
             _logger.HasLogged(LogLevel.Information, "API Key authenticated successfully").Should().BeTrue();
         }
@@ -65,10 +62,8 @@ namespace signalr_map_realtime.Tests.Authentication
         public async Task HandleAuthenticateAsync_MissingHeaderAndQueryParameter_ReturnsFailResult()
         {
             // Arrange
-            _configuration["Authentication:ApiKey"].Returns("test-api-key-123");
-
             var context = new DefaultHttpContext();
-            var handler = await CreateHandlerAsync(context);
+            var handler = await CreateHandlerAsync(context, CreateCredential("default", ValidApiKey));
 
             // No headers or query parameters set
 
@@ -88,10 +83,8 @@ namespace signalr_map_realtime.Tests.Authentication
         public async Task HandleAuthenticateAsync_MissingHeader_ReturnsFailResult()
         {
             // Arrange
-            _configuration["Authentication:ApiKey"].Returns("test-api-key-123");
-
             var context = new DefaultHttpContext();
-            var handler = await CreateHandlerAsync(context);
+            var handler = await CreateHandlerAsync(context, CreateCredential("default", ValidApiKey));
 
             // No headers set
 
@@ -109,11 +102,8 @@ namespace signalr_map_realtime.Tests.Authentication
         public async Task HandleAuthenticateAsync_WrongApiKey_ReturnsFailResult()
         {
             // Arrange
-            var validApiKey = "test-api-key-123";
-            _configuration["Authentication:ApiKey"].Returns(validApiKey);
-
             var context = new DefaultHttpContext();
-            var handler = await CreateHandlerAsync(context);
+            var handler = await CreateHandlerAsync(context, CreateCredential("default", ValidApiKey));
 
             context.Request.Headers[AuthenticationConstants.ApiKeyHeaderName] = "wrong-api-key";
 
@@ -130,13 +120,28 @@ namespace signalr_map_realtime.Tests.Authentication
         }
 
         [Fact]
+        public async Task HandleAuthenticateAsync_KeyDifferingOnlyInCase_ReturnsFailResult()
+        {
+            // Arrange
+            var context = new DefaultHttpContext();
+            var handler = await CreateHandlerAsync(context, CreateCredential("default", ValidApiKey));
+
+            context.Request.Headers[AuthenticationConstants.ApiKeyHeaderName] = ValidApiKey.ToUpperInvariant();
+
+            // Act
+            var authenticateResult = await handler.AuthenticateAsync();
+
+            // Assert
+            authenticateResult.Succeeded.Should().BeFalse();
+            authenticateResult.Failure!.Message.Should().Be("Invalid API Key.");
+        }
+
+        [Fact]
         public async Task HandleAuthenticateAsync_EmptyApiKey_ReturnsFailResult()
         {
             // Arrange
-            _configuration["Authentication:ApiKey"].Returns("test-api-key-123");
-
             var context = new DefaultHttpContext();
-            var handler = await CreateHandlerAsync(context);
+            var handler = await CreateHandlerAsync(context, CreateCredential("default", ValidApiKey));
 
             context.Request.Headers[AuthenticationConstants.ApiKeyHeaderName] = string.Empty;
 
@@ -154,10 +159,8 @@ namespace signalr_map_realtime.Tests.Authentication
         public async Task HandleAuthenticateAsync_WhitespaceApiKey_ReturnsFailResult()
         {
             // Arrange
-            _configuration["Authentication:ApiKey"].Returns("test-api-key-123");
-
             var context = new DefaultHttpContext();
-            var handler = await CreateHandlerAsync(context);
+            var handler = await CreateHandlerAsync(context, CreateCredential("default", ValidApiKey));
 
             context.Request.Headers[AuthenticationConstants.ApiKeyHeaderName] = "   ";
 
@@ -175,14 +178,11 @@ namespace signalr_map_realtime.Tests.Authentication
         public async Task HandleAuthenticateAsync_ApiKeyFromQueryParameter_ReturnsAuthenticatedUserWithExpectedClaims()
         {
             // Arrange
-            var validApiKey = "test-api-key-123";
-            _configuration["Authentication:ApiKey"].Returns(validApiKey);
-
             var context = new DefaultHttpContext();
-            var handler = await CreateHandlerAsync(context);
+            var handler = await CreateHandlerAsync(context, CreateCredential("default", ValidApiKey));
 
             context.Request.Query = new QueryCollection(new Dictionary<string, Microsoft.Extensions.Primitives.StringValues> {
-                { AuthenticationConstants.ApiKeyQueryParamName, validApiKey }
+                { AuthenticationConstants.ApiKeyQueryParamName, ValidApiKey }
             });
 
             // Act
@@ -201,8 +201,8 @@ namespace signalr_map_realtime.Tests.Authentication
 
             var claimsPrincipal = principal as ClaimsPrincipal;
             claimsPrincipal.Should().NotBeNull();
-            claimsPrincipal.FindFirst(ClaimTypes.NameIdentifier)?.Value.Should().Be("API_User");
-            claimsPrincipal.FindFirst(ClaimTypes.Name)?.Value.Should().Be("API_User");
+            claimsPrincipal.FindFirst(ClaimTypes.NameIdentifier)?.Value.Should().Be("default");
+            claimsPrincipal.FindFirst(ClaimTypes.Name)?.Value.Should().Be("default");
 
             _logger.HasLogged(LogLevel.Information, "API Key authenticated successfully").Should().BeTrue();
         }
@@ -211,21 +211,81 @@ namespace signalr_map_realtime.Tests.Authentication
         public async Task HandleAuthenticateAsync_HeaderTakesPrecedenceOverQueryParameter()
         {
             // Arrange
-            var validApiKey = "test-api-key-123";
-            _configuration["Authentication:ApiKey"].Returns(validApiKey);
-
             var context = new DefaultHttpContext();
-            var handler = await CreateHandlerAsync(context);
+            var handler = await CreateHandlerAsync(context, CreateCredential("default", ValidApiKey));
 
             context.Request.Headers[AuthenticationConstants.ApiKeyHeaderName] = "wrong-header-key";
             context.Request.Query = new QueryCollection(new Dictionary<string, Microsoft.Extensions.Primitives.StringValues> {
-                { AuthenticationConstants.ApiKeyQueryParamName, validApiKey }
+                { AuthenticationConstants.ApiKeyQueryParamName, ValidApiKey }
             });
 
             // Act
             var authenticateResult = await handler.AuthenticateAsync();
 
             // Assert
+            authenticateResult.Succeeded.Should().BeFalse();
+            authenticateResult.Failure.Should().NotBeNull();
+            authenticateResult.Failure!.Message.Should().Be("Invalid API Key.");
+        }
+
+        [Fact]
+        public async Task HandleAuthenticateAsync_SecondConfiguredKey_AuthenticatesWithItsOwnNameAndScopes()
+        {
+            // Arrange - two active keys, as during a rotation
+            var context = new DefaultHttpContext();
+            var handler = await CreateHandlerAsync(
+                context,
+                CreateCredential("retiring", "old-key-456", "device"),
+                CreateCredential("current", ValidApiKey, "ingest"));
+
+            context.Request.Headers[AuthenticationConstants.ApiKeyHeaderName] = ValidApiKey;
+
+            // Act
+            var authenticateResult = await handler.AuthenticateAsync();
+
+            // Assert
+            authenticateResult.Succeeded.Should().BeTrue();
+
+            var claimsPrincipal = authenticateResult.Principal as ClaimsPrincipal;
+            claimsPrincipal.Should().NotBeNull();
+            claimsPrincipal!.FindFirst(ClaimTypes.Name)?.Value.Should().Be("current");
+            claimsPrincipal.FindAll(ClaimTypes.Role).Select(c => c.Value).Should().BeEquivalentTo(new[] { "ingest" });
+        }
+
+        [Fact]
+        public async Task HandleAuthenticateAsync_RetiredKeyStillInConfig_AuthenticatesWithItsOwnName()
+        {
+            // Arrange
+            var context = new DefaultHttpContext();
+            var handler = await CreateHandlerAsync(
+                context,
+                CreateCredential("retiring", "old-key-456", "device"),
+                CreateCredential("current", ValidApiKey, "ingest"));
+
+            context.Request.Headers[AuthenticationConstants.ApiKeyHeaderName] = "old-key-456";
+
+            // Act
+            var authenticateResult = await handler.AuthenticateAsync();
+
+            // Assert
+            authenticateResult.Succeeded.Should().BeTrue();
+            (authenticateResult.Principal as ClaimsPrincipal)!.FindFirst(ClaimTypes.Name)?.Value.Should().Be("retiring");
+        }
+
+        [Fact]
+        public async Task HandleAuthenticateAsync_NoKeysConfigured_ReturnsFailResult()
+        {
+            // Arrange
+            var context = new DefaultHttpContext();
+            var handler = await CreateHandlerAsync(context);
+
+            context.Request.Headers[AuthenticationConstants.ApiKeyHeaderName] = "any-key";
+
+            // Act
+            var authenticateResult = await handler.AuthenticateAsync();
+
+            // Assert
+            authenticateResult.Should().NotBeNull();
             authenticateResult.Succeeded.Should().BeFalse();
             authenticateResult.Failure.Should().NotBeNull();
             authenticateResult.Failure!.Message.Should().Be("Invalid API Key.");
@@ -263,38 +323,24 @@ namespace signalr_map_realtime.Tests.Authentication
             Assert.True(true, "ForbidAsync should execute without throwing exceptions");
         }
 
-        [Fact]
-        public async Task HandleAuthenticateAsync_NoConfiguredApiKey_ReturnsFailResult()
+        private static ApiKeyCredential CreateCredential(string name, string plaintextKey, params string[] scopes) =>
+            new()
+            {
+                Name = name,
+                Sha256 = ApiKeyVerifier.ComputeHash(plaintextKey),
+                Scopes = scopes.ToList()
+            };
+
+        private async Task<ApiKeyAuthenticationHandler> CreateHandlerAsync(HttpContext context, params ApiKeyCredential[] keys)
         {
-            // Arrange
-            _configuration["Authentication:ApiKey"].Returns((string?)null);
-
-            var context = new DefaultHttpContext();
-            var handler = await CreateHandlerAsync(context);
-
-            context.Request.Headers[AuthenticationConstants.ApiKeyHeaderName] = "any-key";
-
-            // Act
-            var authenticateResult = await handler.AuthenticateAsync();
-
-            // Assert
-            authenticateResult.Should().NotBeNull();
-            authenticateResult.Succeeded.Should().BeFalse();
-            authenticateResult.Failure.Should().NotBeNull();
-            authenticateResult.Failure!.Message.Should().Be("Invalid API Key.");
-        }
-
-        private async Task<ApiKeyAuthenticationHandler> CreateHandlerAsync(HttpContext context)
-        {
-            var options = new ApiKeyAuthenticationOptions();
+            var options = new ApiKeyAuthenticationOptions { Keys = keys.ToList() };
             var optionsMonitor = Substitute.For<IOptionsMonitor<ApiKeyAuthenticationOptions>>();
             optionsMonitor.Get(AuthenticationConstants.ApiKeySchemeName).Returns(options);
 
             var handler = new ApiKeyAuthenticationHandler(
                 optionsMonitor,
                 _loggerFactory,
-                System.Text.Encodings.Web.UrlEncoder.Default,
-                _configuration);
+                System.Text.Encodings.Web.UrlEncoder.Default);
 
             // The handler reads the request from the context, so it must be initialized with one.
             var scheme = new AuthenticationScheme(
