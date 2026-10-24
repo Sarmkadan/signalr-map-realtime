@@ -4,6 +4,7 @@ using NSubstitute;
 using SignalRMapRealtime.Hubs;
 using System;
 using System.Threading.Tasks;
+using Xunit;
 
 namespace SignalRMapRealtime.Hubs.Tests
 {
