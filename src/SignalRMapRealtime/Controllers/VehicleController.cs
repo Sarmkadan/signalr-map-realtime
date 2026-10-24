@@ -7,8 +7,10 @@
 namespace SignalRMapRealtime.Controllers;
 
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Net.Http.Headers;
 using SignalRMapRealtime.Domain.Enums;
 using SignalRMapRealtime.DTOs;
+using SignalRMapRealtime.Exceptions;
 using SignalRMapRealtime.Models;
 using SignalRMapRealtime.Services;
 using SignalRMapRealtime.Utilities;
@@ -47,6 +49,48 @@ public class VehicleController : ControllerBase
             .Select(v => v.ToString())
             .ToArray();
         return string.Join(", ", validValues);
+    }
+
+    /// <summary>
+    /// Reads the If-Match precondition of a write request.
+    /// </summary>
+    /// <param name="expectedRowVersion">The row version the client expects, or null when the client sent <c>*</c>.</param>
+    /// <returns>An error result when the precondition is missing or malformed; otherwise null.</returns>
+    private IActionResult? TryReadIfMatch(out byte[]? expectedRowVersion)
+    {
+        expectedRowVersion = null;
+        var ifMatch = Request.Headers[HeaderNames.IfMatch].ToString();
+
+        if (string.IsNullOrWhiteSpace(ifMatch))
+            return StatusCode(
+                StatusCodes.Status428PreconditionRequired,
+                ErrorResponse.PreconditionRequiredError(
+                    "The If-Match header is required to update a vehicle. Send the ETag returned by a previous GET.",
+                    HttpContext.TraceIdentifier));
+
+        if (ifMatch == "*")
+            return null;
+
+        if (!RowVersionExtensions.TryParseETag(ifMatch, out var rowVersion))
+            return BadRequest(ErrorResponse.ValidationError(
+                new Dictionary<string, string[]> { { "If-Match", new[] { "If-Match must be a single strong ETag or *." } } },
+                "Invalid precondition",
+                HttpContext.TraceIdentifier));
+
+        expectedRowVersion = rowVersion;
+        return null;
+    }
+
+    /// <summary>
+    /// Adds the ETag response header for a vehicle's row version. Does nothing when no row version is available.
+    /// </summary>
+    /// <param name="rowVersion">The row version of the vehicle being returned.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="rowVersion"/> is null.</exception>
+    private void SetETagHeader(byte[] rowVersion)
+    {
+        ArgumentNullException.ThrowIfNull(rowVersion);
+        if (rowVersion.Length > 0)
+            Response.Headers[HeaderNames.ETag] = rowVersion.ToETag();
     }
 
     /// <summary>
@@ -273,20 +317,23 @@ public class VehicleController : ControllerBase
     /// <summary>
     /// Gets a specific vehicle by ID.
     /// Returns vehicle with complete information including recent location data.
+    /// The response carries an ETag header; send it back in If-Match when updating the vehicle.
     /// </summary>
+    /// <remarks>
+    /// Not served from the cache: location and tracking writes change the vehicle's row version without
+    /// invalidating cached entries, so a cached ETag would go stale and make valid updates fail with 412.
+    /// </remarks>
     [HttpGet("{id}")]
     public async Task<IActionResult> GetVehicleById(int id)
     {
         try
         {
-            var cacheKey = $"vehicle:{id}";
-            var vehicle = await _cacheService.GetOrCreateAsync(
-                cacheKey,
-                async () => await _vehicleService.GetVehicleAsync(id),
-                TimeSpan.FromSeconds(600));
+            var vehicle = await _vehicleService.GetVehicleAsync(id);
 
             if (vehicle is null)
                 return NotFound(ErrorResponse.NotFoundError($"Vehicle with ID {id} not found", HttpContext.TraceIdentifier));
+
+            SetETagHeader(vehicle.RowVersion);
 
             var response = ApiResponse<VehicleDto>.SuccessResponse(vehicle, "Vehicle retrieved successfully", 200, HttpContext.TraceIdentifier);
             return Ok(response);
@@ -345,7 +392,16 @@ public class VehicleController : ControllerBase
     /// <summary>
     /// Updates vehicle information.
     /// Allows updating vehicle properties like name, status, assignment.
+    /// Requires an If-Match header carrying the ETag from a previous GET (or <c>*</c> to update regardless of version).
     /// </summary>
+    /// <remarks>
+    /// Responses:
+    /// - 200 OK with the updated vehicle and its new ETag
+    /// - 400 Bad Request when the body Id differs from the route, or If-Match is not a single strong ETag
+    /// - 404 Not Found when the vehicle does not exist
+    /// - 412 Precondition Failed when the vehicle changed after the ETag was read
+    /// - 428 Precondition Required when the If-Match header is missing
+    /// </remarks>
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateVehicle(int id, [FromBody] UpdateVehicleDto updateVehicleDto)
     {
@@ -358,7 +414,10 @@ public class VehicleController : ControllerBase
                     "Validation failed",
                     HttpContext.TraceIdentifier));
 
-            var vehicle = await _vehicleService.UpdateVehicleAsync(id, updateVehicleDto);
+            if (TryReadIfMatch(out var expectedRowVersion) is { } preconditionFailure)
+                return preconditionFailure;
+
+            var vehicle = await _vehicleService.UpdateVehicleAsync(id, updateVehicleDto, expectedRowVersion);
 
             if (vehicle is null)
                 return NotFound(ErrorResponse.NotFoundError($"Vehicle with ID {id} not found", HttpContext.TraceIdentifier));
@@ -367,8 +426,24 @@ public class VehicleController : ControllerBase
             await _cacheService.RemoveAsync($"vehicle:{id}");
             await _cacheService.RemoveByPatternAsync("vehicles:*");
 
+            SetETagHeader(vehicle.RowVersion);
+
             var response = ApiResponse<VehicleDto>.SuccessResponse(vehicle, "Vehicle updated successfully", 200, HttpContext.TraceIdentifier);
             return Ok(response);
+        }
+        catch (VehicleNotFoundException ex)
+        {
+            _logger.LogWarning(ex, "Vehicle {VehicleId} not found for update. TraceId: {TraceId}", id, HttpContext.TraceIdentifier);
+            return NotFound(ErrorResponse.NotFoundError($"Vehicle with ID {id} not found", HttpContext.TraceIdentifier));
+        }
+        catch (VehicleConcurrencyException ex)
+        {
+            _logger.LogWarning(ex, "Concurrent update rejected for vehicle {VehicleId}. TraceId: {TraceId}", id, HttpContext.TraceIdentifier);
+            return StatusCode(
+                StatusCodes.Status412PreconditionFailed,
+                ErrorResponse.PreconditionFailedError(
+                    "The vehicle was modified after the supplied ETag was read. Fetch it again and retry with the current ETag.",
+                    HttpContext.TraceIdentifier));
         }
         catch (Exception ex)
         {

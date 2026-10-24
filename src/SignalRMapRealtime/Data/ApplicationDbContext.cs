@@ -71,6 +71,7 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.RegistrationNumber).IsRequired().HasMaxLength(50);
             entity.Property(e => e.VIN).HasMaxLength(17);
             entity.Property(e => e.Manufacturer).HasMaxLength(100);
+            entity.Property(e => e.RowVersion).IsRowVersion();
             entity.HasOne(e => e.Driver).WithMany(u => u.AssignedVehicles)
                 .HasForeignKey(e => e.DriverId).OnDelete(DeleteBehavior.SetNull);
             entity.HasIndex(e => e.RegistrationNumber).IsUnique();

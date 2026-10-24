@@ -83,6 +83,12 @@ public class Vehicle
     public DateTime UpdatedAt { get; set; }
 
     /// <summary>
+    /// Database row version used for optimistic concurrency. Changes on every successful write,
+    /// so it doubles as the entity tag exposed to API clients.
+    /// </summary>
+    public byte[] RowVersion { get; set; } = [];
+
+    /// <summary>
     /// Updates the vehicle status and tracks the change timestamp.
     /// </summary>
     public void UpdateStatus(VehicleStatus newStatus)

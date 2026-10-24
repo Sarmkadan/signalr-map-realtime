@@ -65,9 +65,13 @@ public interface IVehicleService
     /// </summary>
     /// <param name="vehicleId">The ID of the vehicle to update.</param>
     /// <param name="vehicleDto">The new vehicle data.</param>
+    /// <param name="expectedRowVersion">The row version the client last read. When supplied, the update is rejected if the vehicle has changed since; null skips that check.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>A task representing the asynchronous operation, containing the updated vehicle DTO.</returns>
-    Task<VehicleDto> UpdateVehicleAsync(int vehicleId, UpdateVehicleDto vehicleDto, CancellationToken cancellationToken = default);
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="vehicleDto"/> is null.</exception>
+    /// <exception cref="Exceptions.VehicleNotFoundException">Thrown when no vehicle with <paramref name="vehicleId"/> exists.</exception>
+    /// <exception cref="Exceptions.VehicleConcurrencyException">Thrown when the stored vehicle no longer matches the row version the update was based on.</exception>
+    Task<VehicleDto> UpdateVehicleAsync(int vehicleId, UpdateVehicleDto vehicleDto, byte[]? expectedRowVersion = null, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Updates the online status of a vehicle.

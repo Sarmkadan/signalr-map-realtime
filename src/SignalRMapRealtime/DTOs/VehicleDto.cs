@@ -6,6 +6,7 @@
 
 namespace SignalRMapRealtime.DTOs;
 
+using System.Text.Json.Serialization;
 using SignalRMapRealtime.Domain.Enums;
 
 /// <summary>
@@ -66,6 +67,12 @@ public class VehicleDto
 
     /// <summary>Last update timestamp.</summary>
     public DateTime UpdatedAt { get; set; }
+
+    /// <summary>
+    /// Row version of the stored vehicle, exposed to clients as the ETag header rather than in the body.
+    /// </summary>
+    [JsonIgnore]
+    public byte[] RowVersion { get; set; } = [];
 }
 
 /// <summary>

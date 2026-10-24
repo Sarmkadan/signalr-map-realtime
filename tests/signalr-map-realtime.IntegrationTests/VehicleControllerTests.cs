@@ -170,7 +170,8 @@ namespace SignalRMapRealtime.IntegrationTests
                 Model = "X5",
                 Year = 2019,
                 LicensePlate = "UPDATE789",
-                Status = VehicleStatus.Available
+                Status = VehicleStatus.Available,
+                RowVersion = new byte[] { 0, 0, 0, 0, 0, 0, 0, 1 }
             };
             await SeedVehicle(existingVehicle);
 
@@ -185,8 +186,12 @@ namespace SignalRMapRealtime.IntegrationTests
             };
             var content = new StringContent(JsonConvert.SerializeObject(updatedVehicle), Encoding.UTF8, "application/json");
 
+            var getBeforeUpdate = await _client.GetAsync($"/api/Vehicle/{existingVehicle.Id}");
+            using var request = new HttpRequestMessage(HttpMethod.Put, $"/api/Vehicle/{existingVehicle.Id}") { Content = content };
+            request.Headers.TryAddWithoutValidation("If-Match", getBeforeUpdate.Headers.ETag?.ToString());
+
             // Act
-            var response = await _client.PutAsync($"/api/Vehicle/{existingVehicle.Id}", content);
+            var response = await _client.SendAsync(request);
 
             // Assert
             response.StatusCode.Should().Be(HttpStatusCode.OK);

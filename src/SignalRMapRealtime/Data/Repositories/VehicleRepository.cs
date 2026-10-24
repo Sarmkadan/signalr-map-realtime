@@ -26,6 +26,20 @@ public class VehicleRepository : BaseRepository<Vehicle>
     }
 
     /// <summary>
+    /// Sets the row version the stored vehicle must still carry when it is saved.
+    /// A save whose row version no longer matches fails with a concurrency exception.
+    /// </summary>
+    /// <param name="vehicle">A vehicle tracked by the current context.</param>
+    /// <param name="rowVersion">The row version the client last read.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="vehicle"/> or <paramref name="rowVersion"/> is null.</exception>
+    public void SetExpectedRowVersion(Vehicle vehicle, byte[] rowVersion)
+    {
+        ArgumentNullException.ThrowIfNull(vehicle);
+        ArgumentNullException.ThrowIfNull(rowVersion);
+        _context.Entry(vehicle).Property(v => v.RowVersion).OriginalValue = rowVersion;
+    }
+
+    /// <summary>
     /// Retrieves vehicles by their operational status.
     /// </summary>
     public async Task<IEnumerable<Vehicle>> GetVehiclesByStatusAsync(VehicleStatus status)

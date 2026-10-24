@@ -6,6 +6,7 @@
 
 namespace SignalRMapRealtime.Services;
 
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using AutoMapper;
 using SignalRMapRealtime.Data.Repositories;
@@ -144,10 +145,15 @@ public class VehicleService : IVehicleService
     }
 
     /// <summary>
-    /// Updates vehicle information.
+    /// Updates vehicle information. When <paramref name="expectedRowVersion"/> is supplied, the update
+    /// only succeeds if the stored vehicle still carries that row version.
     /// </summary>
-    public async Task<VehicleDto> UpdateVehicleAsync(int vehicleId, UpdateVehicleDto vehicleDto, CancellationToken cancellationToken = default)
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="vehicleDto"/> is null.</exception>
+    /// <exception cref="VehicleNotFoundException">Thrown when no vehicle with <paramref name="vehicleId"/> exists.</exception>
+    /// <exception cref="VehicleConcurrencyException">Thrown when the stored vehicle no longer matches the row version the update was based on.</exception>
+    public async Task<VehicleDto> UpdateVehicleAsync(int vehicleId, UpdateVehicleDto vehicleDto, byte[]? expectedRowVersion = null, CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(vehicleDto);
         _logger.LogInformation("Updating vehicle {VehicleId}", vehicleId);
 
         var vehicle = await _vehicleRepository.GetByIdAsync(vehicleId, cancellationToken).ConfigureAwait(false);
@@ -168,9 +174,21 @@ public class VehicleService : IVehicleService
         if (vehicleDto.MaxSpeed.HasValue)
             vehicle.MaxSpeed = vehicleDto.MaxSpeed;
 
+        if (expectedRowVersion is not null)
+            _vehicleRepository.SetExpectedRowVersion(vehicle, expectedRowVersion);
+
         vehicle.UpdatedAt = DateTime.UtcNow;
         await _vehicleRepository.UpdateAsync(vehicle, cancellationToken).ConfigureAwait(false);
-        await _vehicleRepository.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+
+        try
+        {
+            await _vehicleRepository.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch (DbUpdateConcurrencyException ex)
+        {
+            _logger.LogWarning(ex, "Vehicle {VehicleId} was modified concurrently; update rejected", vehicleId);
+            throw new VehicleConcurrencyException(vehicleId, ex);
+        }
 
         _logger.LogInformation("Updated vehicle {VehicleId}: {Name}", vehicleId, vehicle.Name);
         return _mapper.Map<VehicleDto>(vehicle);
