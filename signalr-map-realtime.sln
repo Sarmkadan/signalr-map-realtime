@@ -13,6 +13,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{0AB3BF05
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "signalr-map-realtime.Benchmarks", "tests\signalr-map-realtime.Benchmarks\signalr-map-realtime.Benchmarks.csproj", "{F4361534-B92C-4EBE-B63A-F570762B5FB8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SignalRMapRealtime.Hubs.Tests", "tests\SignalRMapRealtime.Hubs.Tests\SignalRMapRealtime.Hubs.Tests.csproj", "{B9C3681A-F17F-4E8D-B48D-FCE87411EF55}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -71,11 +73,24 @@ Global
 		{F4361534-B92C-4EBE-B63A-F570762B5FB8}.Release|x64.Build.0 = Release|Any CPU
 		{F4361534-B92C-4EBE-B63A-F570762B5FB8}.Release|x86.ActiveCfg = Release|Any CPU
 		{F4361534-B92C-4EBE-B63A-F570762B5FB8}.Release|x86.Build.0 = Release|Any CPU
+		{B9C3681A-F17F-4E8D-B48D-FCE87411EF55}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B9C3681A-F17F-4E8D-B48D-FCE87411EF55}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B9C3681A-F17F-4E8D-B48D-FCE87411EF55}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{B9C3681A-F17F-4E8D-B48D-FCE87411EF55}.Debug|x64.Build.0 = Debug|Any CPU
+		{B9C3681A-F17F-4E8D-B48D-FCE87411EF55}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{B9C3681A-F17F-4E8D-B48D-FCE87411EF55}.Debug|x86.Build.0 = Debug|Any CPU
+		{B9C3681A-F17F-4E8D-B48D-FCE87411EF55}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B9C3681A-F17F-4E8D-B48D-FCE87411EF55}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B9C3681A-F17F-4E8D-B48D-FCE87411EF55}.Release|x64.ActiveCfg = Release|Any CPU
+		{B9C3681A-F17F-4E8D-B48D-FCE87411EF55}.Release|x64.Build.0 = Release|Any CPU
+		{B9C3681A-F17F-4E8D-B48D-FCE87411EF55}.Release|x86.ActiveCfg = Release|Any CPU
+		{B9C3681A-F17F-4E8D-B48D-FCE87411EF55}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{F4361534-B92C-4EBE-B63A-F570762B5FB8} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
+		{B9C3681A-F17F-4E8D-B48D-FCE87411EF55} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 	EndGlobalSection
 EndGlobal
