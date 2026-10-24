@@ -216,7 +216,7 @@ public class LocationControllerTests
         };
 
         _locationService.UpdateLocationAsync(locationId, updateDto)
-            .Returns((LocationDto?)null);
+            .Returns((LocationDto)null!);
 
         // Act
         var result = await _controller.UpdateLocation(locationId, updateDto);

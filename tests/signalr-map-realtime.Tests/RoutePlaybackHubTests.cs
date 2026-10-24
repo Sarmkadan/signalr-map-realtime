@@ -40,7 +40,7 @@ namespace SignalRMapRealtime.Tests
             var logger = Substitute.For<ILogger<RoutePlaybackHub>>();
 
             // Act and Assert
-            Assert.Throws<ArgumentNullException>(() => new RoutePlaybackHub(null, logger));
+            Assert.Throws<ArgumentNullException>(() => new RoutePlaybackHub(null!, logger));
         }
 
         [Fact]
@@ -50,7 +50,7 @@ namespace SignalRMapRealtime.Tests
             var playbackService = Substitute.For<IRoutePlaybackService>();
 
             // Act and Assert
-            Assert.Throws<ArgumentNullException>(() => new RoutePlaybackHub(playbackService, null));
+            Assert.Throws<ArgumentNullException>(() => new RoutePlaybackHub(playbackService, null!));
         }
 
         [Fact]
@@ -188,7 +188,7 @@ namespace SignalRMapRealtime.Tests
                 playbackId, 456, PlaybackStatus.Paused,
                 DateTime.UtcNow, DateTime.UtcNow, DateTime.UtcNow.AddHours(1),
                 1.0, DateTime.UtcNow, 0, 100, 50, false);
-            playbackService.GetPlaybackStateAsync(playbackId).Returns(Task.FromResult(state));
+            playbackService.GetPlaybackStateAsync(playbackId).Returns(Task.FromResult<PlaybackSessionDto?>(state));
 
             // Act
             await hub.PausePlayback(playbackId);
@@ -264,7 +264,7 @@ namespace SignalRMapRealtime.Tests
                 playbackId, 789, PlaybackStatus.Playing,
                 DateTime.UtcNow, DateTime.UtcNow, DateTime.UtcNow.AddHours(1),
                 1.0, DateTime.UtcNow, 50, 100, 50, false);
-            playbackService.GetPlaybackStateAsync(playbackId).Returns(Task.FromResult(state));
+            playbackService.GetPlaybackStateAsync(playbackId).Returns(Task.FromResult<PlaybackSessionDto?>(state));
 
             // Act
             await hub.ResumePlayback(playbackId);
@@ -344,7 +344,7 @@ namespace SignalRMapRealtime.Tests
                 playbackId, 999, PlaybackStatus.Playing,
                 DateTime.UtcNow, DateTime.UtcNow, DateTime.UtcNow.AddHours(1),
                 1.0, timestamp, 25, 100, 25, false);
-            playbackService.GetPlaybackStateAsync(playbackId).Returns(Task.FromResult(state));
+            playbackService.GetPlaybackStateAsync(playbackId).Returns(Task.FromResult<PlaybackSessionDto?>(state));
 
             // Act
             await hub.SeekTo(playbackId, timestamp);
@@ -386,7 +386,7 @@ namespace SignalRMapRealtime.Tests
                 playbackId, 111, PlaybackStatus.Playing,
                 DateTime.UtcNow, DateTime.UtcNow, DateTime.UtcNow.AddHours(1),
                 speedMultiplier, DateTime.UtcNow, 0, 100, 0, false);
-            playbackService.GetPlaybackStateAsync(playbackId).Returns(Task.FromResult(state));
+            playbackService.GetPlaybackStateAsync(playbackId).Returns(Task.FromResult<PlaybackSessionDto?>(state));
 
             // Act
             await hub.SetSpeed(playbackId, speedMultiplier);
@@ -439,7 +439,7 @@ namespace SignalRMapRealtime.Tests
                 playbackId, sessionId, PlaybackStatus.Playing,
                 DateTime.UtcNow, DateTime.UtcNow, DateTime.UtcNow.AddHours(1),
                 clampedMultiplier, DateTime.UtcNow, 0, 100, 0, false);
-            playbackService.GetPlaybackStateAsync(playbackId).Returns(Task.FromResult(updatedState));
+            playbackService.GetPlaybackStateAsync(playbackId).Returns(Task.FromResult<PlaybackSessionDto?>(updatedState));
 
             // Act
             await hub.SetPlaybackSpeed(sessionId, multiplier);
@@ -525,7 +525,7 @@ namespace SignalRMapRealtime.Tests
                 playbackId, sessionId, PlaybackStatus.Playing,
                 DateTime.UtcNow, DateTime.UtcNow, DateTime.UtcNow.AddHours(1),
                 clampedMultiplier, DateTime.UtcNow, 0, 100, 0, false);
-            playbackService.GetPlaybackStateAsync(playbackId).Returns(Task.FromResult(updatedState));
+            playbackService.GetPlaybackStateAsync(playbackId).Returns(Task.FromResult<PlaybackSessionDto?>(updatedState));
 
             // Act
             await hub.SetPlaybackSpeed(sessionId, multiplier);

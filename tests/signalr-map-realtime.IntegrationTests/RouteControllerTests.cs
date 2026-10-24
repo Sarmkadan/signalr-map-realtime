@@ -67,13 +67,13 @@ namespace SignalRMapRealtime.IntegrationTests
 
             // Assert
             response.StatusCode.Should().Be(HttpStatusCode.OK);
-            response.Content.Headers.ContentType.ToString().Should().Contain("application/json");
+            (response.Content.Headers.ContentType?.ToString()).Should().Contain("application/json");
 
             var responseString = await response.Content.ReadAsStringAsync();
             var pagedResponse = JsonConvert.DeserializeObject<PaginatedResponse<RouteDto>>(responseString);
 
             pagedResponse.Should().NotBeNull();
-            pagedResponse.Items.Should().BeEmpty(); // Assuming no seed data initially
+            pagedResponse!.Items.Should().BeEmpty(); // Assuming no seed data initially
         }
 
         /// <summary>
@@ -95,13 +95,13 @@ namespace SignalRMapRealtime.IntegrationTests
 
             // Assert
             response.StatusCode.Should().Be(HttpStatusCode.Created);
-            response.Content.Headers.ContentType.ToString().Should().Contain("application/json");
+            (response.Content.Headers.ContentType?.ToString()).Should().Contain("application/json");
 
             var responseString = await response.Content.ReadAsStringAsync();
             var createdRoute = JsonConvert.DeserializeObject<RouteDto>(responseString);
 
             createdRoute.Should().NotBeNull();
-            createdRoute.Id.Should().BeGreaterThan(0);
+            createdRoute!.Id.Should().BeGreaterThan(0);
             createdRoute.Name.Should().Be(newRoute.Name);
             createdRoute.Description.Should().Be(newRoute.Description);
         }
@@ -145,7 +145,7 @@ namespace SignalRMapRealtime.IntegrationTests
             var routeDto = JsonConvert.DeserializeObject<RouteDto>(responseString);
 
             routeDto.Should().NotBeNull();
-            routeDto.Id.Should().Be(existingRoute.Id);
+            routeDto!.Id.Should().Be(existingRoute.Id);
             routeDto.Name.Should().Be(existingRoute.Name);
         }
 
@@ -183,7 +183,7 @@ namespace SignalRMapRealtime.IntegrationTests
             var routeDto = JsonConvert.DeserializeObject<RouteDto>(responseString);
 
             routeDto.Should().NotBeNull();
-            routeDto.Name.Should().Be(updatedRoute.Name);
+            routeDto!.Name.Should().Be(updatedRoute.Name);
             routeDto.Description.Should().Be(updatedRoute.Description);
         }
 

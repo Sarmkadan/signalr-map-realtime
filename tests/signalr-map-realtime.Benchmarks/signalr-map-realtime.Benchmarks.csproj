@@ -4,12 +4,27 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
     <RootNamespace>signalr_map_realtime.Benchmarks</RootNamespace>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" Version="0.15.8" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Direct pins for transitive packages (via Microsoft.Data.SqlClient, BenchmarkDotNet) that have advisories
+         or version conflicts. Azure.Identity and Microsoft.Identity.Client must move together. -->
+    <PackageReference Include="Azure.Identity" Version="1.17.2" />
+    <PackageReference Include="Microsoft.Identity.Client" Version="4.91.1" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="8.0.1" />
+    <!-- Align Roslyn workspaces with Microsoft.CodeAnalysis.Common 4.14.0 (BenchmarkDotNet pulls 4.5.0 workspaces). -->
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.14.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="4.14.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- AutoMapper 12.x is pinned by AutoMapper.Extensions.Microsoft.DependencyInjection 12.0.1; the fixed
+         versions (15.1.1+) are a breaking major upgrade, so this single advisory is suppressed explicitly. -->
+    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-rvv3-g6hj-g44x" />
   </ItemGroup>
 
   <ItemGroup>

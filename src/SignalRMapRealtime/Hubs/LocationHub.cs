@@ -72,8 +72,8 @@ public class LocationHub : Hub
     /// </summary>
     /// <param name="locationDto">The location data to record and broadcast.</param>
     /// <exception cref="ArgumentNullException">Thrown when locationDto is null.</exception>
-        /// <exception cref="Microsoft.AspNetCore.Authorization.AuthorizationException">Thrown when user lacks required roles.</exception>
-        [Authorize(Roles = "device,ingest")]
+    /// <remarks>Requires the role(s): device, ingest.</remarks>
+    [Authorize(Roles = "device,ingest")]
     public async Task SendLocationUpdate(CreateLocationDto locationDto)
     {
         try
@@ -114,9 +114,9 @@ public class LocationHub : Hub
     /// Broadcasts an <c>AssetRemoved</c> event to all clients and cleans up associated state
     /// so that clients can remove the corresponding Leaflet marker and its event listeners.
     /// </summary>
-        /// <exception cref="Microsoft.AspNetCore.Authorization.AuthorizationException">Thrown when user lacks required roles.</exception>
-        [Authorize(Roles = "device,ingest")]
+    /// <remarks>Requires the role(s): device, ingest.</remarks>
     /// <param name="vehicleId">ID of the asset/vehicle being removed from tracking.</param>
+    [Authorize(Roles = "device,ingest")]
     public async Task NotifyAssetRemoved(int vehicleId)
     {
         try
@@ -157,9 +157,9 @@ public class LocationHub : Hub
 
     /// <summary>
     /// Notifies all clients that a vehicle's status has changed.
-        /// <exception cref="Microsoft.AspNetCore.Authorization.AuthorizationException">Thrown when user lacks required roles.</exception>
-        [Authorize(Roles = "device,ingest")]
     /// </summary>
+    /// <remarks>Requires the role(s): device, ingest.</remarks>
+    [Authorize(Roles = "device,ingest")]
     public async Task BroadcastVehicleStatusChange(int vehicleId, string newStatus)
     {
         try
@@ -297,9 +297,9 @@ public class LocationHub : Hub
 
     /// <summary>
     /// Notifies clients of an alert (speed violation, fuel low, etc.).
-        /// <exception cref="Microsoft.AspNetCore.Authorization.AuthorizationException">Thrown when user lacks required roles.</exception>
-        [Authorize(Roles = "device,ingest")]
     /// </summary>
+    /// <remarks>Requires the role(s): device, ingest.</remarks>
+    [Authorize(Roles = "device,ingest")]
     public async Task SendAlert(int vehicleId, string alertType, string message)
     {
         try
@@ -407,9 +407,9 @@ public class LocationHub : Hub
     /// <param name="staleSince">When the vehicle became stale (UTC).</param>
     /// <param name="staleWindowMinutes">The stale detection window in minutes.</param>
     /// <param name="timeSinceLastUpdateMinutes">Time elapsed since last update when vehicle was marked stale (in minutes).</param>
-        /// <exception cref="Microsoft.AspNetCore.Authorization.AuthorizationException">Thrown when user lacks required roles.</exception>
-        [Authorize(Roles = "device,ingest")]
+    /// <remarks>Requires the role(s): device, ingest.</remarks>
     /// <exception cref="ArgumentException">Thrown when vehicleId is less than or equal to 0.</exception>
+    [Authorize(Roles = "device,ingest")]
     public async Task NotifyVehicleStaleAsync(int vehicleId, string vehicleRegistration, DateTime staleSince, int staleWindowMinutes, double timeSinceLastUpdateMinutes)
     {
         try

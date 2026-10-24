@@ -68,7 +68,7 @@ public class DomainEventDispatcher : IDomainEventDispatcher
 
         // Find all handlers that implement IEventHandler<T> for this event type
         var handlerType = typeof(IEventHandler<>).MakeGenericType(@event.GetType());
-        var handlerServices = serviceProvider.GetServices(handlerType);
+        var handlerServices = serviceProvider.GetServices(handlerType).OfType<object>().ToList();
 
         if (!handlerServices.Any())
         {
@@ -91,7 +91,8 @@ public class DomainEventDispatcher : IDomainEventDispatcher
                 var handleMethod = handlerService.GetType().GetMethod("HandleAsync");
                 if (handleMethod != null)
                 {
-                    var task = (Task)handleMethod.Invoke(handlerService, new object[] { @event });
+                    var task = (Task?)handleMethod.Invoke(handlerService, new object[] { @event })
+                        ?? throw new InvalidOperationException($"{handlerService.GetType().Name}.HandleAsync did not return a Task.");
                     await task.ConfigureAwait(false);
                 }
             }

@@ -24,7 +24,7 @@ namespace signalr_map_realtime.Tests
         public void Validate_NullException_ThrowsArgumentNullException()
         {
             // Act and Assert
-            Assert.Throws<ArgumentNullException>(() => LocationTrackingExceptionValidation.Validate(null));
+            Assert.Throws<ArgumentNullException>(() => LocationTrackingExceptionValidation.Validate(null!));
         }
 
         [Fact]
@@ -71,7 +71,7 @@ namespace signalr_map_realtime.Tests
         public void IsValid_NullException_ThrowsArgumentNullException()
         {
             // Act and Assert
-            Assert.Throws<ArgumentNullException>(() => LocationTrackingExceptionValidation.IsValid(null));
+            Assert.Throws<ArgumentNullException>(() => LocationTrackingExceptionValidation.IsValid(null!));
         }
 
         [Fact]
@@ -114,7 +114,7 @@ namespace signalr_map_realtime.Tests
         public void EnsureValid_NullException_ThrowsArgumentNullException()
         {
             // Act and Assert
-            Assert.Throws<ArgumentNullException>(() => LocationTrackingExceptionValidation.EnsureValid(null));
+            Assert.Throws<ArgumentNullException>(() => LocationTrackingExceptionValidation.EnsureValid(null!));
         }
 
         [Fact]

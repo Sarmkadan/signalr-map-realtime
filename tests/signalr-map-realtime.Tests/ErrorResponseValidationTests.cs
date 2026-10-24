@@ -67,21 +67,21 @@ public class ErrorResponseValidationTests
     public void Validate_NullInput_ThrowsArgumentNullException()
     {
         // Act and Assert
-        Assert.Throws<ArgumentNullException>(() => ErrorResponseValidation.Validate(null));
+        Assert.Throws<ArgumentNullException>(() => ErrorResponseValidation.Validate(null!));
     }
 
     [Fact]
     public void IsValid_NullInput_ThrowsArgumentNullException()
     {
         // Act and Assert
-        Assert.Throws<ArgumentNullException>(() => ErrorResponseValidation.IsValid(null));
+        Assert.Throws<ArgumentNullException>(() => ErrorResponseValidation.IsValid(null!));
     }
 
     [Fact]
     public void EnsureValid_NullInput_ThrowsArgumentNullException()
     {
         // Act and Assert
-        Assert.Throws<ArgumentNullException>(() => ErrorResponseValidation.EnsureValid(null));
+        Assert.Throws<ArgumentNullException>(() => ErrorResponseValidation.EnsureValid(null!));
     }
 
     [Fact]
@@ -92,7 +92,7 @@ public class ErrorResponseValidationTests
         {
             Message = string.Empty,
             ErrorCode = string.Empty,
-            Errors = null,
+            Errors = null!,
             StatusCode = 200,
             Timestamp = default,
         };
@@ -112,7 +112,7 @@ public class ErrorResponseValidationTests
         {
             Message = string.Empty,
             ErrorCode = string.Empty,
-            Errors = null,
+            Errors = null!,
             StatusCode = 200,
             Timestamp = default,
         };

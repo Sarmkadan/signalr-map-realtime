@@ -69,13 +69,13 @@ namespace SignalRMapRealtime.IntegrationTests
 
             // Assert
             response.StatusCode.Should().Be(HttpStatusCode.OK);
-            response.Content.Headers.ContentType.ToString().Should().Contain("application/json");
+            (response.Content.Headers.ContentType?.ToString()).Should().Contain("application/json");
 
             var responseString = await response.Content.ReadAsStringAsync();
             var pagedResponse = JsonConvert.DeserializeObject<PaginatedResponse<LocationDto>>(responseString);
 
             pagedResponse.Should().NotBeNull();
-            pagedResponse.Items.Should().BeEmpty(); // Assuming no seed data initially
+            pagedResponse!.Items.Should().BeEmpty(); // Assuming no seed data initially
         }
 
         /// <summary>
@@ -101,13 +101,13 @@ namespace SignalRMapRealtime.IntegrationTests
 
             // Assert
             response.StatusCode.Should().Be(HttpStatusCode.Created);
-            response.Content.Headers.ContentType.ToString().Should().Contain("application/json");
+            (response.Content.Headers.ContentType?.ToString()).Should().Contain("application/json");
 
             var responseString = await response.Content.ReadAsStringAsync();
             var createdLocation = JsonConvert.DeserializeObject<LocationDto>(responseString);
 
             createdLocation.Should().NotBeNull();
-            createdLocation.Id.Should().BeGreaterThan(0);
+            createdLocation!.Id.Should().BeGreaterThan(0);
             createdLocation.Latitude.Should().Be(newLocation.Latitude);
             createdLocation.Longitude.Should().Be(newLocation.Longitude);
         }
@@ -155,7 +155,7 @@ namespace SignalRMapRealtime.IntegrationTests
             var locationDto = JsonConvert.DeserializeObject<LocationDto>(responseString);
 
             locationDto.Should().NotBeNull();
-            locationDto.Id.Should().Be(existingLocation.Id);
+            locationDto!.Id.Should().Be(existingLocation.Id);
             locationDto.Latitude.Should().Be(existingLocation.Latitude);
             locationDto.Longitude.Should().Be(existingLocation.Longitude);
         }
@@ -202,7 +202,7 @@ namespace SignalRMapRealtime.IntegrationTests
             var locationDto = JsonConvert.DeserializeObject<LocationDto>(responseString);
 
             locationDto.Should().NotBeNull();
-            locationDto.Latitude.Should().Be(updatedLocation.Latitude);
+            locationDto!.Latitude.Should().Be(updatedLocation.Latitude);
             locationDto.Longitude.Should().Be(updatedLocation.Longitude);
             locationDto.Accuracy.Should().Be(updatedLocation.Accuracy);
         }

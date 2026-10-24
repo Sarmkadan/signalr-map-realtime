@@ -9,7 +9,7 @@ namespace SignalRMapRealtime.Exceptions;
 /// <summary>
 /// Base exception for location tracking system errors.
 /// </summary>
-public class LocationTrackingException : SignalrMapRealtimeException
+public class LocationTrackingException : SignalRMapRealtimeException
 {
     /// <summary>
     /// Initializes a new instance of LocationTrackingException.

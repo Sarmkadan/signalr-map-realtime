@@ -39,7 +39,7 @@ namespace signalr_map_realtime.Tests
         public void HasErrors_NullErrorsCollection_ReturnsFalse()
         {
             // Arrange
-            var exception = new ValidationException("Test message", errors: (IEnumerable<string>)null);
+            var exception = new ValidationException("Test message", errors: (IEnumerable<string>)null!);
 
             // Act
             var result = exception.HasErrors();
@@ -65,7 +65,7 @@ namespace signalr_map_realtime.Tests
         public void HasErrors_NullException_ThrowsArgumentNullException()
         {
             // Act and Assert
-            Assert.Throws<ArgumentNullException>(() => ValidationExceptionExtensions.HasErrors(null));
+            Assert.Throws<ArgumentNullException>(() => ValidationExceptionExtensions.HasErrors(null!));
         }
 
         [Fact]
@@ -114,7 +114,7 @@ namespace signalr_map_realtime.Tests
         public void GetCombinedMessage_NullErrorsCollection_ReturnsEmptyString()
         {
             // Arrange
-            var exception = new ValidationException("Test message", errors: (IEnumerable<string>)null);
+            var exception = new ValidationException("Test message", errors: (IEnumerable<string>)null!);
 
             // Act
             var result = exception.GetCombinedMessage();
@@ -140,7 +140,7 @@ namespace signalr_map_realtime.Tests
         public void GetCombinedMessage_NullException_ThrowsArgumentNullException()
         {
             // Act and Assert
-            Assert.Throws<ArgumentNullException>(() => ValidationExceptionExtensions.GetCombinedMessage(null));
+            Assert.Throws<ArgumentNullException>(() => ValidationExceptionExtensions.GetCombinedMessage(null!));
         }
 
         [Fact]
@@ -195,7 +195,7 @@ namespace signalr_map_realtime.Tests
         public void GetDistinctErrors_NullErrorsCollection_ReturnsEmptyCollection()
         {
             // Arrange
-            var exception = new ValidationException("Test message", errors: (IEnumerable<string>)null);
+            var exception = new ValidationException("Test message", errors: (IEnumerable<string>)null!);
 
             // Act
             var result = exception.GetDistinctErrors();
@@ -221,7 +221,7 @@ namespace signalr_map_realtime.Tests
         public void GetDistinctErrors_NullException_ThrowsArgumentNullException()
         {
             // Act and Assert
-            Assert.Throws<ArgumentNullException>(() => ValidationExceptionExtensions.GetDistinctErrors(null));
+            Assert.Throws<ArgumentNullException>(() => ValidationExceptionExtensions.GetDistinctErrors(null!));
         }
 
         [Fact]

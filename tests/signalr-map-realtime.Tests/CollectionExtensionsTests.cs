@@ -101,7 +101,7 @@ public class CollectionExtensionsTests
         Assert.Equal(3, result.Count);
         Assert.Equal(2, result[0].Count);
         Assert.Equal(2, result[1].Count);
-        Assert.Equal(1, result[2].Count);
+        Assert.Single(result[2]);
     }
 
     [Fact]

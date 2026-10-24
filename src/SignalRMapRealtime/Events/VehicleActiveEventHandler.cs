@@ -36,7 +36,7 @@ public class VehicleActiveEventHandler : IEventHandler<VehicleActiveEvent>
     /// <summary>
     /// Handles the VehicleActiveEvent by broadcasting it to all connected SignalR clients.
     /// </summary>
-    /// <param name="@event">The vehicle active event to handle.</param>
+    /// <param name="event">The vehicle active event to handle.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
     /// <exception cref="ArgumentNullException">Thrown when the event is null.</exception>
     public async Task HandleAsync(VehicleActiveEvent @event)

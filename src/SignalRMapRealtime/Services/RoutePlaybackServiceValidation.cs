@@ -17,7 +17,7 @@ using SignalRMapRealtime.Domain.Models;
 /// </summary>
 /// <remarks>
 /// Validates the internal state of <see cref="RoutePlaybackService"/> and its
-/// <see cref="PlaybackState"/> to ensure they represent a valid, usable playback session.
+/// <c>PlaybackState</c> to ensure they represent a valid, usable playback session.
 /// </remarks>
 internal static class RoutePlaybackServiceValidation
 {

@@ -76,7 +76,7 @@ namespace SignalRMapRealtime.Tests
         public void WithPageSize_NullSource_ThrowsArgumentNullException()
         {
             // Act and Assert
-            Assert.Throws<ArgumentNullException>(() => PaginatedResponseExtensions.WithPageSize<int>(null, 10));
+            Assert.Throws<ArgumentNullException>(() => PaginatedResponseExtensions.WithPageSize<int>(null!, 10));
         }
 
         [Fact]
@@ -124,14 +124,14 @@ namespace SignalRMapRealtime.Tests
             var paginatedResponse = new PaginatedResponse<int>(items, 1, 10, 3);
 
             // Act and Assert
-            Assert.Throws<ArgumentNullException>(() => paginatedResponse.Where(null));
+            Assert.Throws<ArgumentNullException>(() => paginatedResponse.Where(null!));
         }
 
         [Fact]
         public void Where_NullSource_ThrowsArgumentNullException()
         {
             // Act and Assert
-            Assert.Throws<ArgumentNullException>(() => PaginatedResponseExtensions.Where<int>(null, x => true));
+            Assert.Throws<ArgumentNullException>(() => PaginatedResponseExtensions.Where<int>(null!, x => true));
         }
 
         [Fact]
@@ -180,14 +180,14 @@ namespace SignalRMapRealtime.Tests
             var paginatedResponse = new PaginatedResponse<int>(items, 1, 10, 3);
 
             // Act and Assert
-            Assert.Throws<ArgumentNullException>(() => paginatedResponse.Select<int, int>(null));
+            Assert.Throws<ArgumentNullException>(() => paginatedResponse.Select<int, int>(null!));
         }
 
         [Fact]
         public void Select_NullSource_ThrowsArgumentNullException()
         {
             // Act and Assert
-            Assert.Throws<ArgumentNullException>(() => PaginatedResponseExtensions.Select<int, int>(null, x => x));
+            Assert.Throws<ArgumentNullException>(() => PaginatedResponseExtensions.Select<int, int>(null!, x => x));
         }
 
         [Fact]
@@ -224,7 +224,7 @@ namespace SignalRMapRealtime.Tests
         public void GetCurrentPage_NullSource_ThrowsArgumentNullException()
         {
             // Act and Assert
-            Assert.Throws<ArgumentNullException>(() => PaginatedResponseExtensions.GetCurrentPage<int>(null));
+            Assert.Throws<ArgumentNullException>(() => PaginatedResponseExtensions.GetCurrentPage<int>(null!));
         }
 
         [Fact]

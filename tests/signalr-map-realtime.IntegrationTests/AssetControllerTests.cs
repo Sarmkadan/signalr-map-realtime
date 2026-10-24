@@ -68,13 +68,13 @@ namespace SignalRMapRealtime.IntegrationTests
 
             // Assert
             response.StatusCode.Should().Be(HttpStatusCode.OK);
-            response.Content.Headers.ContentType.ToString().Should().Contain("application/json");
+            (response.Content.Headers.ContentType?.ToString()).Should().Contain("application/json");
 
             var responseString = await response.Content.ReadAsStringAsync();
             var pagedResponse = JsonConvert.DeserializeObject<PaginatedResponse<AssetDto>>(responseString);
 
             pagedResponse.Should().NotBeNull();
-            pagedResponse.Items.Should().BeEmpty(); // Assuming no seed data initially
+            pagedResponse!.Items.Should().BeEmpty(); // Assuming no seed data initially
         }
 
         /// <summary>
@@ -97,13 +97,13 @@ namespace SignalRMapRealtime.IntegrationTests
 
             // Assert
             response.StatusCode.Should().Be(HttpStatusCode.Created);
-            response.Content.Headers.ContentType.ToString().Should().Contain("application/json");
+            (response.Content.Headers.ContentType?.ToString()).Should().Contain("application/json");
 
             var responseString = await response.Content.ReadAsStringAsync();
             var createdAsset = JsonConvert.DeserializeObject<AssetDto>(responseString);
 
             createdAsset.Should().NotBeNull();
-            createdAsset.Id.Should().BeGreaterThan(0);
+            createdAsset!.Id.Should().BeGreaterThan(0);
             createdAsset.Name.Should().Be(newAsset.Name);
             createdAsset.Type.Should().Be(newAsset.Type);
         }
@@ -148,7 +148,7 @@ namespace SignalRMapRealtime.IntegrationTests
             var assetDto = JsonConvert.DeserializeObject<AssetDto>(responseString);
 
             assetDto.Should().NotBeNull();
-            assetDto.Id.Should().Be(existingAsset.Id);
+            assetDto!.Id.Should().Be(existingAsset.Id);
             assetDto.Name.Should().Be(existingAsset.Name);
         }
 
@@ -188,7 +188,7 @@ namespace SignalRMapRealtime.IntegrationTests
             var assetDto = JsonConvert.DeserializeObject<AssetDto>(responseString);
 
             assetDto.Should().NotBeNull();
-            assetDto.Name.Should().Be(updatedAsset.Name);
+            assetDto!.Name.Should().Be(updatedAsset.Name);
             assetDto.Type.Should().Be(updatedAsset.Type);
         }
 

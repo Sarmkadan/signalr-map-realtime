@@ -401,7 +401,7 @@ public class PaginatedResponseTests
         var totalCount = 0;
 
         // Act
-        var response = new PaginatedResponse<object>(null, pageNumber, pageSize, totalCount);
+        var response = new PaginatedResponse<object>(null!, pageNumber, pageSize, totalCount);
 
         // Assert
         Assert.Empty(response.Items);

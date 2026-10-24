@@ -33,7 +33,7 @@ namespace SignalRMapRealtime.IntegrationTests
         /// <param name="because">Optional reason for the assertion.</param>
         /// <returns>The response content as a string.</returns>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="responseTask"/> is null.</exception>
-        public static async Task<string> ShouldBeSuccessfulJsonResponse(this Task<HttpResponseMessage> responseTask, string because = null)
+        public static async Task<string> ShouldBeSuccessfulJsonResponse(this Task<HttpResponseMessage> responseTask, string because = "")
         {
             ArgumentNullException.ThrowIfNull(responseTask);
 
@@ -52,7 +52,7 @@ namespace SignalRMapRealtime.IntegrationTests
         /// <typeparam name="T">The type of resource being created.</typeparam>
         /// <returns>The deserialized resource of type <typeparamref name="T"/>.</returns>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="responseTask"/> is null.</exception>
-        public static async Task<T> ShouldBeCreatedResource<T>(this Task<HttpResponseMessage> responseTask, string because = null)
+        public static async Task<T> ShouldBeCreatedResource<T>(this Task<HttpResponseMessage> responseTask, string because = "")
         {
             ArgumentNullException.ThrowIfNull(responseTask);
 
@@ -64,7 +64,7 @@ namespace SignalRMapRealtime.IntegrationTests
             var resource = JsonConvert.DeserializeObject<T>(responseString);
             resource.Should().NotBeNull(because);
 
-            return resource;
+            return resource!;
         }
 
         /// <summary>
@@ -74,7 +74,7 @@ namespace SignalRMapRealtime.IntegrationTests
         /// <param name="because">Optional reason for the assertion.</param>
         /// <returns>A read-only list of asset DTOs.</returns>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="responseTask"/> is null.</exception>
-        public static async Task<IReadOnlyList<AssetDto>> ShouldReturnAssetList(this Task<HttpResponseMessage> responseTask, string because = null)
+        public static async Task<IReadOnlyList<AssetDto>> ShouldReturnAssetList(this Task<HttpResponseMessage> responseTask, string because = "")
         {
             ArgumentNullException.ThrowIfNull(responseTask);
 
@@ -82,7 +82,7 @@ namespace SignalRMapRealtime.IntegrationTests
             var pagedResponse = JsonConvert.DeserializeObject<PaginatedResponse<AssetDto>>(responseString);
 
             pagedResponse.Should().NotBeNull(because);
-            pagedResponse.Items.Should().NotBeNull(because);
+            pagedResponse!.Items.Should().NotBeNull(because);
 
             return pagedResponse.Items;
         }
@@ -95,7 +95,7 @@ namespace SignalRMapRealtime.IntegrationTests
         /// <param name="because">Optional reason for the assertion.</param>
         /// <returns>The deserialized asset DTO.</returns>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="responseTask"/> is null.</exception>
-        public static async Task<AssetDto> ShouldReturnAsset(this Task<HttpResponseMessage> responseTask, int expectedId, string because = null)
+        public static async Task<AssetDto> ShouldReturnAsset(this Task<HttpResponseMessage> responseTask, int expectedId, string because = "")
         {
             ArgumentNullException.ThrowIfNull(responseTask);
 
@@ -103,7 +103,7 @@ namespace SignalRMapRealtime.IntegrationTests
             var asset = JsonConvert.DeserializeObject<AssetDto>(responseString);
 
             asset.Should().NotBeNull(because);
-            asset.Id.Should().Be(expectedId, because);
+            asset!.Id.Should().Be(expectedId, because);
 
             return asset;
         }
@@ -114,7 +114,7 @@ namespace SignalRMapRealtime.IntegrationTests
         /// <param name="responseTask">The HTTP response to verify.</param>
         /// <param name="because">Optional reason for the assertion.</param>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="responseTask"/> is null.</exception>
-        public static async Task ShouldBeNotFound(this Task<HttpResponseMessage> responseTask, string because = null)
+        public static async Task ShouldBeNotFound(this Task<HttpResponseMessage> responseTask, string because = "")
         {
             ArgumentNullException.ThrowIfNull(responseTask);
 
@@ -128,7 +128,7 @@ namespace SignalRMapRealtime.IntegrationTests
         /// <param name="responseTask">The HTTP response to verify.</param>
         /// <param name="because">Optional reason for the assertion.</param>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="responseTask"/> is null.</exception>
-        public static async Task ShouldIndicateSuccessfulDeletion(this Task<HttpResponseMessage> responseTask, string because = null)
+        public static async Task ShouldIndicateSuccessfulDeletion(this Task<HttpResponseMessage> responseTask, string because = "")
         {
             ArgumentNullException.ThrowIfNull(responseTask);
 
@@ -142,7 +142,7 @@ namespace SignalRMapRealtime.IntegrationTests
         /// <param name="responseTask">The HTTP response to verify.</param>
         /// <param name="because">Optional reason for the assertion.</param>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="responseTask"/> is null.</exception>
-        public static async Task ShouldBeBadRequest(this Task<HttpResponseMessage> responseTask, string because = null)
+        public static async Task ShouldBeBadRequest(this Task<HttpResponseMessage> responseTask, string because = "")
         {
             ArgumentNullException.ThrowIfNull(responseTask);
 
@@ -157,7 +157,7 @@ namespace SignalRMapRealtime.IntegrationTests
         /// <param name="type">The asset type. Defaults to <see cref="AssetType.Equipment"/>.</param>
         /// <param name="status">The asset status. Defaults to "Active".</param>
         /// <returns>A new asset DTO.</returns>
-        public static AssetDto CreateTestAssetDto(string name = null, AssetType type = AssetType.Equipment, string status = "Active")
+        public static AssetDto CreateTestAssetDto(string? name = null, AssetType type = AssetType.Equipment, string status = "Active")
             => new AssetDto
             {
                 Name = name ?? $"Test Asset {Guid.NewGuid().ToString()[..8]}",
@@ -174,7 +174,7 @@ namespace SignalRMapRealtime.IntegrationTests
         /// <param name="status">The asset status. Defaults to "Active".</param>
         /// <returns>A new asset DTO with the specified ID.</returns>
         /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="id"/> is less than 1.</exception>
-        public static AssetDto CreateTestAssetDto(int id, string name = null, AssetType type = AssetType.Equipment, string status = "Active")
+        public static AssetDto CreateTestAssetDto(int id, string? name = null, AssetType type = AssetType.Equipment, string status = "Active")
         {
             if (id < 1)
             {

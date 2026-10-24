@@ -158,10 +158,11 @@ public class TrackingSession
         for (int i = 1; i < sortedLocations.Count; i++)
         {
             TotalDistance += sortedLocations[i].CalculateDistanceTo(sortedLocations[i - 1]);
-            if (sortedLocations[i].Speed.HasValue)
+            var speed = sortedLocations[i].Speed;
+            if (speed.HasValue)
             {
-                totalSpeed += sortedLocations[i].Speed.Value;
-                MaxSpeed = Math.Max(MaxSpeed, sortedLocations[i].Speed.Value);
+                totalSpeed += speed.Value;
+                MaxSpeed = Math.Max(MaxSpeed, speed.Value);
             }
         }
 

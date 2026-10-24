@@ -225,7 +225,7 @@ public class PaginatedResponse<T>
             {
                 // Filter to items with Id > cursorId
                 // This ensures stable pagination even when data changes
-                filteredSource = filteredSource.Where(item => EF.Property<int>(item, "Id") > cursorParts.Id);
+                filteredSource = filteredSource.Where(item => EF.Property<int>(item!, "Id") > cursorParts.Id);
             }
         }
 

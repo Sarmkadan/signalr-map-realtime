@@ -5,7 +5,7 @@ namespace SignalRMapRealtime.Exceptions
     /// <summary>
     /// Exception thrown when there is an error in configuration.
     /// </summary>
-    public class ConfigurationException : SignalrMapRealtimeException
+    public class ConfigurationException : SignalRMapRealtimeException
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="ConfigurationException"/> class.

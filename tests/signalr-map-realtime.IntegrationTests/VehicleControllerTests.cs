@@ -68,13 +68,13 @@ namespace SignalRMapRealtime.IntegrationTests
 
             // Assert
             response.StatusCode.Should().Be(HttpStatusCode.OK);
-            response.Content.Headers.ContentType.ToString().Should().Contain("application/json");
+            (response.Content.Headers.ContentType?.ToString()).Should().Contain("application/json");
 
             var responseString = await response.Content.ReadAsStringAsync();
             var pagedResponse = JsonConvert.DeserializeObject<PaginatedResponse<VehicleDto>>(responseString);
 
             pagedResponse.Should().NotBeNull();
-            pagedResponse.Items.Should().BeEmpty(); // Assuming no seed data initially
+            pagedResponse!.Items.Should().BeEmpty(); // Assuming no seed data initially
         }
 
         /// <summary>
@@ -99,13 +99,13 @@ namespace SignalRMapRealtime.IntegrationTests
 
             // Assert
             response.StatusCode.Should().Be(HttpStatusCode.Created);
-            response.Content.Headers.ContentType.ToString().Should().Contain("application/json");
+            (response.Content.Headers.ContentType?.ToString()).Should().Contain("application/json");
 
             var responseString = await response.Content.ReadAsStringAsync();
             var createdVehicle = JsonConvert.DeserializeObject<VehicleDto>(responseString);
 
             createdVehicle.Should().NotBeNull();
-            createdVehicle.Id.Should().BeGreaterThan(0);
+            createdVehicle!.Id.Should().BeGreaterThan(0);
             createdVehicle.Make.Should().Be(newVehicle.Make);
             createdVehicle.Model.Should().Be(newVehicle.Model);
         }
@@ -152,7 +152,7 @@ namespace SignalRMapRealtime.IntegrationTests
             var vehicleDto = JsonConvert.DeserializeObject<VehicleDto>(responseString);
 
             vehicleDto.Should().NotBeNull();
-            vehicleDto.Id.Should().Be(existingVehicle.Id);
+            vehicleDto!.Id.Should().Be(existingVehicle.Id);
             vehicleDto.Make.Should().Be(existingVehicle.Make);
             vehicleDto.Model.Should().Be(existingVehicle.Model);
         }
@@ -197,7 +197,7 @@ namespace SignalRMapRealtime.IntegrationTests
             var vehicleDto = JsonConvert.DeserializeObject<VehicleDto>(responseString);
 
             vehicleDto.Should().NotBeNull();
-            vehicleDto.Year.Should().Be(updatedVehicle.Year);
+            vehicleDto!.Year.Should().Be(updatedVehicle.Year);
             vehicleDto.Status.Should().Be(updatedVehicle.Status);
         }
 

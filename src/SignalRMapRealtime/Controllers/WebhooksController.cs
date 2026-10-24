@@ -181,7 +181,7 @@ public class WebhooksController : ControllerBase
         }
 
         var secret = _configuration["Webhooks:TrackingService:Secret"];
-        return VerifyHmacSignature(payload, signature[0], secret);
+        return VerifyHmacSignature(payload, signature[0] ?? string.Empty, secret);
     }
 
     /// <summary>
@@ -197,7 +197,7 @@ public class WebhooksController : ControllerBase
         }
 
         var secret = _configuration["Webhooks:NotificationService:Secret"];
-        return VerifyHmacSignature(payload, signature[0], secret);
+        return VerifyHmacSignature(payload, signature[0] ?? string.Empty, secret);
     }
 
     /// <summary>

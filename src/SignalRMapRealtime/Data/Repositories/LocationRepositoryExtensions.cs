@@ -284,7 +284,7 @@ public static class LocationRepositoryExtensions
         {
             var distance = (double)distanceMethod.Invoke(
                 repository,
-                new object[] { centerLat, centerLng, l.Latitude, l.Longitude });
+                new object[] { centerLat, centerLng, l.Latitude, l.Longitude })!;
             return distance <= radiusKm;
         });
     }
@@ -340,7 +340,7 @@ public static class LocationRepositoryExtensions
                         previousLocation.Longitude,
                         location.Latitude,
                         location.Longitude
-                    });
+                    })!;
                 totalDistance += distance;
             }
 

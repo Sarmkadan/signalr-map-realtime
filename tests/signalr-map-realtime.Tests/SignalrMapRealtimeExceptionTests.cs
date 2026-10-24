@@ -1,3 +1,4 @@
+#pragma warning disable CS0618 // Tests the obsolete SignalrMapRealtimeException shim on purpose
 using System;
 using SignalRMapRealtime.Exceptions;
 using Xunit;
@@ -35,7 +36,7 @@ namespace signalr_map_realtime.Tests
         public void MessageConstructor_WithNullMessage_SetsMessageToNull()
         {
             // Act
-            var ex = new SignalrMapRealtimeException(null);
+            var ex = new SignalrMapRealtimeException(null!);
 
             // Assert
             Assert.Null(ex.Message);
@@ -75,7 +76,7 @@ namespace signalr_map_realtime.Tests
             var innerException = new ArgumentNullException("paramName");
 
             // Act
-            var ex = new SignalrMapRealtimeException(null, innerException);
+            var ex = new SignalrMapRealtimeException(null!, innerException);
 
             // Assert
             Assert.Null(ex.Message);
@@ -89,7 +90,7 @@ namespace signalr_map_realtime.Tests
             var message = "Error without inner exception";
 
             // Act
-            var ex = new SignalrMapRealtimeException(message, null);
+            var ex = new SignalrMapRealtimeException(message, null!);
 
             // Assert
             Assert.Equal(message, ex.Message);

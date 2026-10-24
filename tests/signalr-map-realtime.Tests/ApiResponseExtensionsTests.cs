@@ -23,7 +23,7 @@ public class ApiResponseExtensionsTests
     public void IsSuccessful_NullResponse_ThrowsArgumentNullException()
     {
         // Act and Assert
-        Assert.Throws<ArgumentNullException>(() => ApiResponseExtensions.IsSuccessful(null));
+        Assert.Throws<ArgumentNullException>(() => ApiResponseExtensions.IsSuccessful(null!));
     }
 
     [Fact]
@@ -56,7 +56,7 @@ public class ApiResponseExtensionsTests
     public void GetMessageOrDefault_NullResponse_ThrowsArgumentNullException()
     {
         // Act and Assert
-        Assert.Throws<ArgumentNullException>(() => ApiResponseExtensions.GetMessageOrDefault(null));
+        Assert.Throws<ArgumentNullException>(() => ApiResponseExtensions.GetMessageOrDefault(null!));
     }
 
     [Fact]
@@ -86,7 +86,7 @@ public class ApiResponseExtensionsTests
     public void EnsureSuccess_NullResponse_ThrowsArgumentNullException()
     {
         // Act and Assert
-        Assert.Throws<ArgumentNullException>(() => ApiResponseExtensions.EnsureSuccess(null));
+        Assert.Throws<ArgumentNullException>(() => ApiResponseExtensions.EnsureSuccess(null!));
     }
 
     [Fact]
@@ -118,6 +118,6 @@ public class ApiResponseExtensionsTests
     public void WithData_NullResponse_ThrowsArgumentNullException()
     {
         // Act and Assert
-        Assert.Throws<ArgumentNullException>(() => ApiResponseExtensions.WithData(null, new object()));
+        Assert.Throws<ArgumentNullException>(() => ApiResponseExtensions.WithData(null!, new object()));
     }
 }
