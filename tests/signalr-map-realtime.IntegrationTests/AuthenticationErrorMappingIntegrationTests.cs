@@ -59,7 +59,7 @@ namespace SignalRMapRealtime.IntegrationTests
             var errorResponse = JsonConvert.DeserializeObject<ErrorResponse>(responseString);
 
             errorResponse.Should().NotBeNull();
-            errorResponse.Message.Should().NotBeNullOrEmpty();
+            errorResponse!.Message.Should().NotBeNullOrEmpty();
             errorResponse.ErrorCode.Should().Be("UNAUTHORIZED");
             errorResponse.StatusCode.Should().Be(401);
             errorResponse.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
@@ -84,7 +84,7 @@ namespace SignalRMapRealtime.IntegrationTests
             var errorResponse = JsonConvert.DeserializeObject<ErrorResponse>(responseString);
 
             errorResponse.Should().NotBeNull();
-            errorResponse.Message.Should().NotBeNullOrEmpty();
+            errorResponse!.Message.Should().NotBeNullOrEmpty();
             errorResponse.ErrorCode.Should().Be("UNAUTHORIZED");
             errorResponse.StatusCode.Should().Be(401);
         }
@@ -117,7 +117,7 @@ namespace SignalRMapRealtime.IntegrationTests
             var errorResponse = JsonConvert.DeserializeObject<ErrorResponse>(responseString);
 
             errorResponse.Should().NotBeNull();
-            errorResponse.Message.Should().NotBeNullOrEmpty();
+            errorResponse!.Message.Should().NotBeNullOrEmpty();
             errorResponse.Message.Should().Contain("not found");
             errorResponse.ErrorCode.Should().Be("NOT_FOUND");
             errorResponse.StatusCode.Should().Be(404);
@@ -160,7 +160,7 @@ namespace SignalRMapRealtime.IntegrationTests
             var errorResponse = JsonConvert.DeserializeObject<ErrorResponse>(responseString);
 
             errorResponse.Should().NotBeNull();
-            errorResponse.Message.Should().NotBeNullOrEmpty();
+            errorResponse!.Message.Should().NotBeNullOrEmpty();
             errorResponse.Message.Should().Contain("Invalid location");
             errorResponse.ErrorCode.Should().Be("VALIDATION_ERROR");
             errorResponse.StatusCode.Should().Be(400);
@@ -187,7 +187,7 @@ namespace SignalRMapRealtime.IntegrationTests
             var errorResponse = JsonConvert.DeserializeObject<ErrorResponse>(responseString);
 
             errorResponse.Should().NotBeNull();
-            errorResponse.Message.Should().NotBeNullOrEmpty();
+            errorResponse!.Message.Should().NotBeNullOrEmpty();
             errorResponse.ErrorCode.Should().Be("VALIDATION_ERROR");
             errorResponse.StatusCode.Should().Be(400);
         }
@@ -212,7 +212,7 @@ namespace SignalRMapRealtime.IntegrationTests
             var errorResponse = JsonConvert.DeserializeObject<ErrorResponse>(responseString);
 
             errorResponse.Should().NotBeNull();
-            errorResponse.Message.Should().NotBeNullOrEmpty();
+            errorResponse!.Message.Should().NotBeNullOrEmpty();
             errorResponse.ErrorCode.Should().Be("VALIDATION_ERROR");
             errorResponse.StatusCode.Should().Be(400);
         }
@@ -231,7 +231,7 @@ namespace SignalRMapRealtime.IntegrationTests
 
             // Assert
             response.StatusCode.Should().Be(HttpStatusCode.OK);
-            response.Content.Headers.ContentType.ToString().Should().Contain("application/json");
+            (response.Content.Headers.ContentType?.ToString()).Should().Contain("application/json");
         }
 
         /// <summary>

@@ -7,7 +7,7 @@ namespace SignalRMapRealtime.Exceptions
     /// <summary>
     /// Exception thrown when input validation fails.
     /// </summary>
-    public class ValidationException : SignalrMapRealtimeException
+    public class ValidationException : SignalRMapRealtimeException
     {
         /// <summary>
         /// Gets the collection of validation error messages.

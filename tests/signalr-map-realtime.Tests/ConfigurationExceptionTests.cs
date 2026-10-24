@@ -49,14 +49,14 @@ namespace signalr_map_realtime.Tests
         public void Constructor_NullMessage_ThrowsArgumentNullException()
         {
             // Act and Assert
-            Assert.Throws<ArgumentNullException>(() => new ConfigurationException(null));
+            Assert.Throws<ArgumentNullException>(() => new ConfigurationException(null!));
         }
 
         [Fact]
         public void Constructor_NullInnerException_ThrowsArgumentNullException()
         {
             // Act and Assert
-            Assert.Throws<ArgumentNullException>(() => new ConfigurationException("Test message", null));
+            Assert.Throws<ArgumentNullException>(() => new ConfigurationException("Test message", null!));
         }
     }
 }

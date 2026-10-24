@@ -71,6 +71,6 @@ public class CachingOptionsValidationTests
     public void Validate_NullOptions_ThrowsArgumentNullException()
     {
         // Act and Assert
-        Assert.Throws<ArgumentNullException>(() => CachingOptionsValidation.Validate(null));
+        Assert.Throws<ArgumentNullException>(() => CachingOptionsValidation.Validate(null!));
     }
 }

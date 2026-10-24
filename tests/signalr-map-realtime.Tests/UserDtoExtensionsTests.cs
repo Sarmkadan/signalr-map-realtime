@@ -133,7 +133,7 @@ namespace SignalRMapRealtime.Tests
             // Arrange
             var user = new UserDto
             {
-                FullName = null,
+                FullName = null!,
                 Email = "frank@example.com"
             };
 
@@ -152,7 +152,7 @@ namespace SignalRMapRealtime.Tests
             var user = new UserDto
             {
                 FullName = "Grace Hopper",
-                Email = null
+                Email = null!
             };
 
             // Act
@@ -169,8 +169,8 @@ namespace SignalRMapRealtime.Tests
             // Arrange
             var user = new UserDto
             {
-                FullName = null,
-                Email = null
+                FullName = null!,
+                Email = null!
             };
 
             // Act
@@ -238,7 +238,7 @@ namespace SignalRMapRealtime.Tests
             // Arrange
             var user = new UserDto
             {
-                Email = null,
+                Email = null!,
                 PhoneNumber = null,
                 EmployeeId = null
             };

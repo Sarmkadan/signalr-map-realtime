@@ -36,7 +36,7 @@ public class VehicleStaleEventHandler : IEventHandler<VehicleStaleEvent>
     /// <summary>
     /// Handles the VehicleStaleEvent by broadcasting it to all connected SignalR clients.
     /// </summary>
-    /// <param name="@event">The vehicle stale event to handle.</param>
+    /// <param name="event">The vehicle stale event to handle.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
     /// <exception cref="ArgumentNullException">Thrown when the event is null.</exception>
     public async Task HandleAsync(VehicleStaleEvent @event)

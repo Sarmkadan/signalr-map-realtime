@@ -24,7 +24,7 @@ public class PlaybackOptionsExtensionsTests
     public void ClampSpeedMultiplier_NullOptions_ThrowsArgumentNullException()
     {
         // Arrange
-        PlaybackOptions options = null;
+        PlaybackOptions options = null!;
         double speedMultiplier = 10.0;
 
         // Act and Assert
@@ -37,7 +37,6 @@ public class PlaybackOptionsExtensionsTests
         // Arrange
         var options = new PlaybackOptions();
         double speedMultiplier = 1.0;
-        double realTimeTolerance = 0.05;
 
         // Act
         bool actual = options.IsRealTime(speedMultiplier);
@@ -52,7 +51,6 @@ public class PlaybackOptionsExtensionsTests
         // Arrange
         var options = new PlaybackOptions();
         double speedMultiplier = 0.9;
-        double realTimeTolerance = 0.05;
 
         // Act
         bool actual = options.IsRealTime(speedMultiplier);

@@ -34,7 +34,10 @@ namespace SignalRMapRealtime.DTOs
         public static object ToDisplayModel(this UserDto user)
         {
             ArgumentNullException.ThrowIfNull(user);
-            ArgumentNullException.ThrowIfNull(user.CreatedAt);
+            if (user.CreatedAt == default)
+            {
+                throw new ArgumentNullException(nameof(user.CreatedAt));
+            }
 
             return new
             {
@@ -83,6 +86,7 @@ namespace SignalRMapRealtime.DTOs
                 user.PhoneNumber,
                 user.EmployeeId
             }
+            .OfType<string>()
             .Where(contact => !string.IsNullOrEmpty(contact))
             .ToList()
             .AsReadOnly();

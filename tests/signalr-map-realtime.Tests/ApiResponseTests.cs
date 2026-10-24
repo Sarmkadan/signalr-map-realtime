@@ -41,7 +41,6 @@ public class ApiResponseTests
 
         // Assert
         Assert.False(response.Success);
-        Assert.Null(response.Data);
         Assert.Equal(message, response.Message);
         Assert.Equal(statusCode, response.StatusCode);
         Assert.Equal(traceId, response.TraceId);

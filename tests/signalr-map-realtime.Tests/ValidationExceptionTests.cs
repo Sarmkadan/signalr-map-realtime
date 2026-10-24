@@ -61,7 +61,7 @@ namespace signalr_map_realtime.Tests
             var message = "No errors collection";
 
             // Act
-            var ex = new ValidationException(message, (IEnumerable<string>)null);
+            var ex = new ValidationException(message, (IEnumerable<string>)null!);
 
             // Assert
             Assert.Equal(message, ex.Message);
@@ -107,14 +107,14 @@ namespace signalr_map_realtime.Tests
         public void ErrorsProperty_NullSafeEnumeration()
         {
             // Arrange
-            var ex = new ValidationException("msg", (IEnumerable<string>)null);
+            var ex = new ValidationException("msg", (IEnumerable<string>)null!);
 
             // Act & Assert
             // Ensure that iterating over Errors never throws.
             foreach (var err in ex.Errors)
             {
                 // No iteration expected.
-                Assert.True(false, "Should not iterate over empty collection.");
+                Assert.Fail("Should not iterate over empty collection.");
             }
 
             Assert.Empty(ex.Errors);

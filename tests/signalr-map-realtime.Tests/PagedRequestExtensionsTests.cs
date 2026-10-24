@@ -22,7 +22,7 @@ namespace SignalRMapRealtime.Tests
         public void CalculateSkip_NullRequest_ThrowsArgumentNullException()
         {
             // Act and Assert
-            Assert.Throws<ArgumentNullException>(() => PagedRequestExtensions.CalculateSkip(null));
+            Assert.Throws<ArgumentNullException>(() => PagedRequestExtensions.CalculateSkip(null!));
         }
 
         [Fact]
@@ -42,7 +42,7 @@ namespace SignalRMapRealtime.Tests
         public void CalculateTake_NullRequest_ThrowsArgumentNullException()
         {
             // Act and Assert
-            Assert.Throws<ArgumentNullException>(() => PagedRequestExtensions.CalculateTake(null));
+            Assert.Throws<ArgumentNullException>(() => PagedRequestExtensions.CalculateTake(null!));
         }
 
         [Fact]
@@ -88,7 +88,7 @@ namespace SignalRMapRealtime.Tests
         public void GetValidPageSize_NullRequest_ThrowsArgumentNullException()
         {
             // Act and Assert
-            Assert.Throws<ArgumentNullException>(() => PagedRequestExtensions.GetValidPageSize(null));
+            Assert.Throws<ArgumentNullException>(() => PagedRequestExtensions.GetValidPageSize(null!));
         }
 
         [Fact]
@@ -108,7 +108,7 @@ namespace SignalRMapRealtime.Tests
         public void GetValidPageNumber_NullRequest_ThrowsArgumentNullException()
         {
             // Act and Assert
-            Assert.Throws<ArgumentNullException>(() => PagedRequestExtensions.GetValidPageNumber(null));
+            Assert.Throws<ArgumentNullException>(() => PagedRequestExtensions.GetValidPageNumber(null!));
         }
 
         [Fact]

@@ -28,7 +28,7 @@ public class LocationServiceTests
         service.GetLatestLocationAsync(99, default).Returns((LocationDto?)null);
 
         // Act
-        var result = await service.GetLatestLocationAsync(99).ConfigureAwait(false);
+        var result = await service.GetLatestLocationAsync(99);
 
         // Assert
         result.Should().BeNull();
@@ -55,7 +55,7 @@ public class LocationServiceTests
         service.GetLatestLocationAsync(5, default).Returns(expected);
 
         // Act
-        var result = await service.GetLatestLocationAsync(5).ConfigureAwait(false);
+        var result = await service.GetLatestLocationAsync(5);
 
         // Assert
         result.Should().NotBeNull();
@@ -87,7 +87,7 @@ public class LocationServiceTests
         service.GetLocationStatsAsync(1, start, end, default).Returns(expected);
 
         // Act
-        var stats = await service.GetLocationStatsAsync(1, start, end).ConfigureAwait(false);
+        var stats = await service.GetLocationStatsAsync(1, start, end);
 
         // Assert
         stats.PointCount.Should().Be(12);

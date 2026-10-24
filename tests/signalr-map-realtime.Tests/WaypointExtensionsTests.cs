@@ -26,7 +26,7 @@ namespace SignalRMapRealtime.Tests
             var destination = new Waypoint { Latitude = 2.0, Longitude = 2.0 };
 
             // Act and Assert
-            Assert.Throws<ArgumentNullException>(() => WaypointExtensions.CalculateDistanceTo(null, destination));
+            Assert.Throws<ArgumentNullException>(() => WaypointExtensions.CalculateDistanceTo(null!, destination));
         }
 
         [Fact]
@@ -36,7 +36,7 @@ namespace SignalRMapRealtime.Tests
             var source = new Waypoint { Latitude = 1.0, Longitude = 1.0 };
 
             // Act and Assert
-            Assert.Throws<ArgumentNullException>(() => WaypointExtensions.CalculateDistanceTo(source, null));
+            Assert.Throws<ArgumentNullException>(() => WaypointExtensions.CalculateDistanceTo(source, null!));
         }
 
         [Fact]

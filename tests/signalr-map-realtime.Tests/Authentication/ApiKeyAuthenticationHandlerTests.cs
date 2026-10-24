@@ -1,5 +1,4 @@
 #nullable enable
-#pragma warning disable CS0618 // ISystemClock is obsolete
 using System.Security.Claims;
 using FluentAssertions;
 using Microsoft.AspNetCore.Authentication;
@@ -17,14 +16,12 @@ namespace signalr_map_realtime.Tests.Authentication
     {
         private readonly IConfiguration _configuration;
         private readonly ILoggerFactory _loggerFactory;
-        private readonly ISystemClock _systemClock;
         private readonly ILogger<ApiKeyAuthenticationHandler> _logger;
 
         public ApiKeyAuthenticationHandlerTests()
         {
             _configuration = Substitute.For<IConfiguration>();
             _loggerFactory = Substitute.For<ILoggerFactory>();
-            _systemClock = Substitute.For<ISystemClock>();
             _logger = Substitute.For<ILogger<ApiKeyAuthenticationHandler>>();
             _loggerFactory.CreateLogger<ApiKeyAuthenticationHandler>().Returns(_logger);
         }
@@ -51,8 +48,8 @@ namespace signalr_map_realtime.Tests.Authentication
 
             var principal = authenticateResult.Principal;
             principal.Should().NotBeNull();
-            principal.Identity.Should().NotBeNull();
-            principal.Identity.IsAuthenticated.Should().BeTrue();
+            principal!.Identity.Should().NotBeNull();
+            principal!.Identity!.IsAuthenticated.Should().BeTrue();
             principal.Identity.AuthenticationType.Should().Be(AuthenticationConstants.ApiKeySchemeName);
 
             var claimsPrincipal = principal as ClaimsPrincipal;
@@ -81,7 +78,7 @@ namespace signalr_map_realtime.Tests.Authentication
             authenticateResult.Should().NotBeNull();
             authenticateResult.Succeeded.Should().BeFalse();
             authenticateResult.Failure.Should().NotBeNull();
-            authenticateResult.Failure.Message.Should().Contain("API Key not found");
+            authenticateResult.Failure!.Message.Should().Contain("API Key not found");
 
             _logger.Received(1).LogWarning(
                 "API Key not found in header '{ApiKeyHeaderName}' or query parameter '{ApiKeyQueryParamName}'.",
@@ -107,7 +104,7 @@ namespace signalr_map_realtime.Tests.Authentication
             authenticateResult.Should().NotBeNull();
             authenticateResult.Succeeded.Should().BeFalse();
             authenticateResult.Failure.Should().NotBeNull();
-            authenticateResult.Failure.Message.Should().Contain("API Key not found");
+            authenticateResult.Failure!.Message.Should().Contain("API Key not found");
         }
 
         [Fact]
@@ -129,7 +126,7 @@ namespace signalr_map_realtime.Tests.Authentication
             authenticateResult.Should().NotBeNull();
             authenticateResult.Succeeded.Should().BeFalse();
             authenticateResult.Failure.Should().NotBeNull();
-            authenticateResult.Failure.Message.Should().Be("Invalid API Key.");
+            authenticateResult.Failure!.Message.Should().Be("Invalid API Key.");
 
             _logger.Received(1).LogWarning("Invalid API Key provided.");
         }
@@ -152,7 +149,7 @@ namespace signalr_map_realtime.Tests.Authentication
             authenticateResult.Should().NotBeNull();
             authenticateResult.Succeeded.Should().BeFalse();
             authenticateResult.Failure.Should().NotBeNull();
-            authenticateResult.Failure.Message.Should().Be("Invalid API Key.");
+            authenticateResult.Failure!.Message.Should().Be("Invalid API Key.");
         }
 
         [Fact]
@@ -173,7 +170,7 @@ namespace signalr_map_realtime.Tests.Authentication
             authenticateResult.Should().NotBeNull();
             authenticateResult.Succeeded.Should().BeFalse();
             authenticateResult.Failure.Should().NotBeNull();
-            authenticateResult.Failure.Message.Should().Be("Invalid API Key.");
+            authenticateResult.Failure!.Message.Should().Be("Invalid API Key.");
         }
 
         [Fact]
@@ -200,8 +197,8 @@ namespace signalr_map_realtime.Tests.Authentication
 
             var principal = authenticateResult.Principal;
             principal.Should().NotBeNull();
-            principal.Identity.Should().NotBeNull();
-            principal.Identity.IsAuthenticated.Should().BeTrue();
+            principal!.Identity.Should().NotBeNull();
+            principal!.Identity!.IsAuthenticated.Should().BeTrue();
             principal.Identity.AuthenticationType.Should().Be(AuthenticationConstants.ApiKeySchemeName);
 
             var claimsPrincipal = principal as ClaimsPrincipal;
@@ -237,7 +234,7 @@ namespace signalr_map_realtime.Tests.Authentication
 
             var principal = authenticateResult.Principal;
             principal.Should().NotBeNull();
-            principal.Identity.IsAuthenticated.Should().BeTrue();
+            principal!.Identity!.IsAuthenticated.Should().BeTrue();
         }
 
         [Fact]
@@ -274,7 +271,7 @@ namespace signalr_map_realtime.Tests.Authentication
         public async Task HandleAuthenticateAsync_NoConfiguredApiKey_ReturnsFailResult()
         {
             // Arrange
-            _configuration["Authentication:ApiKey"].Returns((string)null);
+            _configuration["Authentication:ApiKey"].Returns((string?)null);
 
             var handler = CreateHandler();
 
@@ -288,7 +285,7 @@ namespace signalr_map_realtime.Tests.Authentication
             authenticateResult.Should().NotBeNull();
             authenticateResult.Succeeded.Should().BeFalse();
             authenticateResult.Failure.Should().NotBeNull();
-            authenticateResult.Failure.Message.Should().Be("Invalid API Key.");
+            authenticateResult.Failure!.Message.Should().Be("Invalid API Key.");
         }
 
         private ApiKeyAuthenticationHandler CreateHandler()
@@ -301,7 +298,6 @@ namespace signalr_map_realtime.Tests.Authentication
                 optionsMonitor,
                 _loggerFactory,
                 System.Text.Encodings.Web.UrlEncoder.Default,
-                _systemClock,
                 _configuration);
         }
     }

@@ -41,7 +41,7 @@ namespace SignalRMapRealtime.Tests
             var logger = Substitute.For<ILogger<LocationHub>>();
 
             // Act and Assert
-            Assert.Throws<ArgumentNullException>(() => new LocationHub(null, vehicleService, trackingService, routeRepository, throttler, logger));
+            Assert.Throws<ArgumentNullException>(() => new LocationHub(null!, vehicleService, trackingService, routeRepository, throttler, logger));
         }
 
         [Fact]
@@ -55,7 +55,7 @@ namespace SignalRMapRealtime.Tests
             var logger = Substitute.For<ILogger<LocationHub>>();
 
             // Act and Assert
-            Assert.Throws<ArgumentNullException>(() => new LocationHub(locationService, null, trackingService, routeRepository, throttler, logger));
+            Assert.Throws<ArgumentNullException>(() => new LocationHub(locationService, null!, trackingService, routeRepository, throttler, logger));
         }
 
         [Fact]
@@ -69,7 +69,7 @@ namespace SignalRMapRealtime.Tests
             var throttler = Substitute.For<LocationUpdateThrottler>();
 
             // Act and Assert
-            Assert.Throws<ArgumentNullException>(() => new LocationHub(locationService, vehicleService, trackingService, routeRepository, throttler, null));
+            Assert.Throws<ArgumentNullException>(() => new LocationHub(locationService, vehicleService, trackingService, routeRepository, throttler, null!));
         }
 
         [Fact]
@@ -112,7 +112,7 @@ namespace SignalRMapRealtime.Tests
             var hub = new LocationHub(locationService, vehicleService, trackingService, routeRepository, throttler, logger);
 
             // Act and Assert
-            await Assert.ThrowsAsync<ArgumentNullException>(() => hub.SendLocationUpdate(null));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => hub.SendLocationUpdate(null!));
         }
 
         [Fact]

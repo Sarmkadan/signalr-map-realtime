@@ -59,8 +59,8 @@ namespace signalr_map_realtime.Tests
             // Arrange
             var evt = new VehicleStaleEvent
             {
-                VehicleRegistration = null,
-                VehicleName = null
+                VehicleRegistration = null!,
+                VehicleName = null!
             };
 
             // Act & Assert

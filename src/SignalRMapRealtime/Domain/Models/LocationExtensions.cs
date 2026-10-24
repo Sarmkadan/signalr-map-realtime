@@ -95,14 +95,6 @@ public static class LocationExtensions
     }
 
     /// <summary>
-    /// Determines if this location is within a specified bounding box defined by two corner locations.
-    /// </summary>
-    /// <param name="location">The location to check. Cannot be null.</param>
-    /// <param name="southWest">South-west corner of the bounding box. Cannot be null.</param>
-    /// <param name="northEast">North-east corner of the bounding box. Cannot be null.</param>
-    /// <returns>True if the location is within the bounding box.</returns>
-    /// <exception cref="ArgumentNullException">Thrown if any parameter is null.</exception>
-    /// <summary>
     /// Determines whether this location is stale, i.e. its <see cref="Location.Timestamp"/> is older
     /// than the specified threshold relative to the current UTC time.
     /// </summary>
@@ -121,6 +113,14 @@ public static class LocationExtensions
         return DateTime.UtcNow - location.Timestamp > threshold;
     }
 
+    /// <summary>
+    /// Determines if this location is within a specified bounding box defined by two corner locations.
+    /// </summary>
+    /// <param name="location">The location to check. Cannot be null.</param>
+    /// <param name="southWest">South-west corner of the bounding box. Cannot be null.</param>
+    /// <param name="northEast">North-east corner of the bounding box. Cannot be null.</param>
+    /// <returns>True if the location is within the bounding box.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if any parameter is null.</exception>
     public static bool IsWithinBoundingBox(this Location location, Location southWest, Location northEast)
     {
         ArgumentNullException.ThrowIfNull(location);
