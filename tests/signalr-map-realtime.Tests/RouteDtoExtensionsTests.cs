@@ -165,10 +165,11 @@ namespace SignalRMapRealtime.Tests
         public void HasValidVehicle_HappyPath_VehicleIdGreaterThanZero_ReturnsTrue()
         {
             // Arrange
+            // A valid vehicle needs both a positive VehicleId and the assigned Vehicle object.
             var route = new RouteDto
             {
                 VehicleId = 1,
-                Vehicle = null
+                Vehicle = new VehicleDto()
             };
 
             // Act

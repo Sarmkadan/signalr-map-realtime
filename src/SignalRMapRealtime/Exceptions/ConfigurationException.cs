@@ -19,7 +19,7 @@ namespace SignalRMapRealtime.Exceptions
         /// </summary>
         /// <param name="message">The error message that explains the reason for the exception.</param>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="message"/> is null.</exception>
-        public ConfigurationException(string message) : base(message)
+        public ConfigurationException(string message) : base(RequireMessage(message))
         {
         }
 
@@ -29,8 +29,14 @@ namespace SignalRMapRealtime.Exceptions
         /// <param name="message">The error message that explains the reason for the exception.</param>
         /// <param name="innerException">The exception that is the cause of the current exception.</param>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="message"/> is null.</exception>
-        public ConfigurationException(string message, Exception innerException) : base(message, innerException)
+        public ConfigurationException(string message, Exception innerException) : base(RequireMessage(message), innerException)
         {
+        }
+
+        private static string RequireMessage(string message)
+        {
+            ArgumentNullException.ThrowIfNull(message);
+            return message;
         }
     }
 }

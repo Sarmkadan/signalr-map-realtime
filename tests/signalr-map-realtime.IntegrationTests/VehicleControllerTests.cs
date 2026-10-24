@@ -83,14 +83,14 @@ namespace SignalRMapRealtime.IntegrationTests
         [Fact]
         public async Task PostVehicle_ReturnsCreatedVehicle()
         {
-            // Arrange
-            var newVehicle = new VehicleDto
+            // Arrange - the create endpoint takes CreateVehicleDto
+            var newVehicle = new CreateVehicleDto
             {
-                Make = "Ford",
-                Model = "Transit",
-                Year = 2020,
-                LicensePlate = "TEST123",
-                Status = VehicleStatus.Available
+                Name = "Ford Transit",
+                RegistrationNumber = "TEST123",
+                AssetType = AssetType.DeliveryVan,
+                Manufacturer = "Ford",
+                ModelYear = 2020
             };
             var content = new StringContent(JsonConvert.SerializeObject(newVehicle), Encoding.UTF8, "application/json");
 
@@ -102,12 +102,12 @@ namespace SignalRMapRealtime.IntegrationTests
             (response.Content.Headers.ContentType?.ToString()).Should().Contain("application/json");
 
             var responseString = await response.Content.ReadAsStringAsync();
-            var createdVehicle = JsonConvert.DeserializeObject<VehicleDto>(responseString);
+            var createdVehicle = JsonConvert.DeserializeObject<ApiResponse<VehicleDto>>(responseString)?.Data;
 
             createdVehicle.Should().NotBeNull();
             createdVehicle!.Id.Should().BeGreaterThan(0);
-            createdVehicle.Make.Should().Be(newVehicle.Make);
-            createdVehicle.Model.Should().Be(newVehicle.Model);
+            createdVehicle.Name.Should().Be(newVehicle.Name);
+            createdVehicle.RegistrationNumber.Should().Be(newVehicle.RegistrationNumber);
         }
 
         /// <summary>
@@ -117,7 +117,7 @@ namespace SignalRMapRealtime.IntegrationTests
         public async Task GetVehicleById_ReturnsNotFound_ForNonExistentId()
         {
             // Arrange
-            var nonExistentId = Guid.NewGuid();
+            var nonExistentId = 99999;
 
             // Act
             var response = await _client.GetAsync($"/api/Vehicle/{nonExistentId}");
@@ -149,7 +149,7 @@ namespace SignalRMapRealtime.IntegrationTests
             // Assert
             response.StatusCode.Should().Be(HttpStatusCode.OK);
             var responseString = await response.Content.ReadAsStringAsync();
-            var vehicleDto = JsonConvert.DeserializeObject<VehicleDto>(responseString);
+            var vehicleDto = JsonConvert.DeserializeObject<ApiResponse<VehicleDto>>(responseString)?.Data;
 
             vehicleDto.Should().NotBeNull();
             vehicleDto!.Id.Should().Be(existingVehicle.Id);
@@ -189,16 +189,17 @@ namespace SignalRMapRealtime.IntegrationTests
             var response = await _client.PutAsync($"/api/Vehicle/{existingVehicle.Id}", content);
 
             // Assert
-            response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
 
             // Verify the update
             var getResponse = await _client.GetAsync($"/api/Vehicle/{existingVehicle.Id}");
             var responseString = await getResponse.Content.ReadAsStringAsync();
-            var vehicleDto = JsonConvert.DeserializeObject<VehicleDto>(responseString);
+            var vehicleDto = JsonConvert.DeserializeObject<ApiResponse<VehicleDto>>(responseString)?.Data;
 
             vehicleDto.Should().NotBeNull();
-            vehicleDto!.Year.Should().Be(updatedVehicle.Year);
-            vehicleDto.Status.Should().Be(updatedVehicle.Status);
+            vehicleDto!.Status.Should().Be(updatedVehicle.Status);
+            // Year is not part of UpdateVehicleDto, so the update leaves it unchanged
+            vehicleDto.Year.Should().Be(existingVehicle.Year);
         }
 
         /// <summary>

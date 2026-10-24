@@ -10,6 +10,7 @@ using NSubstitute;
 using SignalRMapRealtime.Hubs;
 using SignalRMapRealtime.DTOs;
 using SignalRMapRealtime.Services;
+using SignalRMapRealtime.Domain.Enums;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
@@ -70,9 +71,7 @@ namespace SignalRMapRealtime.Tests
             await hub.OnConnectedAsync();
 
             // Assert
-            logger.Received(1).LogInformation(
-                Arg.Is("Playback client {ConnectionId} connected"),
-                Arg.Is("test-connection-id"));
+            logger.HasLogged(LogLevel.Information, "Playback client test-connection-id connected").Should().BeTrue();
         }
 
         [Fact]
@@ -92,10 +91,7 @@ namespace SignalRMapRealtime.Tests
             await hub.OnDisconnectedAsync(null);
 
             // Assert
-            logger.Received(1).LogInformation(
-                Arg.Is("Playback client {ConnectionId} disconnected. Reason: {Reason}"),
-                Arg.Is("test-connection-id"),
-                Arg.Is("clean disconnect"));
+            logger.HasLogged(LogLevel.Information, "Playback client test-connection-id disconnected. Reason: clean disconnect").Should().BeTrue();
         }
 
         [Fact]
@@ -117,7 +113,7 @@ namespace SignalRMapRealtime.Tests
 
             // Mock Clients
             var clientsMock = Substitute.For<IHubCallerClients>();
-            var callerMock = Substitute.For<IClientProxy>();
+            var callerMock = Substitute.For<ISingleClientProxy>();
             clientsMock.Caller.Returns(callerMock);
             hub.Clients = clientsMock;
 
@@ -139,13 +135,11 @@ namespace SignalRMapRealtime.Tests
             await groupsMock.Received(1).AddToGroupAsync(
                 Arg.Is("test-connection-id"),
                 Arg.Is($"playback-{playbackId}"));
-            await callerMock.Received(1).SendAsync(
-                Arg.Is("PlaybackStarted"),
-                Arg.Is<PlaybackSessionDto>(o =>
-                    o.PlaybackId == playbackId &&
-                    o.TrackingSessionId == 123 &&
-                    o.SpeedMultiplier == 1.5 &&
-                    o.Loop == true));
+            Sent(callerMock, "PlaybackStarted", p =>
+                Prop<Guid>(p, "PlaybackId") == playbackId &&
+                Prop<int>(p, "SessionId") == 123 &&
+                Prop<double>(p, "AppliedSpeedMultiplier") == 1.5 &&
+                Prop<bool>(p, "Loop")).Should().BeTrue();
         }
 
         [Fact]
@@ -196,9 +190,8 @@ namespace SignalRMapRealtime.Tests
             // Assert
             await playbackService.Received(1).PausePlaybackAsync(playbackId);
             await playbackService.Received(1).GetPlaybackStateAsync(playbackId);
-            await groupMock.Received(1).SendAsync(
-                Arg.Is("PlaybackPaused"),
-                Arg.Is<PlaybackSessionDto>(s => s != null && s.PlaybackId == playbackId && s.Status == PlaybackStatus.Paused));
+            Sent(groupMock, "PlaybackPaused", p =>
+                p is PlaybackSessionDto s && s.PlaybackId == playbackId && s.Status == PlaybackStatus.Paused).Should().BeTrue();
         }
 
         [Fact]
@@ -216,7 +209,7 @@ namespace SignalRMapRealtime.Tests
 
             // Mock Clients
             var clientsMock = Substitute.For<IHubCallerClients>();
-            var callerMock = Substitute.For<IClientProxy>();
+            var callerMock = Substitute.For<ISingleClientProxy>();
             clientsMock.Caller.Returns(callerMock);
             hub.Clients = clientsMock;
 
@@ -227,13 +220,8 @@ namespace SignalRMapRealtime.Tests
             await hub.PausePlayback(playbackId);
 
             // Assert
-            logger.Received(1).LogError(
-                Arg.Is<Exception>(ex => ex is InvalidOperationException),
-                Arg.Is("Error pausing playback {PlaybackId}"),
-                playbackId);
-            await callerMock.Received(1).SendAsync(
-                Arg.Is("PlaybackError"),
-                Arg.Any<object>());
+            logger.HasLogged(LogLevel.Error, "Error pausing playback").Should().BeTrue();
+            Sent(callerMock, "PlaybackError").Should().BeTrue();
         }
 
         [Fact]
@@ -272,9 +260,8 @@ namespace SignalRMapRealtime.Tests
             // Assert
             await playbackService.Received(1).ResumePlaybackAsync(playbackId);
             await playbackService.Received(1).GetPlaybackStateAsync(playbackId);
-            await groupMock.Received(1).SendAsync(
-                Arg.Is("PlaybackResumed"),
-                Arg.Is<PlaybackSessionDto>(s => s != null && s.PlaybackId == playbackId && s.Status == PlaybackStatus.Playing));
+            Sent(groupMock, "PlaybackResumed", p =>
+                p is PlaybackSessionDto s && s.PlaybackId == playbackId && s.Status == PlaybackStatus.Playing).Should().BeTrue();
         }
 
         [Fact]
@@ -306,9 +293,7 @@ namespace SignalRMapRealtime.Tests
             await hub.StopPlayback(playbackId);
 
             // Assert
-            await groupMock.Received(1).SendAsync(
-                Arg.Is("PlaybackStopped"),
-                Arg.Any<object>());
+            Sent(groupMock, "PlaybackStopped").Should().BeTrue();
             await playbackService.Received(1).StopPlaybackAsync(playbackId);
             await groupsMock.Received(1).RemoveFromGroupAsync(
                 Arg.Is("test-connection-id"),
@@ -352,9 +337,7 @@ namespace SignalRMapRealtime.Tests
             // Assert
             await playbackService.Received(1).SeekToTimestampAsync(playbackId, timestamp);
             await playbackService.Received(1).GetPlaybackStateAsync(playbackId);
-            await groupMock.Received(1).SendAsync(
-                Arg.Is("PlaybackSeeked"),
-                Arg.Any<object>());
+            Sent(groupMock, "PlaybackSeeked").Should().BeTrue();
         }
 
         [Fact]
@@ -394,9 +377,8 @@ namespace SignalRMapRealtime.Tests
             // Assert
             await playbackService.Received(1).SetPlaybackSpeedAsync(playbackId, speedMultiplier);
             await playbackService.Received(1).GetPlaybackStateAsync(playbackId);
-            await groupMock.Received(1).SendAsync(
-                Arg.Is("PlaybackSpeedChanged"),
-                Arg.Is<PlaybackSessionDto>(s => s != null && s.PlaybackId == playbackId && s.SpeedMultiplier == speedMultiplier));
+            Sent(groupMock, "PlaybackSpeedChanged", p =>
+                Prop<Guid>(p, "PlaybackId") == playbackId && Prop<double>(p, "SpeedMultiplier") == speedMultiplier).Should().BeTrue();
         }
 
         [Fact]
@@ -448,9 +430,10 @@ namespace SignalRMapRealtime.Tests
             await playbackService.Received(1).GetActivePlaybacksAsync();
             await playbackService.Received(1).SetPlaybackSpeedAsync(playbackId, clampedMultiplier);
             await playbackService.Received(1).GetPlaybackStateAsync(playbackId);
-            await groupMock.Received(1).SendAsync(
-                Arg.Is("PlaybackSpeedChanged"),
-                Arg.Is<PlaybackSessionDto>(s => s != null && s.PlaybackId == playbackId && s.TrackingSessionId == sessionId && s.SpeedMultiplier == clampedMultiplier));
+            Sent(groupMock, "PlaybackSpeedChanged", p =>
+                Prop<Guid>(p, "PlaybackId") == playbackId &&
+                Prop<int>(p, "SessionId") == sessionId &&
+                Prop<double>(p, "SpeedMultiplier") == clampedMultiplier).Should().BeTrue();
         }
 
         [Fact]
@@ -468,7 +451,7 @@ namespace SignalRMapRealtime.Tests
 
             // Mock Clients
             var clientsMock = Substitute.For<IHubCallerClients>();
-            var callerMock = Substitute.For<IClientProxy>();
+            var callerMock = Substitute.For<ISingleClientProxy>();
             clientsMock.Caller.Returns(callerMock);
             hub.Clients = clientsMock;
 
@@ -480,9 +463,7 @@ namespace SignalRMapRealtime.Tests
 
             // Assert
             await playbackService.Received(1).GetActivePlaybacksAsync();
-            await callerMock.Received(1).SendAsync(
-                Arg.Is("PlaybackError"),
-                Arg.Any<object>());
+            Sent(callerMock, "PlaybackError").Should().BeTrue();
         }
 
         [Fact]
@@ -532,9 +513,27 @@ namespace SignalRMapRealtime.Tests
 
             // Assert
             await playbackService.Received(1).SetPlaybackSpeedAsync(playbackId, clampedMultiplier);
-            await groupMock.Received(1).SendAsync(
-                Arg.Is("PlaybackSpeedChanged"),
-                Arg.Any<PlaybackSessionDto>());
+            Sent(groupMock, "PlaybackSpeedChanged").Should().BeTrue();
         }
-    }
+    
+        /// <summary>
+        /// Determines whether the proxy received a <c>SendAsync(method, ...)</c> call whose payload matches the predicate.
+        /// </summary>
+        /// <remarks>
+        /// The SendAsync extension forwards to <c>SendCoreAsync(method, object?[], ...)</c>, which NSubstitute can match.
+        /// </remarks>
+        private static bool Sent(IClientProxy proxy, string method, Func<object?, bool>? payloadPredicate = null)
+        {
+            return proxy.ReceivedCalls().Any(call =>
+                call.GetMethodInfo().Name == nameof(IClientProxy.SendCoreAsync)
+                && (string)call.GetArguments()[0]! == method
+                && (payloadPredicate is null || payloadPredicate(((object?[])call.GetArguments()[1]!).FirstOrDefault())));
+        }
+
+        /// <summary>
+        /// Reads a property from an anonymous payload sent by the hub.
+        /// </summary>
+        private static T? Prop<T>(object? payload, string name)
+            => payload?.GetType().GetProperty(name)?.GetValue(payload) is T value ? value : default;
+}
 }

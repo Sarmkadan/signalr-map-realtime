@@ -130,22 +130,13 @@ public class InvalidLocationException : LocationTrackingException
     /// <summary>
     /// Initializes a new instance with coordinates.
     /// </summary>
-    /// <param name="latitude">The invalid latitude value.</param>
-    /// <param name="longitude">The invalid longitude value.</param>
-    /// <exception cref="ArgumentException">Thrown if <paramref name="latitude"/> is not a valid coordinate value.</exception>
+    /// <param name="latitude">The invalid latitude value. Recorded as-is; range checks are reported by <see cref="LocationTrackingExceptionValidation"/>.</param>
+    /// <param name="longitude">The invalid longitude value. Recorded as-is; range checks are reported by <see cref="LocationTrackingExceptionValidation"/>.</param>
     public InvalidLocationException(double latitude, double longitude)
         : base($"Invalid location coordinates: Latitude={FormatCoordinate(latitude)}, Longitude={FormatCoordinate(longitude)}")
     {
-        if (latitude < -90.0 || latitude > 90.0)
-        {
-            throw new ArgumentException("Latitude must be between -90 and 90 degrees.", nameof(latitude));
-        }
-
-        if (longitude < -180.0 || longitude > 180.0)
-        {
-            throw new ArgumentException("Longitude must be between -180 and 180 degrees.", nameof(longitude));
-        }
-
+        // Out-of-range coordinates are the reason this exception exists, so they must be stored
+        // rather than rejected here; throwing ArgumentException would bypass the 400 error mapping.
         Latitude = latitude;
         Longitude = longitude;
     }

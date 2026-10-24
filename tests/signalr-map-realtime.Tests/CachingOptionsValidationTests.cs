@@ -28,7 +28,11 @@ public class CachingOptionsValidationTests
         var errors = CachingOptionsValidation.Validate(options);
 
         // Assert
-        Assert.Single(errors);
+        // A zero default also violates the "location cache <= 2x default" rule (30s > 0s * 2),
+        // so both errors are expected.
+        Assert.Equal(2, errors.Count);
+        Assert.Contains(errors, e => e.StartsWith("DefaultDurationSeconds must be at least 1"));
+        Assert.Contains(errors, e => e.StartsWith("LocationCacheDurationSeconds (30s) should not exceed twice"));
     }
 
     [Fact]

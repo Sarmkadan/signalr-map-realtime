@@ -351,6 +351,13 @@ public class VehicleController : ControllerBase
     {
         try
         {
+            // A body Id is optional, but when it is supplied it must identify the same resource as the route.
+            if (updateVehicleDto.Id is { } bodyId && bodyId != id)
+                return BadRequest(ErrorResponse.ValidationError(
+                    new Dictionary<string, string[]> { { "Id", new[] { $"Body Id {bodyId} does not match route Id {id}." } } },
+                    "Validation failed",
+                    HttpContext.TraceIdentifier));
+
             var vehicle = await _vehicleService.UpdateVehicleAsync(id, updateVehicleDto);
 
             if (vehicle is null)

@@ -74,7 +74,11 @@ public class PaginatedResponse<T>
     /// </summary>
     public PaginatedResponse(IReadOnlyList<T> items, int pageNumber, int pageSize, int totalCount)
     {
-        Items = items;
+        // Same normalisation as FromList: page numbers start at 1 and a non-positive page size falls back to 10.
+        if (pageNumber < 1) pageNumber = 1;
+        if (pageSize < 1) pageSize = 10;
+
+        Items = items ?? [];
         PageNumber = pageNumber;
         PageSize = pageSize;
         TotalCount = totalCount;

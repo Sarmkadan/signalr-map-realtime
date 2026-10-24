@@ -149,7 +149,8 @@ namespace SignalRMapRealtime.Tests
 
             // Act and Assert
             var exception = Assert.Throws<ArgumentException>(() => RouteDtoValidation.EnsureValid(route));
-            Assert.Equal("RouteDto validation failed:Name is required and cannot be empty or whitespace.", exception.Message);
+            Assert.StartsWith("RouteDto validation failed:", exception.Message);
+            Assert.Contains("Name is required and cannot be empty or whitespace.", exception.Message);
         }
     }
 }

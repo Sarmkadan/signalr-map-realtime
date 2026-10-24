@@ -41,17 +41,16 @@ namespace signalr_map_realtime.Tests
         }
 
         [Fact]
-        public void Validate_VehicleNotFoundException_ReturnsValidationProblem()
+        public void Validate_VehicleNotFoundException_WithPositiveId_ReturnsNoProblems()
         {
-            // Arrange
+            // Arrange - the constructor rejects non-positive IDs, so a valid exception carries a positive ID
             var exception = new VehicleNotFoundException(1);
 
             // Act
             var result = LocationTrackingExceptionValidation.Validate(exception);
 
             // Assert
-            Assert.Single(result);
-            Assert.Equal("VehicleNotFoundException.VehicleId must be positive, but was 1.", result[0]);
+            Assert.Empty(result);
         }
 
         [Fact]
@@ -88,7 +87,7 @@ namespace signalr_map_realtime.Tests
         }
 
         [Fact]
-        public void IsValid_VehicleNotFoundException_ReturnsFalse()
+        public void IsValid_VehicleNotFoundException_WithPositiveId_ReturnsTrue()
         {
             // Arrange
             var exception = new VehicleNotFoundException(1);
@@ -97,7 +96,7 @@ namespace signalr_map_realtime.Tests
             var result = LocationTrackingExceptionValidation.IsValid(exception);
 
             // Assert
-            Assert.False(result);
+            Assert.True(result);
         }
 
         [Fact]
@@ -128,13 +127,13 @@ namespace signalr_map_realtime.Tests
         }
 
         [Fact]
-        public void EnsureValid_VehicleNotFoundException_ThrowsArgumentException()
+        public void EnsureValid_VehicleNotFoundException_WithPositiveId_DoesNotThrow()
         {
             // Arrange
             var exception = new VehicleNotFoundException(1);
 
             // Act and Assert
-            Assert.Throws<ArgumentException>(() => LocationTrackingExceptionValidation.EnsureValid(exception));
+            LocationTrackingExceptionValidation.EnsureValid(exception);
         }
     }
 }

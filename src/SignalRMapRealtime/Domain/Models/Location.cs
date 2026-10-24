@@ -72,6 +72,8 @@ public class Location
     /// </summary>
     public double CalculateDistanceTo(Location other)
     {
+        ArgumentNullException.ThrowIfNull(other);
+
         const double EarthRadiusKm = 6371.0;
         double dLat = (other.Latitude - Latitude) * Math.PI / 180.0;
         double dLon = (other.Longitude - Longitude) * Math.PI / 180.0;
@@ -95,6 +97,7 @@ public class Location
     /// </summary>
     public bool IsDifferentFrom(Location other, double minDistanceKm = 0.05)
     {
+        ArgumentNullException.ThrowIfNull(other);
         return CalculateDistanceTo(other) >= minDistanceKm;
     }
 }

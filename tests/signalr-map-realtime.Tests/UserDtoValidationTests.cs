@@ -166,7 +166,7 @@ namespace SignalRMapRealtime.Tests
             user.JobTitle = new string('J', 101);
             user.Department = new string('D', 101);
             user.CreatedAt = DateTime.UtcNow.AddHours(1);
-            Assert.Equal(7, user.Validate().Count);
+            Assert.Equal(8, user.Validate().Count);
         }
 
         [Fact] public void IsValid_ValidUser_ReturnsTrue()

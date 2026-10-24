@@ -6,6 +6,7 @@
 
 namespace SignalRMapRealtime.Services;
 
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SignalRMapRealtime.Configuration;
@@ -21,9 +22,7 @@ using SignalRMapRealtime.Events;
 public class VehicleStaleDetectionService : BackgroundService
 {
     private readonly ILogger<VehicleStaleDetectionService> _logger;
-    private readonly IDomainEventDispatcher _eventDispatcher;
-    private readonly VehicleRepository _vehicleRepository;
-    private readonly LocationRepository _locationRepository;
+    private readonly IServiceScopeFactory _scopeFactory;
     private readonly SignalrMapRealtimeOptions _options;
     private readonly Dictionary<int, DateTime> _lastActiveTimes = new();
     private readonly HashSet<int> _currentlyStaleVehicles = new();
@@ -32,27 +31,20 @@ public class VehicleStaleDetectionService : BackgroundService
     /// Initializes a new instance of the VehicleStaleDetectionService.
     /// </summary>
     /// <param name="logger">Logger for tracking service operations.</param>
-    /// <param name="eventDispatcher">Domain event dispatcher for publishing domain events.</param>
-    /// <param name="vehicleRepository">Repository for accessing vehicle data.</param>
-    /// <param name="locationRepository">Repository for accessing location data.</param>
+    /// <param name="scopeFactory">Factory used to create a scope per detection cycle, so scoped services
+    /// (repositories, domain event dispatcher) are resolved from a valid lifetime.</param>
     /// <param name="options">Application configuration options.</param>
     public VehicleStaleDetectionService(
         ILogger<VehicleStaleDetectionService> logger,
-        IDomainEventDispatcher eventDispatcher,
-        VehicleRepository vehicleRepository,
-        LocationRepository locationRepository,
+        IServiceScopeFactory scopeFactory,
         IOptions<SignalrMapRealtimeOptions> options)
     {
         ArgumentNullException.ThrowIfNull(logger);
-        ArgumentNullException.ThrowIfNull(eventDispatcher);
-        ArgumentNullException.ThrowIfNull(vehicleRepository);
-        ArgumentNullException.ThrowIfNull(locationRepository);
+        ArgumentNullException.ThrowIfNull(scopeFactory);
         ArgumentNullException.ThrowIfNull(options);
 
         _logger = logger;
-        _eventDispatcher = eventDispatcher;
-        _vehicleRepository = vehicleRepository;
-        _locationRepository = locationRepository;
+        _scopeFactory = scopeFactory;
         _options = options.Value;
     }
 
@@ -72,8 +64,11 @@ public class VehicleStaleDetectionService : BackgroundService
         {
             try
             {
-                await DetectStaleVehiclesAsync(stoppingToken).ConfigureAwait(false);
-                await DetectRecoveredVehiclesAsync(stoppingToken).ConfigureAwait(false);
+                using (var scope = _scopeFactory.CreateScope())
+                {
+                    await DetectStaleVehiclesAsync(scope.ServiceProvider, stoppingToken).ConfigureAwait(false);
+                    await DetectRecoveredVehiclesAsync(scope.ServiceProvider, stoppingToken).ConfigureAwait(false);
+                }
 
                 // Run every 30 seconds to check for stale vehicles
                 await Task.Delay(TimeSpan.FromSeconds(30), stoppingToken).ConfigureAwait(false);
@@ -97,8 +92,11 @@ public class VehicleStaleDetectionService : BackgroundService
     /// <summary>
     /// Detects vehicles that have become stale (no location updates within the stale window).
     /// </summary>
-    private async Task DetectStaleVehiclesAsync(CancellationToken cancellationToken)
+    private async Task DetectStaleVehiclesAsync(IServiceProvider services, CancellationToken cancellationToken)
     {
+        var vehicleRepository = services.GetRequiredService<VehicleRepository>();
+        var eventDispatcher = services.GetRequiredService<IDomainEventDispatcher>();
+
         try
         {
             var now = DateTime.UtcNow;
@@ -108,7 +106,7 @@ public class VehicleStaleDetectionService : BackgroundService
             _logger.LogDebug("Checking for stale vehicles (cutoff: {CutoffTime})", cutoffTime);
 
             // Get all online vehicles that have location tracking
-            var onlineVehicles = await _vehicleRepository.GetOnlineVehiclesAsync().ConfigureAwait(false);
+            var onlineVehicles = await vehicleRepository.GetOnlineVehiclesAsync().ConfigureAwait(false);
 
             foreach (var vehicle in onlineVehicles)
             {
@@ -156,7 +154,7 @@ public class VehicleStaleDetectionService : BackgroundService
                         WasPreviouslyStale = false
                     };
 
-                    await _eventDispatcher.DispatchAsync(staleEvent).ConfigureAwait(false);
+                    await eventDispatcher.DispatchAsync(staleEvent).ConfigureAwait(false);
                     _logger.LogInformation("Published VehicleStaleEvent for vehicle {VehicleId}", vehicleId);
                 }
             }
@@ -171,8 +169,12 @@ public class VehicleStaleDetectionService : BackgroundService
     /// <summary>
     /// Detects vehicles that have recovered from stale state (started sending location updates again).
     /// </summary>
-    private async Task DetectRecoveredVehiclesAsync(CancellationToken cancellationToken)
+    private async Task DetectRecoveredVehiclesAsync(IServiceProvider services, CancellationToken cancellationToken)
     {
+        var vehicleRepository = services.GetRequiredService<VehicleRepository>();
+        var locationRepository = services.GetRequiredService<LocationRepository>();
+        var eventDispatcher = services.GetRequiredService<IDomainEventDispatcher>();
+
         try
         {
             var now = DateTime.UtcNow;
@@ -185,7 +187,7 @@ public class VehicleStaleDetectionService : BackgroundService
                 try
                 {
                     // Get the vehicle's latest location
-                    var latestLocation = await _locationRepository.GetLatestLocationByVehicleAsync(vehicleId).ConfigureAwait(false);
+                    var latestLocation = await locationRepository.GetLatestLocationByVehicleAsync(vehicleId).ConfigureAwait(false);
 
                     if (latestLocation != null)
                     {
@@ -195,7 +197,7 @@ public class VehicleStaleDetectionService : BackgroundService
                         // Check if vehicle has sent a new location update (recovered)
                         if (now - lastUpdateTime < TimeSpan.FromMinutes(5)) // Recent update means recovered
                         {
-                            var vehicle = await _vehicleRepository.GetByIdAsync(vehicleId, cancellationToken).ConfigureAwait(false);
+                            var vehicle = await vehicleRepository.GetByIdAsync(vehicleId, cancellationToken).ConfigureAwait(false);
                             if (vehicle != null)
                             {
                                 _logger.LogInformation(
@@ -219,7 +221,7 @@ public class VehicleStaleDetectionService : BackgroundService
                                     TimeInStaleStateMinutes = timeInStaleState.TotalMinutes
                                 };
 
-                                await _eventDispatcher.DispatchAsync(activeEvent).ConfigureAwait(false);
+                                await eventDispatcher.DispatchAsync(activeEvent).ConfigureAwait(false);
                                 _logger.LogInformation("Published VehicleActiveEvent for vehicle {VehicleId}", vehicleId);
                             }
                         }

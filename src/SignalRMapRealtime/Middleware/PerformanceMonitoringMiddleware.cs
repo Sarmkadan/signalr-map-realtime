@@ -72,7 +72,9 @@ public class PerformanceMonitoringMiddleware
                         statusCode);
                 }
 
-                // Copy response body to original stream
+                // Copy response body to original stream. Rewind first: the body was just written, so the
+                // position is at the end and CopyToAsync would otherwise copy nothing.
+                responseBody.Position = 0;
                 await responseBody.CopyToAsync(originalBodyStream);
             }
         }

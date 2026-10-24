@@ -41,6 +41,16 @@ namespace SignalRMapRealtime.IntegrationTests
             _client = _factory.CreateClient();
         }
 
+        private async Task SeedVehicle(Vehicle vehicle)
+        {
+            using (var scope = _factory.Services.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                dbContext.Vehicles.Add(vehicle);
+                await dbContext.SaveChangesAsync();
+            }
+        }
+
         /// <summary>
         /// Seeds a location in the database.
         /// </summary>
@@ -84,15 +94,25 @@ namespace SignalRMapRealtime.IntegrationTests
         [Fact]
         public async Task PostLocation_ReturnsCreatedLocation()
         {
-            // Arrange
-            var newLocation = new LocationDto
+            // Arrange - the create endpoint takes CreateLocationDto and needs an existing vehicle
+            var vehicle = new Vehicle
+            {
+                Make = "Ford",
+                Model = "Transit",
+                Year = 2020,
+                LicensePlate = $"LOC{Guid.NewGuid().ToString()[..6]}",
+                Status = Domain.Enums.VehicleStatus.Available
+            };
+            await SeedVehicle(vehicle);
+
+            var newLocation = new CreateLocationDto
             {
                 Latitude = 34.0522,
                 Longitude = -118.2437,
-                Timestamp = System.DateTime.UtcNow,
+                VehicleId = vehicle.Id,
                 Accuracy = 10,
                 Speed = 50,
-                Heading = 90
+                Bearing = 90
             };
             var content = new StringContent(JsonConvert.SerializeObject(newLocation), Encoding.UTF8, "application/json");
 
@@ -104,7 +124,7 @@ namespace SignalRMapRealtime.IntegrationTests
             (response.Content.Headers.ContentType?.ToString()).Should().Contain("application/json");
 
             var responseString = await response.Content.ReadAsStringAsync();
-            var createdLocation = JsonConvert.DeserializeObject<LocationDto>(responseString);
+            var createdLocation = JsonConvert.DeserializeObject<ApiResponse<LocationDto>>(responseString)?.Data;
 
             createdLocation.Should().NotBeNull();
             createdLocation!.Id.Should().BeGreaterThan(0);
@@ -152,7 +172,7 @@ namespace SignalRMapRealtime.IntegrationTests
             // Assert
             response.StatusCode.Should().Be(HttpStatusCode.OK);
             var responseString = await response.Content.ReadAsStringAsync();
-            var locationDto = JsonConvert.DeserializeObject<LocationDto>(responseString);
+            var locationDto = JsonConvert.DeserializeObject<ApiResponse<LocationDto>>(responseString)?.Data;
 
             locationDto.Should().NotBeNull();
             locationDto!.Id.Should().Be(existingLocation.Id);
@@ -194,12 +214,12 @@ namespace SignalRMapRealtime.IntegrationTests
             var response = await _client.PutAsync($"/api/Location/{existingLocation.Id}", content);
 
             // Assert
-            response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
 
             // Verify the update
             var getResponse = await _client.GetAsync($"/api/Location/{existingLocation.Id}");
             var responseString = await getResponse.Content.ReadAsStringAsync();
-            var locationDto = JsonConvert.DeserializeObject<LocationDto>(responseString);
+            var locationDto = JsonConvert.DeserializeObject<ApiResponse<LocationDto>>(responseString)?.Data;
 
             locationDto.Should().NotBeNull();
             locationDto!.Latitude.Should().Be(updatedLocation.Latitude);

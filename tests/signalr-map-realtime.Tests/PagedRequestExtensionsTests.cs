@@ -15,7 +15,7 @@ namespace SignalRMapRealtime.Tests
             var result = PagedRequestExtensions.CalculateSkip(request);
 
             // Assert
-            Assert.Equal(19, result);
+            Assert.Equal(10, result); // (2 - 1) * 10
         }
 
         [Fact]

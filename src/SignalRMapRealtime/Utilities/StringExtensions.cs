@@ -202,7 +202,9 @@ public static class StringExtensions
             return string.Empty;
         }
 
-        return new string(value.Reverse().ToArray());
+        var chars = value.ToCharArray();
+        Array.Reverse(chars);
+        return new string(chars);
     }
 
     /// <summary>

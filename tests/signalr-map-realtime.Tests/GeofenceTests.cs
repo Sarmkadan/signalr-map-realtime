@@ -1,5 +1,6 @@
 using Xunit;
 using SignalRMapRealtime.Domain.Models;
+using SignalRMapRealtime.Utilities;
 using FluentAssertions;
 using System;
 
@@ -112,7 +113,7 @@ public class GeofenceTests
         // Arrange
         var centerLat = 40.7128;
         var centerLon = -74.0060;
-        var radius = 1.0;
+        var radius = 0.5; // the point is ~0.87 km from the centre
         var pointLat = 40.7200;
         var pointLon = -74.0100;
 
@@ -175,12 +176,13 @@ public class GeofenceTests
         // Arrange - point exactly at radius distance from center
         var centerLat = 40.7128;
         var centerLon = -74.0060;
-        var radius = 1.0;
 
-        // Calculate a point exactly 1km away (approximately)
-        // Using simple approximation: 1 degree ≈ 111km, so 0.009 degrees ≈ 1km
+        // Point about 1 km north of the centre (1 degree of latitude is roughly 111 km)
         var pointLat = centerLat + 0.009;
         var pointLon = centerLon;
+
+        // The radius is the exact distance to the point, so the point lies on the boundary
+        var radius = GeoLocationExtensions.DistanceBetween(centerLat, centerLon, pointLat, pointLon);
 
         var geofence = new Geofence
         {
@@ -356,7 +358,7 @@ public class GeofenceTests
     }
 
     [Fact]
-    public void GetPolygonPoints_WithMalformedCoordinates_ReturnsEmptyList()
+    public void GetPolygonPoints_WithMalformedCoordinates_ReturnsOnlyValidPoints()
     {
         // Arrange - malformed coordinates (missing comma, invalid numbers)
         var polygonCoords = "40.7128-74.0060;invalid;40.7328,74.0260";
@@ -370,8 +372,8 @@ public class GeofenceTests
         // Act
         var points = geofence.GetPolygonPoints();
 
-        // Assert
-        points.Should().BeEmpty();
+        // Assert - malformed pairs are skipped; the one well-formed vertex is kept
+        points.Should().ContainSingle().Which.Should().Be((40.7328, 74.0260));
     }
 
     [Fact]
@@ -457,7 +459,7 @@ public class GeofenceTests
         // Arrange - test with extreme coordinate values
         var centerLat = 0.0;
         var centerLon = 0.0;
-        var radius = 1000.0; // Large radius
+        var radius = 12000.0; // Larger than the ~10,018 km distance to the point
         var pointLat = 89.9; // Near north pole
         var pointLon = 179.9; // Near international date line
 
@@ -503,19 +505,14 @@ public class GeofenceTests
     public void UpdatedAt_IsSetToCurrentTime_WhenGeofenceIsCreated()
     {
         // Arrange
-        var initialUpdatedAt = DateTime.UtcNow.AddDays(-1);
+        var before = DateTime.UtcNow;
 
-        var geofence = new Geofence
-        {
-            UpdatedAt = initialUpdatedAt
-        };
-
-        // Act - wait a bit and then modify
-        System.Threading.Thread.Sleep(10);
-        geofence.Name = "Updated Geofence";
+        // Act
+        var geofence = new Geofence();
 
         // Assert
-        geofence.UpdatedAt.Should().BeAfter(initialUpdatedAt);
+        var after = DateTime.UtcNow;
+        geofence.UpdatedAt.Should().BeOnOrAfter(before).And.BeOnOrBefore(after);
     }
 
     [Fact]

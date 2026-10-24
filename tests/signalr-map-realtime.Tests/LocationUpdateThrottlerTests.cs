@@ -56,7 +56,7 @@ public class LocationUpdateThrottlerTests
 
         // Assert
         result.Should().BeFalse();
-        _logger.Received(1).LogDebug("Throttling disabled, accepting location update for vehicle {VehicleId}", 1);
+        _logger.HasLogged(LogLevel.Debug, "Throttling disabled, accepting location update for vehicle 1").Should().BeTrue();
     }
 
     [Fact]
@@ -81,9 +81,7 @@ public class LocationUpdateThrottlerTests
 
         // Assert
         secondResult.Should().BeTrue("Update within throttle window should be throttled");
-        _logger.Received(1).LogDebug(
-            "Location update throttled for vehicle {VehicleId} (asset type: {AssetType}). Last update was {LastUpdateSeconds} seconds ago, minimum interval is {IntervalSeconds} seconds",
-            1, AssetType.DeliveryVan, Arg.Any<double>(), 1.0);
+        _logger.HasLogged(LogLevel.Debug, "Location update throttled for vehicle 1").Should().BeTrue();
     }
 
     [Fact]
@@ -120,9 +118,9 @@ public class LocationUpdateThrottlerTests
         var assetARapid = _throttler.ShouldThrottle(100, AssetType.DeliveryVan);
         assetARapid.Should().BeTrue("Asset A should be throttled");
 
-        // Act - asset B should still be accepted (different vehicle ID)
+        // Act - asset B's second update is throttled by its own window, not by asset A's state
         var assetBSecond = _throttler.ShouldThrottle(200, AssetType.DeliveryVan);
-        assetBSecond.Should().BeFalse("Asset B should not be throttled by Asset A's state");
+        assetBSecond.Should().BeTrue("Asset B was updated within its own window");
     }
 
     [Fact]
@@ -159,14 +157,14 @@ public class LocationUpdateThrottlerTests
         deliveryVanFirst.Should().BeFalse();
 
         var deliveryVanSecond = _throttler.ShouldThrottle(10, AssetType.DeliveryVan);
-        deliveryVanSecond.Should().BeTrue("DeliveryVan should throttle after 1 second");
+        deliveryVanSecond.Should().BeTrue("DeliveryVan should throttle within its 1 second window");
 
         // Courier - 5 second interval
         var courierFirst = _throttler.ShouldThrottle(20, AssetType.Courier);
         courierFirst.Should().BeFalse();
 
         var courierSecond = _throttler.ShouldThrottle(20, AssetType.Courier);
-        courierSecond.Should().BeFalse("Courier rapid update should be accepted (within 5 second window)");
+        courierSecond.Should().BeTrue("Courier rapid update should be throttled (within 5 second window)");
 
         // Wait for courier window to pass
         Thread.Sleep(5100);
@@ -179,7 +177,7 @@ public class LocationUpdateThrottlerTests
         portableFirst.Should().BeFalse();
 
         var portableSecond = _throttler.ShouldThrottle(30, AssetType.Portable);
-        portableSecond.Should().BeFalse("Portable rapid update should be accepted (within 15 second window)");
+        portableSecond.Should().BeTrue("Portable rapid update should be throttled (within 15 second window)");
     }
 
     [Fact]
@@ -196,7 +194,7 @@ public class LocationUpdateThrottlerTests
         var secondResult = _throttler.ShouldThrottle(50, AssetType.DeliveryVan);
         secondResult.Should().BeFalse("After removal, vehicle should be accepted again");
 
-        _logger.Received(1).LogDebug("Removing throttle entry for vehicle {VehicleId}", 50);
+        _logger.HasLogged(LogLevel.Debug, "Removing throttle entry for vehicle 50").Should().BeTrue();
     }
 
     [Fact]

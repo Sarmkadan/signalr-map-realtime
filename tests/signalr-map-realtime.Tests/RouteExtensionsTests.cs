@@ -340,7 +340,7 @@ public class RouteExtensionsTests
     }
 
     [Fact]
-    public void GetDelayMinutes_WithZeroDelay_ReturnsZero()
+    public void GetDelayMinutes_WithOnTimeArrival_ReturnsNull()
     {
         // Arrange
         var route = new Route
@@ -353,7 +353,7 @@ public class RouteExtensionsTests
         // Act
         var result = route.GetDelayMinutes();
 
-        // Assert
-        result.Should().Be(0);
+        // Assert - an on-time arrival is not delayed, so there is no delay duration
+        result.Should().BeNull();
     }
 }

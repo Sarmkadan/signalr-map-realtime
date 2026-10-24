@@ -74,14 +74,15 @@ namespace SignalRMapRealtime.Tests
             var result = user.ToDisplayModel();
 
             // Assert
-            dynamic dyn = result;
-            Assert.Equal(user.Id, dyn.id);
-            Assert.Equal(user.FullName, dyn.fullName);
-            Assert.Equal(user.Email, dyn.email);
-            Assert.Equal(user.PhoneNumber, dyn.phoneNumber);
-            Assert.Equal("Active", dyn.status);
-            Assert.Equal(now.AddHours(-2).ToString("MM/dd/yyyy HH:mm", System.Globalization.CultureInfo.InvariantCulture), dyn.lastLogin);
-            Assert.Equal(now.AddDays(-10).ToString("MM/dd/yyyy", System.Globalization.CultureInfo.InvariantCulture), dyn.createdAt);
+            // The display model is an anonymous type declared in the production assembly, so read its members by reflection.
+            object Member(string name) => result.GetType().GetProperty(name)!.GetValue(result)!;
+            Assert.Equal(user.Id, Member("Id"));
+            Assert.Equal(user.FullName, Member("FullName"));
+            Assert.Equal(user.Email, Member("Email"));
+            Assert.Equal(user.PhoneNumber, Member("PhoneNumber"));
+            Assert.Equal("Active", Member("Status"));
+            Assert.Equal(now.AddHours(-2).ToString("MM/dd/yyyy HH:mm", System.Globalization.CultureInfo.InvariantCulture), Member("LastLogin"));
+            Assert.Equal(now.AddDays(-10).ToString("MM/dd/yyyy", System.Globalization.CultureInfo.InvariantCulture), Member("CreatedAt"));
         }
 
         [Fact]

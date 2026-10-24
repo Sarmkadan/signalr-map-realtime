@@ -97,6 +97,9 @@ public class RoutePlaybackHub : Hub
     /// <param name="request">Session configuration including source session ID, speed, optional start timestamp, and loop flag.</param>
     public async Task StartPlayback(StartPlaybackRequest request)
     {
+        // Validate outside the try block: the catch below reads request and would otherwise hide the argument error.
+        ArgumentNullException.ThrowIfNull(request);
+
         try
         {
             var playbackId = await _playbackService.StartPlaybackAsync(request).ConfigureAwait(false);

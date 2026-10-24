@@ -76,10 +76,11 @@ public class LocationHub : Hub
     [Authorize(Roles = "device,ingest")]
     public async Task SendLocationUpdate(CreateLocationDto locationDto)
     {
+        // Validate outside the try block: the catch below reads locationDto and would otherwise hide the argument error.
+        ArgumentNullException.ThrowIfNull(locationDto);
+
         try
         {
-            ArgumentNullException.ThrowIfNull(locationDto);
-
             // Get vehicle to determine asset type for throttling configuration
             var vehicle = await _vehicleService.GetVehicleAsync(locationDto.VehicleId).ConfigureAwait(false);
             if (vehicle is null)
