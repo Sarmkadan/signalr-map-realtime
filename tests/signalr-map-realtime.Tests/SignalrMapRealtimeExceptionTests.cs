@@ -39,7 +39,8 @@ namespace signalr_map_realtime.Tests
             var ex = new SignalrMapRealtimeException(null!);
 
             // Assert
-            Assert.Null(ex.Message);
+            // System.Exception replaces a null message with its default text.
+            Assert.Equal(new SignalrMapRealtimeException().Message, ex.Message);
             Assert.Null(ex.InnerException);
         }
 
@@ -79,7 +80,7 @@ namespace signalr_map_realtime.Tests
             var ex = new SignalrMapRealtimeException(null!, innerException);
 
             // Assert
-            Assert.Null(ex.Message);
+            Assert.Equal(new SignalrMapRealtimeException().Message, ex.Message);
             Assert.Same(innerException, ex.InnerException);
         }
 
@@ -107,7 +108,7 @@ namespace signalr_map_realtime.Tests
             var ex = new SignalrMapRealtimeException(message);
 
             // Assert
-            Assert.IsType<Exception>(ex);
+            Assert.IsAssignableFrom<Exception>(ex);
             Assert.IsType<SignalrMapRealtimeException>(ex);
         }
     }

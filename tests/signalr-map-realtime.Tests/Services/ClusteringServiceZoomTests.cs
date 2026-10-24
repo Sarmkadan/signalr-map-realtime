@@ -70,8 +70,8 @@ public class ClusteringServiceZoomTests : IDisposable
         var points = new List<LocationDto>
         {
             CreateLocationDto(51.5074, -0.1278, DateTime.UtcNow.AddMinutes(-10)),  // London
-            CreateLocationDto(51.5075, -0.1277, DateTime.UtcNow.AddMinutes(-9)),   // 111m north
-            CreateLocationDto(51.5073, -0.1279, DateTime.UtcNow.AddMinutes(-8)),   // 111m south
+            CreateLocationDto(51.5164, -0.1278, DateTime.UtcNow.AddMinutes(-9)),   // ~1 km north
+            CreateLocationDto(51.5254, -0.1278, DateTime.UtcNow.AddMinutes(-8)),   // ~2 km north
         };
 
         _locationService.GetLocationsAsync(1, 10000, Arg.Any<CancellationToken>())
@@ -79,7 +79,7 @@ public class ClusteringServiceZoomTests : IDisposable
 
         var request = new ClusterQueryRequest
         {
-            GridCellKm = 0.01, // Very small grid cells (10m) - should create separate clusters
+            GridCellKm = 0.1, // Smallest grid the service uses (cells below 0.1 km are clamped); points are further apart
             From = DateTime.UtcNow.AddHours(-1),
             To = DateTime.UtcNow
         };
@@ -91,7 +91,7 @@ public class ClusteringServiceZoomTests : IDisposable
         result.Should().NotBeNull();
         result.TotalPoints.Should().Be(3);
         result.Clusters.Should().HaveCount(3, "High zoom should create separate clusters for each point");
-        result.GridCellKm.Should().Be(0.01);
+        result.GridCellKm.Should().Be(0.1); // the service clamps cells below 0.1 km
 
         // Verify each cluster has exactly 1 point
         foreach (var cluster in result.Clusters)
@@ -214,7 +214,7 @@ public class ClusteringServiceZoomTests : IDisposable
         var points = new List<LocationDto>
         {
             CreateLocationDto(51.5074, -0.1278, DateTime.UtcNow.AddMinutes(-10)),
-            CreateLocationDto(51.5075, -0.1277, DateTime.UtcNow.AddMinutes(-9)),
+            CreateLocationDto(51.5164, -0.1278, DateTime.UtcNow.AddMinutes(-9)),   // ~1 km north
         };
 
         _locationService.GetLocationsAsync(1, 10000, Arg.Any<CancellationToken>())
@@ -222,7 +222,7 @@ public class ClusteringServiceZoomTests : IDisposable
 
         var request = new ClusterQueryRequest
         {
-            GridCellKm = 0.01, // Very small grid cells
+            GridCellKm = 0.1, // Smallest grid the service uses (cells below 0.1 km are clamped)
             From = DateTime.UtcNow.AddHours(-1),
             To = DateTime.UtcNow
         };

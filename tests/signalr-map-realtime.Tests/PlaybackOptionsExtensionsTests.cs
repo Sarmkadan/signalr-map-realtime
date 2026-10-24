@@ -64,7 +64,8 @@ public class PlaybackOptionsExtensionsTests
     {
         // Arrange
         var options = new PlaybackOptions();
-        double speedMultiplier = 1.0;
+        // The slowest configured speed gives the longest interval; 1.0x sits mid-range and is not the maximum.
+        double speedMultiplier = options.MinSpeedMultiplier;
         int expected = options.MaxFrameIntervalMs;
 
         // Act
@@ -94,7 +95,8 @@ public class PlaybackOptionsExtensionsTests
     {
         // Arrange
         var options = new PlaybackOptions();
-        double speedKmh = 120.0;
+        // The alert threshold is exclusive: only speeds above SpeedAlertThresholdKmh raise an alert.
+        double speedKmh = options.SpeedAlertThresholdKmh + 10.0;
 
         // Act
         bool actual = options.IsSpeedAlert(speedKmh);

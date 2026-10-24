@@ -100,7 +100,7 @@ namespace SignalRMapRealtime.IntegrationTests
             (response.Content.Headers.ContentType?.ToString()).Should().Contain("application/json");
 
             var responseString = await response.Content.ReadAsStringAsync();
-            var createdAsset = JsonConvert.DeserializeObject<AssetDto>(responseString);
+            var createdAsset = JsonConvert.DeserializeObject<ApiResponse<AssetDto>>(responseString)?.Data;
 
             createdAsset.Should().NotBeNull();
             createdAsset!.Id.Should().BeGreaterThan(0);
@@ -115,7 +115,7 @@ namespace SignalRMapRealtime.IntegrationTests
         public async Task GetAssetById_ReturnsNotFound_ForNonExistentId()
         {
             // Arrange
-            var nonExistentId = Guid.NewGuid();
+            var nonExistentId = 99999;
 
             // Act
             var response = await _client.GetAsync($"/api/Asset/{nonExistentId}");
@@ -145,7 +145,7 @@ namespace SignalRMapRealtime.IntegrationTests
             // Assert
             response.StatusCode.Should().Be(HttpStatusCode.OK);
             var responseString = await response.Content.ReadAsStringAsync();
-            var assetDto = JsonConvert.DeserializeObject<AssetDto>(responseString);
+            var assetDto = JsonConvert.DeserializeObject<ApiResponse<AssetDto>>(responseString)?.Data;
 
             assetDto.Should().NotBeNull();
             assetDto!.Id.Should().Be(existingAsset.Id);
@@ -180,12 +180,12 @@ namespace SignalRMapRealtime.IntegrationTests
             var response = await _client.PutAsync($"/api/Asset/{existingAsset.Id}", content);
 
             // Assert
-            response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
 
             // Verify the update
             var getResponse = await _client.GetAsync($"/api/Asset/{existingAsset.Id}");
             var responseString = await getResponse.Content.ReadAsStringAsync();
-            var assetDto = JsonConvert.DeserializeObject<AssetDto>(responseString);
+            var assetDto = JsonConvert.DeserializeObject<ApiResponse<AssetDto>>(responseString)?.Data;
 
             assetDto.Should().NotBeNull();
             assetDto!.Name.Should().Be(updatedAsset.Name);

@@ -119,7 +119,24 @@ public class SignalrMapRealtimeOptions
     {
         validationResults = new List<ValidationResult>();
         var validationContext = new ValidationContext(this);
-        return Validator.TryValidateObject(this, validationContext, validationResults, true);
+        var isValid = Validator.TryValidateObject(this, validationContext, validationResults, true);
+
+        // DataAnnotations does not descend into nested objects, so each section's own attributes are checked here.
+        foreach (var section in new object?[]
+                 {
+                     AppInfo, HealthChecks, ApiKeyAuthentication, Performance,
+                     SignalRHubs, WebSockets, BackgroundJobs, Security
+                 })
+        {
+            if (section is null)
+            {
+                continue;
+            }
+
+            isValid &= Validator.TryValidateObject(section, new ValidationContext(section), validationResults, true);
+        }
+
+        return isValid;
     }
 
     /// <summary>

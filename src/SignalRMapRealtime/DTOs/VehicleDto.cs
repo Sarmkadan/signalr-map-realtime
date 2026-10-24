@@ -103,6 +103,9 @@ public class CreateVehicleDto
 /// </summary>
 public class UpdateVehicleDto
 {
+    /// <summary>Optional vehicle identifier. When supplied it must match the ID in the route.</summary>
+    public int? Id { get; set; }
+
     /// <summary>Vehicle name or identifier.</summary>
     public string? Name { get; set; }
 

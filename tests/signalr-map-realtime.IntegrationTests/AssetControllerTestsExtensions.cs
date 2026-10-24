@@ -100,7 +100,7 @@ namespace SignalRMapRealtime.IntegrationTests
             ArgumentNullException.ThrowIfNull(responseTask);
 
             var responseString = await responseTask.ShouldBeSuccessfulJsonResponse(because);
-            var asset = JsonConvert.DeserializeObject<AssetDto>(responseString);
+            var asset = JsonConvert.DeserializeObject<ApiResponse<AssetDto>>(responseString)?.Data;
 
             asset.Should().NotBeNull(because);
             asset!.Id.Should().Be(expectedId, because);

@@ -38,7 +38,7 @@ namespace SignalRMapRealtime.Tests
             };
 
             // Act
-            var result = geofence.ContainsPoint(40.7129, -74.0061);
+            var result = geofence.ContainsPoint(40.7300, -74.0200); // ~1.9 km from the centre
 
             // Assert
             Assert.False(result);
@@ -225,9 +225,12 @@ namespace SignalRMapRealtime.Tests
             var result = geofence.GetPolygonPoints();
 
             // Assert
-            Assert.Single(result);
+            // Two well-formed vertices; the "invalid" entry is skipped
+            Assert.Equal(2, result.Count);
             Assert.Equal(40.7128, result[0].Latitude);
             Assert.Equal(-74.0060, result[0].Longitude);
+            Assert.Equal(41.8781, result[1].Latitude);
+            Assert.Equal(-87.6298, result[1].Longitude);
         }
 
         [Fact]

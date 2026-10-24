@@ -70,8 +70,7 @@ public static class HttpContextExtensions
     public static string? GetReferer(this HttpContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
-        context.Request.Headers.TryGetValue("Referer", out var referer);
-        return referer.ToString();
+        return context.Request.Headers.TryGetValue("Referer", out var referer) ? referer.ToString() : null;
     }
 
     /// <summary>
@@ -83,8 +82,7 @@ public static class HttpContextExtensions
     public static string? GetOrigin(this HttpContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
-        context.Request.Headers.TryGetValue("Origin", out var origin);
-        return origin.ToString();
+        return context.Request.Headers.TryGetValue("Origin", out var origin) ? origin.ToString() : null;
     }
 
     /// <summary>

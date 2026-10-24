@@ -158,6 +158,13 @@ public class RouteController : ControllerBase
     {
         try
         {
+            // A body Id is optional, but when it is supplied it must identify the same resource as the route.
+            if (updateRouteDto.Id != 0 && updateRouteDto.Id != id)
+                return BadRequest(ErrorResponse.ValidationError(
+                    new Dictionary<string, string[]> { { "Id", new[] { $"Body Id {updateRouteDto.Id} does not match route Id {id}." } } },
+                    "Validation failed",
+                    HttpContext.TraceIdentifier));
+
             var route = await _routeRepository.GetByIdAsync(id);
 
             if (route is null)

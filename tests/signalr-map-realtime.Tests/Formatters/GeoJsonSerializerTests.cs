@@ -521,10 +521,9 @@ public class GeoJsonSerializerTests
             CreatedAt = new DateTime(2024, 1, 15, 10, 0, 0, DateTimeKind.Utc)
         };
 
-        // Act & Assert - Should either throw or produce valid output
-        // The serializer should handle this gracefully
-        var result = GeoJsonSerializer.SerializeLocation(location);
-        result.Should().NotBeNullOrWhiteSpace();
+        // Act & Assert - JSON cannot represent non-finite numbers, so the writer rejects them.
+        Action act = () => GeoJsonSerializer.SerializeLocation(location);
+        act.Should().Throw<ArgumentException>();
     }
 
     /// <summary>
@@ -545,9 +544,9 @@ public class GeoJsonSerializerTests
             CreatedAt = new DateTime(2024, 1, 15, 10, 0, 0, DateTimeKind.Utc)
         };
 
-        // Act & Assert - Should either throw or produce valid output
-        var result = GeoJsonSerializer.SerializeLocation(location);
-        result.Should().NotBeNullOrWhiteSpace();
+        // Act & Assert - JSON cannot represent non-finite numbers, so the writer rejects them.
+        Action act = () => GeoJsonSerializer.SerializeLocation(location);
+        act.Should().Throw<ArgumentException>();
     }
 
     /// <summary>

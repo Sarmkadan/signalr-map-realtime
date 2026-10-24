@@ -10,8 +10,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SignalRMapRealtime.DTOs;
+using SignalRMapRealtime.Exceptions;
 using SignalRMapRealtime.Models;
 using SignalRMapRealtime.Services;
 using SignalRMapRealtime.Utilities;
@@ -191,10 +193,26 @@ public class LocationController : ControllerBase
             var response = ApiResponse<LocationDto>.SuccessResponse(location, "Location updated successfully", 200, HttpContext.TraceIdentifier);
             return Ok(response);
         }
+        catch (InvalidLocationException ex)
+        {
+            _logger.LogWarning(ex, "Invalid location data for location {LocationId}. TraceId: {TraceId}", id, HttpContext.TraceIdentifier);
+            return BadRequest(ErrorResponse.ValidationError(
+                new Dictionary<string, string[]> { { "Location", new[] { ex.Message } } },
+                "Validation failed",
+                HttpContext.TraceIdentifier));
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating location {LocationId}. TraceId: {TraceId}", id, HttpContext.TraceIdentifier);
-            return BadRequest(ErrorResponse.ServerError("Failed to update location", HttpContext.TraceIdentifier));
+            // The status is 400, so the body must agree with it (ServerError would report 500).
+            return BadRequest(new ErrorResponse
+            {
+                Message = "Failed to update location",
+                ErrorCode = "BAD_REQUEST",
+                StatusCode = StatusCodes.Status400BadRequest,
+                TraceId = HttpContext.TraceIdentifier,
+                Timestamp = DateTime.UtcNow
+            });
         }
     }
 

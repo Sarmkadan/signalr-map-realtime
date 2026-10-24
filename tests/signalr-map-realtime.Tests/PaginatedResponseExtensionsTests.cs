@@ -46,7 +46,7 @@ namespace SignalRMapRealtime.Tests
         public void WithPageSize_SmallerPageSize_RecalculatesPageNumber()
         {
             // Arrange
-            var items = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+            var items = new List<int> { 6, 7, 8, 9, 10 };
             var paginatedResponse = new PaginatedResponse<int>(items, 2, 5, 10);
 
             // Act
@@ -158,7 +158,7 @@ namespace SignalRMapRealtime.Tests
         public void Select_ToDifferentType_ReturnsCorrectType()
         {
             // Arrange
-            var items = new List<int> { 1, 2, 3, 4, 5 };
+            var items = new List<int> { 3, 4 };
             var paginatedResponse = new PaginatedResponse<int>(items, 2, 2, 5);
 
             // Act
@@ -194,7 +194,7 @@ namespace SignalRMapRealtime.Tests
         public void GetCurrentPage_HappyPath_ReturnsCurrentPageItems()
         {
             // Arrange
-            var items = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+            var items = new List<int> { 6, 7, 8, 9, 10 };
             var paginatedResponse = new PaginatedResponse<int>(items, 2, 5, 10);
 
             // Act

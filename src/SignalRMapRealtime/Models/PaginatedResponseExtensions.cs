@@ -12,13 +12,17 @@ public static class PaginatedResponseExtensions
     private const int DefaultPageSize = 10;
 
     /// <summary>
-    /// Creates a new paginated response with the same items but different page size.
+    /// Creates a new paginated response with a different page size.
     /// Useful for changing pagination granularity without re-querying the data source.
     /// </summary>
+    /// <remarks>
+    /// Only the items already on the source page are available, so the result keeps at most <paramref name="newPageSize"/>
+    /// of them. A page after the first cannot be re-paged exactly without the full data set; re-query in that case.
+    /// </remarks>
     /// <typeparam name="T">The type of items in the response.</typeparam>
     /// <param name="source">The source paginated response.</param>
     /// <param name="newPageSize">The new page size to use.</param>
-    /// <returns>A new paginated response with the same items but recalculated pagination metadata.</returns>
+    /// <returns>A new paginated response with the trimmed items and recalculated pagination metadata.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> is null.</exception>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="newPageSize"/> is less than 1.</exception>
     public static PaginatedResponse<T> WithPageSize<T>(this PaginatedResponse<T> source, int newPageSize)
@@ -27,9 +31,10 @@ public static class PaginatedResponseExtensions
         ArgumentOutOfRangeException.ThrowIfLessThan(newPageSize, 1);
 
         var newPageNumber = Math.Min(source.PageNumber, (int)Math.Ceiling(source.TotalCount / (double)newPageSize));
+        var trimmedItems = source.Items.Take(newPageSize).ToList();
 
         return new PaginatedResponse<T>(
-            source.Items,
+            trimmedItems.AsReadOnly(),
             newPageNumber,
             newPageSize,
             source.TotalCount

@@ -284,7 +284,7 @@ public class PaginatedResponseTests
     public void Constructor_WithPageBeyondLastPage_ShouldReturnEmptyItemsWithCorrectMetadata()
     {
         // Arrange
-        var items = new List<int> { 1, 2, 3 };
+        var items = new List<int>(); // A page past the end holds no items
         var pageNumber = 5; // Beyond the last page (3 items / 3 per page = 1 page)
         var pageSize = 3;
         var totalCount = 3;
@@ -316,7 +316,7 @@ public class PaginatedResponseTests
         // Assert
         Assert.Equal(1, response.PageNumber);
         Assert.Equal(3, response.TotalPages);
-        Assert.False(response.HasNextPage);
+        Assert.True(response.HasNextPage); // page 1 of 3 has a next page
         Assert.False(response.HasPreviousPage);
     }
 
@@ -335,12 +335,12 @@ public class PaginatedResponseTests
         // Assert
         Assert.Equal(1, response.PageNumber);
         Assert.Equal(3, response.TotalPages);
-        Assert.False(response.HasNextPage);
+        Assert.True(response.HasNextPage); // page 1 of 3 has a next page
         Assert.False(response.HasPreviousPage);
     }
 
     [Fact]
-    public void Constructor_WithNegativePageSize_ShouldUseAbsoluteValue()
+    public void Constructor_WithNegativePageSize_ShouldUseDefaultPageSize()
     {
         // Arrange
         var items = new List<int> { 1, 2, 3 };

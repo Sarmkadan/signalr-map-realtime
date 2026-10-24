@@ -107,7 +107,7 @@ namespace SignalRMapRealtime.IntegrationTests
             await SeedVehicle(existingVehicle);
 
             // Act - Try to get a different vehicle that doesn't exist
-            var nonExistentId = Guid.NewGuid();
+            var nonExistentId = 99999;
             var response = await _client.GetAsync($"/api/Vehicle/{nonExistentId}");
 
             // Assert
@@ -130,28 +130,32 @@ namespace SignalRMapRealtime.IntegrationTests
         [Fact]
         public async Task InvalidLocationException_Returns400WithStandardizedErrorBody()
         {
-            // Arrange - Try to create a vehicle with invalid location coordinates
-            var invalidLocationVehicle = new VehicleDto
+            // Arrange - a location with out-of-range coordinates for an existing vehicle
+            var vehicle = new Vehicle
             {
                 Make = "Test",
                 Model = "Vehicle",
                 Year = 2023,
-                LicensePlate = "INVALID1",
-                Status = Domain.Enums.VehicleStatus.Available,
-                // Invalid coordinates that would trigger InvalidLocationException
-                LastLocation = new LocationDto
-                {
-                    Latitude = 200.0, // Invalid latitude (> 90)
-                    Longitude = -300.0, // Invalid longitude (< -180)
-                    Timestamp = DateTime.UtcNow,
-                    Accuracy = 5.0
-                }
+                LicensePlate = $"INV{Guid.NewGuid().ToString()[..6]}",
+                Status = Domain.Enums.VehicleStatus.Available
             };
+            using (var scope = _factory.Services.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                dbContext.Vehicles.Add(vehicle);
+                await dbContext.SaveChangesAsync();
+            }
 
-            var content = new StringContent(JsonConvert.SerializeObject(invalidLocationVehicle), System.Text.Encoding.UTF8, "application/json");
+            var invalidLocation = new CreateLocationDto
+            {
+                Latitude = 200.0, // Invalid latitude (> 90)
+                Longitude = -300.0, // Invalid longitude (< -180)
+                VehicleId = vehicle.Id
+            };
+            var content = new StringContent(JsonConvert.SerializeObject(invalidLocation), System.Text.Encoding.UTF8, "application/json");
 
-            // Act - Try to create vehicle with invalid location
-            var response = await _client.PostAsync("/api/Vehicle", content);
+            // Act
+            var response = await _client.PostAsync("/api/Location", content);
 
             // Assert
             response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -161,7 +165,7 @@ namespace SignalRMapRealtime.IntegrationTests
 
             errorResponse.Should().NotBeNull();
             errorResponse!.Message.Should().NotBeNullOrEmpty();
-            errorResponse.Message.Should().Contain("Invalid location");
+            errorResponse.Message.Should().Contain("Invalid coordinates");
             errorResponse.ErrorCode.Should().Be("VALIDATION_ERROR");
             errorResponse.StatusCode.Should().Be(400);
             errorResponse.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));

@@ -98,7 +98,7 @@ namespace SignalRMapRealtime.IntegrationTests
             (response.Content.Headers.ContentType?.ToString()).Should().Contain("application/json");
 
             var responseString = await response.Content.ReadAsStringAsync();
-            var createdRoute = JsonConvert.DeserializeObject<RouteDto>(responseString);
+            var createdRoute = JsonConvert.DeserializeObject<ApiResponse<RouteDto>>(responseString)?.Data;
 
             createdRoute.Should().NotBeNull();
             createdRoute!.Id.Should().BeGreaterThan(0);
@@ -113,7 +113,7 @@ namespace SignalRMapRealtime.IntegrationTests
         public async Task GetRouteById_ReturnsNotFound_ForNonExistentId()
         {
             // Arrange
-            var nonExistentId = Guid.NewGuid();
+            var nonExistentId = 99999;
 
             // Act
             var response = await _client.GetAsync($"/api/Route/{nonExistentId}");
@@ -142,7 +142,7 @@ namespace SignalRMapRealtime.IntegrationTests
             // Assert
             response.StatusCode.Should().Be(HttpStatusCode.OK);
             var responseString = await response.Content.ReadAsStringAsync();
-            var routeDto = JsonConvert.DeserializeObject<RouteDto>(responseString);
+            var routeDto = JsonConvert.DeserializeObject<ApiResponse<RouteDto>>(responseString)?.Data;
 
             routeDto.Should().NotBeNull();
             routeDto!.Id.Should().Be(existingRoute.Id);
@@ -175,12 +175,12 @@ namespace SignalRMapRealtime.IntegrationTests
             var response = await _client.PutAsync($"/api/Route/{existingRoute.Id}", content);
 
             // Assert
-            response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
 
             // Verify the update
             var getResponse = await _client.GetAsync($"/api/Route/{existingRoute.Id}");
             var responseString = await getResponse.Content.ReadAsStringAsync();
-            var routeDto = JsonConvert.DeserializeObject<RouteDto>(responseString);
+            var routeDto = JsonConvert.DeserializeObject<ApiResponse<RouteDto>>(responseString)?.Data;
 
             routeDto.Should().NotBeNull();
             routeDto!.Name.Should().Be(updatedRoute.Name);

@@ -6,6 +6,7 @@
 
 namespace SignalRMapRealtime.DTOs;
 
+using System.ComponentModel.DataAnnotations;
 using SignalRMapRealtime.Domain.Enums;
 
 /// <summary>
@@ -17,6 +18,7 @@ public class AssetDto
     public int Id { get; set; }
 
     /// <summary>Asset name.</summary>
+    [Required(AllowEmptyStrings = false)]
     public string Name { get; set; } = string.Empty;
 
     /// <summary>Serial number.</summary>
@@ -49,8 +51,12 @@ public class AssetDto
     /// <summary>Last update timestamp.</summary>
     public DateTime UpdatedAt { get; set; }
 
-    /// <summary>Type classification (alternate naming for <see cref="AssetType"/>).</summary>
-    public AssetType Type { get; set; }
+    /// <summary>Type classification (alternate naming for <see cref="AssetType"/>). Reads and writes <see cref="AssetType"/>.</summary>
+    public AssetType Type
+    {
+        get => AssetType;
+        set => AssetType = value;
+    }
 
     /// <summary>Status label (alternate naming for <see cref="Condition"/>).</summary>
     public string? Status { get; set; }

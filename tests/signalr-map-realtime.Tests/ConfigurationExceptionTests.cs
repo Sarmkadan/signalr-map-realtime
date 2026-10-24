@@ -53,10 +53,14 @@ namespace signalr_map_realtime.Tests
         }
 
         [Fact]
-        public void Constructor_NullInnerException_ThrowsArgumentNullException()
+        public void Constructor_NullInnerException_IsAllowed()
         {
-            // Act and Assert
-            Assert.Throws<ArgumentNullException>(() => new ConfigurationException("Test message", null!));
+            // Act
+            var exception = new ConfigurationException("Test message", null!);
+
+            // Assert
+            Assert.Equal("Test message", exception.Message);
+            Assert.Null(exception.InnerException);
         }
     }
 }

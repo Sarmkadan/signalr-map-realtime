@@ -145,6 +145,13 @@ public class AssetController : ControllerBase
     {
         try
         {
+            // A body Id is optional, but when it is supplied it must identify the same resource as the route.
+            if (updateAssetDto.Id != 0 && updateAssetDto.Id != id)
+                return BadRequest(ErrorResponse.ValidationError(
+                    new Dictionary<string, string[]> { { "Id", new[] { $"Body Id {updateAssetDto.Id} does not match route Id {id}." } } },
+                    "Validation failed",
+                    HttpContext.TraceIdentifier));
+
             var asset = await _assetRepository.GetByIdAsync(id);
 
             if (asset is null)
@@ -184,6 +191,7 @@ public class AssetController : ControllerBase
             if (asset is null)
                 return NotFound(ErrorResponse.NotFoundError($"Asset with ID {id} not found", HttpContext.TraceIdentifier));
 
+            await _assetRepository.RemoveAsync(asset);
             await _assetRepository.SaveChangesAsync();
 
             return NoContent();

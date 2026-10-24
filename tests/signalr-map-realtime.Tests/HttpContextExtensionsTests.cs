@@ -39,7 +39,7 @@ public class HttpContextExtensionsTests
 
         var agent = context.GetUserAgent();
 
-        Assert.Equal("UnitTestClient/1.0", agent);
+        Assert.Equal("UnitTestAgent/1.0", agent);
 
         // Verify exception for null context
         Assert.Throws<ArgumentNullException>(() => ((HttpContext)null!).GetUserAgent());

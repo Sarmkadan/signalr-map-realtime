@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http;
 #nullable enable
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
@@ -17,6 +18,7 @@ using NSubstitute.ExceptionExtensions;
 using Xunit;
 using SignalRMapRealtime.Controllers;
 using SignalRMapRealtime.DTOs;
+using SignalRMapRealtime.Exceptions;
 using SignalRMapRealtime.Models;
 using SignalRMapRealtime.Services;
 using SignalRMapRealtime.Domain.Enums;
@@ -39,7 +41,11 @@ public class LocationControllerTests
         _locationService = Substitute.For<ILocationService>();
         _cacheService = Substitute.For<ICacheService>();
         _logger = Substitute.For<ILogger<LocationController>>();
-        _controller = new LocationController(_locationService, _cacheService, _logger);
+        _controller = new LocationController(_locationService, _cacheService, _logger)
+        {
+            // The controller reads HttpContext.TraceIdentifier when building responses.
+            ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() }
+        };
     }
 
     /// <summary>
@@ -105,6 +111,10 @@ public class LocationControllerTests
             Notes = "Updated location"
         };
 
+        // The coordinate range is enforced by LocationService, which raises InvalidLocationException.
+        _locationService.UpdateLocationAsync(locationId, updateDto)
+            .ThrowsAsync(new InvalidLocationException(91.0, 0.0));
+
         // Act
         var result = await _controller.UpdateLocation(locationId, updateDto);
 
@@ -132,6 +142,10 @@ public class LocationControllerTests
             Address = "123 Main St",
             Notes = "Updated location"
         };
+
+        // The coordinate range is enforced by LocationService, which raises InvalidLocationException.
+        _locationService.UpdateLocationAsync(locationId, updateDto)
+            .ThrowsAsync(new InvalidLocationException(-91.0, 0.0));
 
         // Act
         var result = await _controller.UpdateLocation(locationId, updateDto);
@@ -161,6 +175,10 @@ public class LocationControllerTests
             Notes = "Updated location"
         };
 
+        // The coordinate range is enforced by LocationService, which raises InvalidLocationException.
+        _locationService.UpdateLocationAsync(locationId, updateDto)
+            .ThrowsAsync(new InvalidLocationException(0.0, 181.0));
+
         // Act
         var result = await _controller.UpdateLocation(locationId, updateDto);
 
@@ -188,6 +206,10 @@ public class LocationControllerTests
             Address = "123 Main St",
             Notes = "Updated location"
         };
+
+        // The coordinate range is enforced by LocationService, which raises InvalidLocationException.
+        _locationService.UpdateLocationAsync(locationId, updateDto)
+            .ThrowsAsync(new InvalidLocationException(0.0, -181.0));
 
         // Act
         var result = await _controller.UpdateLocation(locationId, updateDto);
