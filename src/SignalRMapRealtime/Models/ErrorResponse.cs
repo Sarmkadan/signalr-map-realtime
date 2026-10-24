@@ -160,4 +160,34 @@ public class ErrorResponse
             Timestamp = DateTime.UtcNow
         };
     }
+
+    /// <summary>
+    /// Factory method to create a precondition failed response (412), e.g. an If-Match ETag that no longer matches.
+    /// </summary>
+    public static ErrorResponse PreconditionFailedError(string message, string? traceId = null)
+    {
+        return new ErrorResponse
+        {
+            Message = message,
+            ErrorCode = "PRECONDITION_FAILED",
+            StatusCode = 412,
+            TraceId = traceId,
+            Timestamp = DateTime.UtcNow
+        };
+    }
+
+    /// <summary>
+    /// Factory method to create a precondition required response (428), e.g. a write sent without the If-Match header it needs.
+    /// </summary>
+    public static ErrorResponse PreconditionRequiredError(string message, string? traceId = null)
+    {
+        return new ErrorResponse
+        {
+            Message = message,
+            ErrorCode = "PRECONDITION_REQUIRED",
+            StatusCode = 428,
+            TraceId = traceId,
+            Timestamp = DateTime.UtcNow
+        };
+    }
 }
