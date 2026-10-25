@@ -200,6 +200,19 @@ public static class DateTimeExtensions
     }
 
     /// <summary>
+    /// Checks if a DateTime falls on a weekend (Saturday or Sunday).
+    /// </summary>
+    /// <param name="dateTime">The date/time to check.</param>
+    /// <returns>True if the date/time is a Saturday or Sunday; otherwise, false.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="dateTime"/> is invalid.</exception>
+    public static bool IsWeekend(this DateTime dateTime)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(dateTime, DateTime.MinValue, nameof(dateTime));
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(dateTime, DateTime.MaxValue, nameof(dateTime));
+        return dateTime.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday;
+    }
+
+    /// <summary>
     /// Rounds DateTime to the nearest minute.
     /// Useful for rounding location update timestamps.
     /// </summary>
