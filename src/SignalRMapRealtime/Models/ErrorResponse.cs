@@ -69,6 +69,9 @@ public class ErrorResponse
         string message = "Validation failed",
         string? traceId = null)
     {
+        ArgumentNullException.ThrowIfNull(errors);
+        ArgumentNullException.ThrowIfNull(message);
+
         return new ErrorResponse
         {
             Message = message,
@@ -85,6 +88,8 @@ public class ErrorResponse
     /// </summary>
     public static ErrorResponse NotFoundError(string message, string? traceId = null)
     {
+        ArgumentNullException.ThrowIfNull(message);
+
         return new ErrorResponse
         {
             Message = message,
@@ -100,6 +105,8 @@ public class ErrorResponse
     /// </summary>
     public static ErrorResponse UnauthorizedError(string message = "Unauthorized", string? traceId = null)
     {
+        ArgumentNullException.ThrowIfNull(message);
+
         return new ErrorResponse
         {
             Message = message,
@@ -115,6 +122,8 @@ public class ErrorResponse
     /// </summary>
     public static ErrorResponse ForbiddenError(string message = "Access forbidden", string? traceId = null)
     {
+        ArgumentNullException.ThrowIfNull(message);
+
         return new ErrorResponse
         {
             Message = message,
@@ -134,6 +143,8 @@ public class ErrorResponse
         string? stackTrace = null,
         string? innerException = null)
     {
+        ArgumentNullException.ThrowIfNull(message);
+
         return new ErrorResponse
         {
             Message = message,
@@ -151,6 +162,8 @@ public class ErrorResponse
     /// </summary>
     public static ErrorResponse ConflictError(string message, string? traceId = null)
     {
+        ArgumentNullException.ThrowIfNull(message);
+
         return new ErrorResponse
         {
             Message = message,
@@ -166,6 +179,8 @@ public class ErrorResponse
     /// </summary>
     public static ErrorResponse PreconditionFailedError(string message, string? traceId = null)
     {
+        ArgumentNullException.ThrowIfNull(message);
+
         return new ErrorResponse
         {
             Message = message,
@@ -181,6 +196,8 @@ public class ErrorResponse
     /// </summary>
     public static ErrorResponse PreconditionRequiredError(string message, string? traceId = null)
     {
+        ArgumentNullException.ThrowIfNull(message);
+
         return new ErrorResponse
         {
             Message = message,
