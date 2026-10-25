@@ -100,6 +100,22 @@ public static class ClaimsExtensions
     }
 
     /// <summary>
+    /// Checks if user has all of the specified roles.
+    /// </summary>
+    /// <param name="principal">The <see cref="ClaimsPrincipal"/> to check.</param>
+    /// <param name="roles">The role names to check for.</param>
+    /// <returns><see langword="true"/> if the user has all of the specified roles; otherwise, <see langword="false"/>. Returns <see langword="true"/> when no roles are specified.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="principal"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="roles"/> is <see langword="null"/>.</exception>
+    public static bool HasAllRoles(this ClaimsPrincipal principal, params string[] roles)
+    {
+        ArgumentNullException.ThrowIfNull(principal);
+        ArgumentNullException.ThrowIfNull(roles);
+        var userRoles = principal.FindAll(ClaimTypes.Role).Select(c => c.Value).ToList();
+        return roles.All(role => userRoles.Contains(role));
+    }
+
+    /// <summary>
     /// Gets a custom claim value by type.
     /// </summary>
     /// <param name="principal">The <see cref="ClaimsPrincipal"/> to extract the claim from.</param>
