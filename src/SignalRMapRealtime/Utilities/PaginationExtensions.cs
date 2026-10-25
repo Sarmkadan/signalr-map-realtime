@@ -248,6 +248,28 @@ public static class PaginationExtensions
     }
 
     /// <summary>
+    /// Clamps a page number to the range of valid pages for the given total count and page size.
+    /// Pages beyond the last page are reduced to the last page; an empty collection clamps to page 1.
+    /// </summary>
+    /// <param name="pageNumber">The requested page number (1-based).</param>
+    /// <param name="totalCount">The total number of items across all pages.</param>
+    /// <param name="pageSize">The number of items per page.</param>
+    /// <returns>The requested page number, reduced to the last page if it exceeds the total page count.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// Thrown when pageNumber is less than 1, totalCount is negative, or pageSize is less than or equal to 0.
+    /// </exception>
+    public static int ClampPageNumber(int pageNumber, int totalCount, int pageSize)
+    {
+        if (pageNumber < 1)
+            throw new ArgumentOutOfRangeException(nameof(pageNumber), "Page number must be at least 1");
+        if (totalCount < 0)
+            throw new ArgumentOutOfRangeException(nameof(totalCount), "Total count cannot be negative");
+
+        var lastPage = Math.Max(1, CalculateTotalPages(totalCount, pageSize));
+        return Math.Min(pageNumber, lastPage);
+    }
+
+    /// <summary>
     /// Gets information about pagination boundaries (first page, last page, etc.).
     /// </summary>
     /// <param name="pageNumber">The current page number (1-based).</param>
