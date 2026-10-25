@@ -2681,3 +2681,85 @@ class Program
     }
 }
 ```
+
+## API Key Authentication
+
+Protected REST endpoints and SignalR hubs authenticate callers with an API key. The key is registered as the `ApiKey` authentication scheme by `AddApiKeyAuthentication` in `Program.cs`, and it is the default scheme, so `[Authorize]` validates API keys without naming a scheme. `LocationHub` names it explicitly with `AuthenticationSchemes = ApiKeyAuthenticationOptions.DefaultScheme`.
+
+A request that presents a valid key is authenticated as the key's `Name`, and each entry in its `Scopes` becomes a role claim. Role-based policies such as `[Authorize(Roles = "device,ingest")]` therefore work with API keys.
+
+### Sending the key
+
+The plaintext key is sent in one of three places. The handler checks them in this order and uses the first one it finds:
+
+| Location | Name | Use it for |
+|----------|------|------------|
+| HTTP header | `X-API-Key` | REST calls |
+| Query string | `api_key` | Clients that cannot set headers |
+| Query string | `access_token` | SignalR WebSocket connections, where custom headers are not available |
+
+The `Authorization: Bearer` header is not read by this scheme. For SignalR, pass the key as a query parameter instead of relying on `AccessTokenProvider`.
+
+```bash
+curl -H "X-API-Key: $API_KEY" http://localhost:5000/api/Vehicle
+```
+
+```csharp
+var apiKey = Environment.GetEnvironmentVariable("MAP_API_KEY") ?? string.Empty;
+
+var connection = new HubConnectionBuilder()
+    .WithUrl($"http://localhost:5000/hubs/location?access_token={Uri.EscapeDataString(apiKey)}")
+    .WithAutomaticReconnect()
+    .Build();
+```
+
+Query-string keys can end up in server and proxy logs. Use the header whenever the client can set it, and reserve `api_key` and `access_token` for clients that cannot.
+
+### Configuring keys
+
+Keys are read from `SignalRMapRealtime:ApiKeyAuthentication:Keys`. Only a SHA-256 hash of each key is stored in configuration. The plaintext key is never saved on the server:
+
+```json
+{
+  "SignalRMapRealtime": {
+    "ApiKeyAuthentication": {
+      "Keys": [
+        {
+          "Name": "ingest-device-2026-10",
+          "Sha256": "<64-character lowercase hex SHA-256 of the key>",
+          "Scopes": [ "device", "ingest" ]
+        }
+      ]
+    }
+  }
+}
+```
+
+Generate the hash from the plaintext key with either command:
+
+```bash
+echo -n 'your-key' | sha256sum
+```
+
+```csharp
+var hash = ApiKeyVerifier.ComputeHash("your-key");
+```
+
+Each entry must have:
+
+- A unique, non-blank `Name`. It appears in logs and identifies the key when rotating.
+- A `Sha256` value of exactly 64 hexadecimal characters.
+- `Scopes` that contain no blank entries. Scopes can be an empty list.
+
+These rules are checked at startup. A malformed entry stops the application with a validation error instead of rejecting every request at runtime.
+
+Several entries can be active at the same time. To rotate a key, add the new entry, move clients to the new key, and then remove the old entry. Use a long random value for each key, such as 32 bytes from a cryptographic random generator, because the stored hash is unsalted and a weak key could be guessed from it.
+
+### Responses
+
+| Status | Body | When |
+|--------|------|------|
+| `401 Unauthorized` | `{"error":"Unauthorized","message":"Authentication required or failed."}` | No key was sent, or the key does not match any configured entry, or no keys are configured |
+| `403 Forbidden` | `{"error":"Forbidden","message":"You do not have permission to access this resource."}` | The key is valid, but the caller lacks a role required by the endpoint |
+
+The handler logs the reason for each failure, but it never logs the presented key.
