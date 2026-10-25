@@ -207,4 +207,14 @@ public class ErrorResponse
             Timestamp = DateTime.UtcNow
         };
     }
+
+    /// <summary>
+    /// Returns a concise summary of the error code and message for logging and debugging.
+    /// Field-level errors, stack traces and inner exceptions are intentionally omitted.
+    /// </summary>
+    public override string ToString()
+    {
+        return FormattableString.Invariant(
+            $"ErrorResponse {{ ErrorCode: {ErrorCode}, Message: {Message}, StatusCode: {StatusCode} }}");
+    }
 }
