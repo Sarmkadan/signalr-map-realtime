@@ -2585,3 +2585,99 @@ class Program
     }
 }
 ```
+
+## WebhooksController
+
+`WebhooksController` is an API controller that receives webhook callbacks from external services. Every endpoint verifies an HMAC-SHA256 signature over the raw request body before anything is deserialized or processed, and then checks a timestamp header to reject replayed requests. Requests that fail either check are rejected with `401 Unauthorized` and never reach the webhook handler. Valid payloads are passed to `IWebhookHandler`, which publishes the matching domain events on the event bus.
+
+Signatures are computed over the exact UTF-8 bytes of the JSON body and sent as a hex-encoded HMAC-SHA256 digest. An optional `sha256=` prefix is accepted. Each provider uses its own shared secret, read from configuration under `Webhooks:<Provider>:Secret`. If a secret is missing or empty, every request from that provider is rejected.
+
+| Method | Route | Signature header | Timestamp tolerance (default) | Secret configuration key |
+|--------|-------|------------------|-------------------------------|--------------------------|
+| `POST` | `api/Webhooks/tracking-service` | `X-Signature: <hex>` | 5 minutes | `Webhooks:TrackingService:Secret` |
+| `POST` | `api/Webhooks/notification-service` | `X-Webhook-Secret: <hex>` | 10 minutes | `Webhooks:NotificationService:Secret` |
+| `POST` | `api/Webhooks/route-optimization` | `Authorization: Bearer <hex>` | 15 minutes | `Webhooks:RouteOptimization:Secret` |
+
+All three endpoints take the JSON body as a raw `string` and require `Content-Type: application/json`. Each request must also carry an `X-Timestamp` header containing the sender's Unix time in seconds. The request is rejected if the timestamp is more than the tolerance away from the server clock in either direction. Set a provider's entry under `Webhooks:TimestampToleranceMinutes` to `0` to turn timestamp checks off for that provider.
+
+The payload fields the handler expects for each provider:
+
+| Provider | Required fields |
+|----------|-----------------|
+| `tracking-service` | `VehicleId` (GUID), `Latitude`, `Longitude`, `Timestamp`; optional `Speed`, `Heading`, `Accuracy` |
+| `notification-service` | `DeliveryId` (GUID), `Status`, `Timestamp` |
+| `route-optimization` | `RouteId` (GUID), `OptimizationScore`, `Timestamp` |
+
+Responses:
+
+| Status | Body | When |
+|--------|------|------|
+| `200 OK` | `{ "success": true, "processedAt": "..." }` | The payload was verified and processed |
+| `401 Unauthorized` | `{ "error": "Invalid signature" }` | Signature header is missing, malformed, or does not match, or no secret is configured |
+| `401 Unauthorized` | `{ "error": "Request too old or timestamp invalid" }` | `X-Timestamp` is missing, unparseable, or outside the tolerance window |
+| `400 Bad Request` | `{ "error": "..." }` | The handler rejected the payload, for example with `Invalid payload` |
+| `400 Bad Request` | `{ "error": "Internal server error" }` | An unexpected exception was thrown while processing; it is logged on the server |
+
+### Usage Example
+
+```csharp
+using System;
+using System.Net.Http;
+using System.Security.Cryptography;
+using System.Text;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc.Testing;
+
+class Program
+{
+    static async Task Main()
+    {
+        var factory = new WebApplicationFactory<Program>();
+        var client = factory.CreateClient();
+
+        // The shared secret comes from the environment here; never hardcode it
+        var secret = Environment.GetEnvironmentVariable("TRACKING_WEBHOOK_SECRET") ?? string.Empty;
+
+        // Build the JSON body once. The signature must cover these exact bytes.
+        var payload = $$"""
+            {
+              "VehicleId": "{{Guid.NewGuid()}}",
+              "Latitude": 50.4501,
+              "Longitude": 30.5234,
+              "Speed": 42.5,
+              "Heading": 180.0,
+              "Accuracy": 5.0,
+              "Timestamp": "{{DateTime.UtcNow:O}}"
+            }
+            """;
+
+        // Hex-encoded HMAC-SHA256 of the UTF-8 body
+        using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(secret));
+        var signature = Convert.ToHexString(hmac.ComputeHash(Encoding.UTF8.GetBytes(payload))).ToLowerInvariant();
+
+        var request = new HttpRequestMessage(HttpMethod.Post, "api/Webhooks/tracking-service")
+        {
+            Content = new StringContent(payload, Encoding.UTF8, "application/json")
+        };
+        request.Headers.Add("X-Signature", signature);
+        request.Headers.Add("X-Timestamp", DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString());
+
+        var response = await client.SendAsync(request);
+        Console.WriteLine($"Webhook status: {(int)response.StatusCode}");
+
+        var body = await response.Content.ReadAsStringAsync();
+        Console.WriteLine($"Response: {body}");
+
+        // A request with a wrong signature is rejected before any processing
+        var forged = new HttpRequestMessage(HttpMethod.Post, "api/Webhooks/tracking-service")
+        {
+            Content = new StringContent(payload, Encoding.UTF8, "application/json")
+        };
+        forged.Headers.Add("X-Signature", new string('0', 64));
+        forged.Headers.Add("X-Timestamp", DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString());
+
+        var forgedResponse = await client.SendAsync(forged);
+        Console.WriteLine($"Forged webhook status: {(int)forgedResponse.StatusCode}"); // 401
+    }
+}
+```
