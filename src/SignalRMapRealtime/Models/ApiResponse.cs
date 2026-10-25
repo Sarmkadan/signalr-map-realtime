@@ -81,6 +81,16 @@ public class ApiResponse<T>
             Timestamp = DateTime.UtcNow
         };
     }
+
+    /// <summary>
+    /// Returns a concise summary of the success flag and message for logging and debugging.
+    /// The data payload is intentionally omitted.
+    /// </summary>
+    public override string ToString()
+    {
+        return FormattableString.Invariant(
+            $"ApiResponse<{typeof(T).Name}> {{ Success: {Success}, Message: {Message} }}");
+    }
 }
 
 /// <summary>
