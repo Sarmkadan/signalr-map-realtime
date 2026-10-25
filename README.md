@@ -2398,3 +2398,121 @@ class Program
     }
 }
 ```
+
+## LocationHub and RoutePlaybackHub
+
+`LocationHub` (`/hubs/location`) and `RoutePlaybackHub` (`/hubs/playback`) are the SignalR endpoints a map client talks to. `LocationHub` pushes live vehicle positions, status changes, alerts and fleet status into per-vehicle and per-fleet groups. `RoutePlaybackHub` runs historical replays of a tracking session: the client starts a playback, receives a continuous `PlaybackFrame` stream, and controls it (pause, resume, seek, speed) from the same connection. Both hubs are protected by the API key scheme and are mapped in `Program.cs`.
+
+Every client method is invoked with `connection.invoke(...)`, and every reply or broadcast arrives through `connection.on(...)`. Replies are sent to the caller only; broadcasts go to the group that the method targets.
+
+### Usage Example
+
+```javascript
+const apiKey = "<client-api-key>";
+
+// Live tracking: LocationHub
+const locations = new signalR.HubConnectionBuilder()
+    .withUrl("https://localhost:5001/hubs/location", { headers: { "X-API-Key": apiKey } })
+    .withAutomaticReconnect()
+    .build();
+
+locations.on("PositionSnapshot", snapshot => console.log("Snapshot:", snapshot.length));
+locations.on("VehicleStatusChanged", evt => console.log("Status:", evt.vehicleId, evt.newStatus));
+locations.on("Alert", alert => console.log("Alert:", alert.alertType, alert.message));
+locations.on("FleetStatusUpdated", status => console.log("Fleet:", status.fleetName, status.percentage + "%"));
+locations.on("Error", message => console.warn("Hub error:", message));
+
+// Reconnect: subscribe again (groups are not restored automatically) and resync markers
+locations.onreconnected(async () => {
+    await locations.invoke("SubscribeToVehicles", [101, 102, 103]);
+    await locations.invoke("RequestAllVehicleLocations");
+});
+
+await locations.start();
+await locations.invoke("SubscribeToVehicles", [101, 102, 103]);
+await locations.invoke("SubscribeToFleet", "north");
+await locations.invoke("RequestAllVehicleLocations");
+await locations.invoke("RequestOnlineVehicleCount");
+
+// Historical replay: RoutePlaybackHub
+const playback = new signalR.HubConnectionBuilder()
+    .withUrl("https://localhost:5001/hubs/playback", { headers: { "X-API-Key": apiKey } })
+    .withAutomaticReconnect()
+    .build();
+
+let playbackId = null;
+
+playback.on("PlaybackStarted", evt => { playbackId = evt.playbackId; });
+playback.on("PlaybackFrame", frame => drawFrame(frame));
+playback.on("PlaybackSpeedChanged", evt => console.log("Speed:", evt.speedMultiplier));
+playback.on("PlaybackCompleted", () => console.log("Playback finished"));
+playback.on("PlaybackError", err => console.warn("Playback error:", err.error));
+
+await playback.start();
+await playback.invoke("StartPlayback", { sessionId: 42, speedMultiplier: 2.0, loop: false });
+
+// Once PlaybackStarted has arrived, control the session by its id
+await playback.invoke("PausePlayback", playbackId);
+await playback.invoke("SeekTo", playbackId, "2026-10-01T08:00:00Z");
+await playback.invoke("ResumePlayback", playbackId);
+await playback.invoke("StopPlayback", playbackId);
+```
+
+### LocationHub client methods
+
+Methods that change group membership or broadcast to a group are listed above in *Client-to-server methods*. The hub also exposes these subscription and query methods:
+
+| Method | Behaviour |
+|--------|-----------|
+| `SubscribeToVehicle(int vehicleId)` / `UnsubscribeFromVehicle(int vehicleId)` | Adds or removes the caller from group `vehicle-{id}`. Replies with `SubscribedToVehicle` / `UnsubscribedFromVehicle`. |
+| `SubscribeToVehicles(int[] ids)` | Adds the caller to each `vehicle-{id}` group. IDs that are not positive are skipped. Replies with `SubscribedToVehicles`; an empty array replies with `Error`. |
+| `SubscribeToFleet(string fleetName)` / `UnsubscribeFromFleet(string fleetName)` | Adds or removes the caller from group `fleet-{name}`. Replies with `SubscribedToFleet` / `UnsubscribedFromFleet`. |
+| `RequestVehicleLocation(int vehicleId)` | Replies with `VehicleLocation` containing the latest stored location (or `null`). |
+| `RequestAllVehicleLocations()` | Replies with `PositionSnapshot`: the last known location of every online vehicle. |
+| `RequestOnlineVehicleCount()` | Replies with `OnlineVehicleCount`. |
+| `Ping()` | Replies with `Pong`. Lets a client check that the connection is alive. |
+
+Group membership is per connection. After a reconnect the client must subscribe again; `withAutomaticReconnect()` does not restore groups.
+
+### RoutePlaybackHub client methods
+
+| Method | Behaviour |
+|--------|-----------|
+| `StartPlayback(StartPlaybackRequest)` | Creates a playback session for `SessionId` (a tracking session with location history), adds the caller to group `playback-{playbackId}` and replies with `PlaybackStarted`. Request fields: `sessionId`, `speedMultiplier` (default `1.0`), `startFromTimestamp` (optional UTC), `loop` (default `false`). |
+| `PausePlayback(Guid playbackId)` / `ResumePlayback(Guid playbackId)` | Pause or resume frame emission from the retained cursor. Broadcasts `PlaybackPaused` / `PlaybackResumed` with the session state to the group. |
+| `StopPlayback(Guid playbackId)` | Broadcasts `PlaybackStopped` to the group, tears the session down and removes the caller from the group. |
+| `SeekTo(Guid playbackId, DateTime timestamp)` | Moves the cursor to the recorded frame closest to `timestamp` (clamped to the session range). Broadcasts `PlaybackSeeked`. |
+| `SetSpeed(Guid playbackId, double speedMultiplier)` | Changes the speed of a running or paused session, clamped to the engine range. Broadcasts `PlaybackSpeedChanged`. |
+| `SetPlaybackSpeed(int sessionId, double multiplier)` | Same as `SetSpeed`, but addressed by tracking session ID and clamped to 0.25x-8x. Replies with `PlaybackError` if no active playback exists for that session. |
+| `SubscribeToPlayback(Guid playbackId)` / `UnsubscribeFromPlayback(Guid playbackId)` | Lets a second client observe an existing session without starting one. Subscribing replies with `SubscribedToPlayback` containing the current state. |
+| `GetPlaybackState(Guid playbackId)` | Replies with `PlaybackState`. |
+| `RequestTimeline(int sessionId)` | Replies with `TimelineReady`: the annotated journey timeline. |
+| `RequestSnapshot(int sessionId, DateTime timestamp)` | Replies with `SnapshotReady`: the vehicle state at the closest recorded moment, without starting a stream. |
+| `RequestStatistics(int sessionId)` | Replies with `StatisticsReady`: aggregated statistics for the session. |
+
+### Server-to-client events
+
+| Event | Sent to | Payload |
+|-------|---------|---------|
+| `PositionSnapshot`, `VehicleLocation`, `OnlineVehicleCount`, `Pong` | Caller | Reply to a query |
+| `SubscribedToVehicle(s)`, `UnsubscribedFromVehicle`, `SubscribedToFleet`, `UnsubscribedFromFleet` | Caller | Confirmation of group change |
+| `VehicleStatusChanged`, `AssetRemoved`, `RouteProgressUpdated`, `Alert`, `VehicleStale`, `VehicleActive` | Vehicle group | Broadcast from the device/ingest methods above |
+| `FleetStatusUpdated` | Fleet group | `{ fleetName, onlineCount, totalCount, percentage, timestamp }` |
+| `PlaybackStarted` | Caller | `{ playbackId, sessionId, appliedSpeedMultiplier, loop, startedAt }` |
+| `PlaybackFrame` | Playback group | `PlaybackFrameDto`, streamed continuously by `RoutePlaybackService` |
+| `PlaybackPaused`, `PlaybackResumed`, `PlaybackSeeked`, `PlaybackSpeedChanged`, `PlaybackStopped` | Playback group | Session state or `{ playbackId, ... }` |
+| `PlaybackCompleted` | Playback group | Sent by `RoutePlaybackService` when the replay finishes |
+| `SubscribedToPlayback`, `UnsubscribedFromPlayback`, `PlaybackState` | Caller | Confirmation or state |
+| `TimelineReady`, `SnapshotReady`, `StatisticsReady` | Caller | `RouteTimelineDto`, `PlaybackFrameDto`, `PlaybackStatisticsDto` |
+| `PlaybackError` | Caller | `{ playbackId?, sessionId?, error }` |
+
+Playback failures are reported as `PlaybackError` with an `error` message; hub methods do not throw to the client. Anonymous payloads are serialized in camelCase by the default SignalR JSON protocol, so handlers read `evt.playbackId` and `err.error`.
+
+### Authorization
+
+Both hubs require API key authentication. Methods that broadcast to other clients on behalf of devices (`SendLocationUpdate`, `NotifyAssetRemoved`, `BroadcastVehicleStatusChange`, `SendAlert`, `NotifyVehicleStaleAsync`) additionally require the `device` or `ingest` role. Playback methods are available to any authenticated client.
+
+### Configuration
+
+- `SignalRHubs:MaxConnectionsPerHub` limits concurrent connections per hub (see *Configuration* in *Real-Time Map Hub*).
+- `SetPlaybackSpeed` always clamps the multiplier to 0.25x-8x in the hub; `StartPlayback` and `SetSpeed` rely on the playback engine's own range.
