@@ -258,6 +258,16 @@ public class PaginatedResponse<T>
     }
 
     /// <summary>
+    /// Returns a concise summary of the current page and total count for logging and debugging.
+    /// Item contents and cursor tokens are intentionally omitted.
+    /// </summary>
+    public override string ToString()
+    {
+        return FormattableString.Invariant(
+            $"PaginatedResponse {{ Page: {PageNumber}/{TotalPages}, PageSize: {PageSize}, TotalCount: {TotalCount} }}");
+    }
+
+    /// <summary>
     /// Creates a cursor from an item. The cursor encodes the item's position key.
     /// </summary>
     /// <param name="item">The item to create a cursor from.</param>
