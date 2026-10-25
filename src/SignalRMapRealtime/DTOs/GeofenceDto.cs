@@ -49,6 +49,10 @@ public class GeofenceDto
 
 /// <summary>Maximum dwell time in minutes before a dwell alert is triggered.</summary>
 public int MaxDwellMinutes { get; set; } = 60;
+
+    /// <summary>Returns a short summary of the geofence's key fields.</summary>
+    public override string ToString() =>
+        $"GeofenceDto {{ Id = {Id}, Name = {Name}, Type = {Type}, IsActive = {IsActive}, CenterLatitude = {CenterLatitude?.ToString() ?? "none"}, CenterLongitude = {CenterLongitude?.ToString() ?? "none"}, RadiusKm = {RadiusKm?.ToString() ?? "none"}, MaxDwellMinutes = {MaxDwellMinutes} }}";
 }
 
 /// <summary>Payload for registering a new geofence zone.</summary>
