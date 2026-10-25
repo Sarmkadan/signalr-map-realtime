@@ -147,4 +147,13 @@ public class Route
     {
         return Waypoints.Count > 0 && Waypoints.All(w => w.IsCompleted);
     }
+
+    /// <summary>
+    /// Returns a concise summary of the key fields of this route for logging and debugging.
+    /// </summary>
+    public override string ToString()
+    {
+        return FormattableString.Invariant(
+            $"Route {{ Id: {Id}, Name: {Name}, VehicleId: {VehicleId}, IsActive: {IsActive}, IsCompleted: {IsCompleted} }}");
+    }
 }
