@@ -1,4 +1,5 @@
 using System;
+using SignalRMapRealtime.Domain.Enums;
 
 namespace SignalRMapRealtime.Domain.Models
 {
@@ -17,6 +18,18 @@ namespace SignalRMapRealtime.Domain.Models
         {
             ArgumentNullException.ThrowIfNull(vehicle);
             return vehicle.DriverId.HasValue && vehicle.Driver != null;
+        }
+
+        /// <summary>
+        /// Determines whether the vehicle is active, i.e. has not been deactivated from tracking.
+        /// </summary>
+        /// <param name="vehicle">The vehicle instance.</param>
+        /// <returns><c>true</c> if <c>Status</c> is not <see cref="VehicleStatus.Deactivated"/>; otherwise <c>false</c>.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="vehicle"/> is <c>null</c>.</exception>
+        public static bool IsActive(this Vehicle vehicle)
+        {
+            ArgumentNullException.ThrowIfNull(vehicle);
+            return vehicle.Status != VehicleStatus.Deactivated;
         }
 
         /// <summary>
