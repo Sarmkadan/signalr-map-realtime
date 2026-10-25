@@ -19,6 +19,7 @@ public class ApplicationDbContext : DbContext
     /// </summary>
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
     {
+        ArgumentNullException.ThrowIfNull(options);
     }
 
     /// <summary>Users and drivers in the system.</summary>
