@@ -2763,3 +2763,101 @@ Several entries can be active at the same time. To rotate a key, add the new ent
 | `403 Forbidden` | `{"error":"Forbidden","message":"You do not have permission to access this resource."}` | The key is valid, but the caller lacks a role required by the endpoint |
 
 The handler logs the reason for each failure, but it never logs the presented key.
+
+## RouteController
+
+`RouteController` is an API controller that manages routes and delivery paths. A route is a named plan for a vehicle to follow, made up of an ordered sequence of waypoints. The controller provides CRUD endpoints for routes, a calculation endpoint that estimates the total distance and duration of a route's waypoints, and a GeoJSON export for mapping clients. Responses use the standardized `ApiResponse<T>` and `PaginatedResponse<T>` wrappers, and errors use `ErrorResponse`.
+
+Waypoints are read from storage by the calculation and GeoJSON endpoints. This controller does not add, reorder, or remove waypoints.
+
+| Method | Route | Description | Success status |
+|--------|-------|-------------|----------------|
+| `GET` | `api/Route?pageNumber=1&pageSize=20` | List routes with pagination | `200 OK` |
+| `GET` | `api/Route/{id}` | Get a route by ID | `200 OK` |
+| `POST` | `api/Route` | Create a route | `201 Created` (with a `Location` header) |
+| `PUT` | `api/Route/{id}` | Update a route's name and description | `200 OK` |
+| `DELETE` | `api/Route/{id}` | Delete a route | `204 No Content` |
+| `POST` | `api/Route/{id}/calculate` | Calculate the total distance and estimated duration | `200 OK` |
+| `GET` | `api/Route/{id}/geojson` | Export the route as a GeoJSON `LineString` | `200 OK` (`application/geo+json`) |
+
+### Request details
+
+- **Pagination:** `pageNumber` and `pageSize` default to `1` and `20`. `pageSize` is capped at `100`.
+- **Create:** The body is a `RouteDto`. `Name` is required and must not be blank. Only `Name` and `Description` are saved. Other fields in the body, including `VehicleId`, are ignored.
+- **Update:** The body is a `RouteDto`. Only `Name` and `Description` are changed. The body `Id` is optional. If it is supplied and does not match the `id` in the URL, the request is rejected.
+- **Calculate:** Waypoints are ordered by `Sequence`. The distance is the sum of the great-circle distances between consecutive waypoints, in kilometres, rounded to two decimal places. The duration is the distance divided by an assumed average speed of 40 km/h, plus the sum of each waypoint's `EstimatedDurationMinutes`, rounded to whole minutes.
+- **GeoJSON:** Returns the route geometry as a GeoJSON `LineString`, with the route metadata in the feature properties. The route must have at least one waypoint.
+
+Responses:
+
+| Status | When |
+|--------|------|
+| `400 Bad Request` | Create or update body fails validation (for example, a blank `Name`), or the body `Id` does not match the URL `id` |
+| `404 Not Found` | No route exists with the given `id`. For `GET /geojson`, also returned when the route has no waypoints |
+| `500 Internal Server Error` | An unexpected exception was thrown; it is logged on the server with the trace ID |
+
+### Usage Example
+
+```csharp
+using System;
+using System.Net.Http.Json;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc.Testing;
+using SignalRMapRealtime.DTOs;
+
+class Program
+{
+    static async Task Main()
+    {
+        var factory = new WebApplicationFactory<Program>();
+        var client = factory.CreateClient();
+
+        // Create a new route
+        var newRoute = new RouteDto
+        {
+            Name = "Downtown Delivery Loop",
+            Description = "Morning delivery run"
+        };
+
+        var createResponse = await client.PostAsJsonAsync("api/Route", newRoute);
+        var createdRoute = await createResponse.Content.ReadFromJsonAsync<ApiResponse<RouteDto>>();
+        Console.WriteLine($"Created route: {createdRoute?.Data?.Id}");
+
+        // Get all routes with pagination
+        var getAllResponse = await client.GetAsync("api/Route?pageNumber=1&pageSize=10");
+        var allRoutes = await getAllResponse.Content.ReadFromJsonAsync<ApiResponse<PaginatedResponse<RouteDto>>>();
+        Console.WriteLine($"Total routes: {allRoutes?.Data?.TotalCount}");
+
+        // Get a specific route by ID
+        var routeId = createdRoute?.Data?.Id;
+        var getByIdResponse = await client.GetAsync($"api/Route/{routeId}");
+        var singleRoute = await getByIdResponse.Content.ReadFromJsonAsync<ApiResponse<RouteDto>>();
+        Console.WriteLine($"Route: {singleRoute?.Data?.Name}");
+
+        // Update a route's name and description
+        var updateRoute = new RouteDto
+        {
+            Id = routeId ?? 0,
+            Name = "Downtown Delivery Loop - Updated",
+            Description = "Afternoon delivery run"
+        };
+        var updateResponse = await client.PutAsJsonAsync($"api/Route/{routeId}", updateRoute);
+        var updatedRoute = await updateResponse.Content.ReadFromJsonAsync<ApiResponse<RouteDto>>();
+        Console.WriteLine($"Updated route: {updatedRoute?.Data?.Name}");
+
+        // Calculate total distance and estimated duration from the stored waypoints
+        var calculateResponse = await client.PostAsync($"api/Route/{routeId}/calculate", null);
+        var calculation = await calculateResponse.Content.ReadFromJsonAsync<ApiResponse<object>>();
+        Console.WriteLine($"Calculation: {calculation?.Data}");
+
+        // Export the route as GeoJSON for a mapping client
+        var geoJsonResponse = await client.GetAsync($"api/Route/{routeId}/geojson");
+        var geoJson = await geoJsonResponse.Content.ReadAsStringAsync();
+        Console.WriteLine($"GeoJSON status: {(int)geoJsonResponse.StatusCode}");
+
+        // Delete the route
+        var deleteResponse = await client.DeleteAsync($"api/Route/{routeId}");
+        Console.WriteLine($"Delete status: {deleteResponse.StatusCode}");
+    }
+}
+```
