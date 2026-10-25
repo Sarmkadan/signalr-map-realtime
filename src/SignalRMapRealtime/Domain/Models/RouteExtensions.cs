@@ -82,4 +82,26 @@ public static class RouteExtensions
         var delay = route.ActualArrivalTime.Value - route.EstimatedArrivalTime;
         return (int)delay.TotalMinutes;
     }
+
+    /// <summary>
+    /// Calculates the total straight-line distance in kilometers across the route's waypoints,
+    /// summing the Haversine distance between each consecutive pair ordered by sequence.
+    /// </summary>
+    /// <param name="route">The route to calculate waypoint distance for.</param>
+    /// <returns>Total distance in kilometers, or 0 if the route has fewer than two waypoints.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="route"/> is null.</exception>
+    public static double GetWaypointDistanceKm(this Route route)
+    {
+        ArgumentNullException.ThrowIfNull(route);
+
+        var ordered = route.Waypoints.OrderBy(w => w.Sequence).ToList();
+        var total = 0.0;
+
+        for (var i = 1; i < ordered.Count; i++)
+        {
+            total += ordered[i - 1].CalculateDistanceTo(ordered[i]);
+        }
+
+        return total;
+    }
 }
