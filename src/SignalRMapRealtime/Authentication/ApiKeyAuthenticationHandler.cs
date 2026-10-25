@@ -26,14 +26,16 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthentic
     /// <param name="options">The monitor providing the <see cref="ApiKeyAuthenticationOptions"/> for this scheme.</param>
     /// <param name="logger">The factory used to create the handler's logger.</param>
     /// <param name="encoder">The URL encoder used by the base authentication handler.</param>
-    /// <exception cref="ArgumentNullException"><paramref name="logger"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="options"/>, <paramref name="logger"/>, or <paramref name="encoder"/> is <see langword="null"/>.</exception>
     public ApiKeyAuthenticationHandler(
         IOptionsMonitor<ApiKeyAuthenticationOptions> options,
         ILoggerFactory logger,
         UrlEncoder encoder)
         : base(options, logger, encoder)
     {
+        ArgumentNullException.ThrowIfNull(options);
         ArgumentNullException.ThrowIfNull(logger);
+        ArgumentNullException.ThrowIfNull(encoder);
 
         _logger = logger.CreateLogger<ApiKeyAuthenticationHandler>();
     }
