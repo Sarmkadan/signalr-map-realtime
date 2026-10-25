@@ -10,6 +10,11 @@ using Xunit;
 
 namespace SignalRMapRealtime.Tests;
 
+/// <summary>
+/// Unit tests for <c>ThrottleOptionsValidation</c>. They verify that a valid throttle configuration
+/// passes, that out-of-range interval values are reported, that disabled throttling skips validation,
+/// and that null input and invalid input are handled by the validation methods.
+/// </summary>
 public class ThrottleOptionsValidationTests
 {
     private static ThrottleOptions CreateValidOptions()
@@ -29,6 +34,9 @@ public class ThrottleOptionsValidationTests
         };
     }
 
+    /// <summary>
+    /// Verifies that <c>Validate</c> returns an empty error list for a fully valid configuration.
+    /// </summary>
     [Fact]
     public void Validate_HappyPath_ReturnsEmptyList()
     {
@@ -42,6 +50,9 @@ public class ThrottleOptionsValidationTests
         Assert.Empty(errors);
     }
 
+    /// <summary>
+    /// Verifies that <c>IsValid</c> returns <c>true</c> for a fully valid configuration.
+    /// </summary>
     [Fact]
     public void IsValid_HappyPath_ReturnsTrue()
     {
@@ -55,6 +66,9 @@ public class ThrottleOptionsValidationTests
         Assert.True(isValid);
     }
 
+    /// <summary>
+    /// Verifies that <c>EnsureValid</c> does not throw for a fully valid configuration.
+    /// </summary>
     [Fact]
     public void EnsureValid_HappyPath_DoesNotThrow()
     {
@@ -66,6 +80,10 @@ public class ThrottleOptionsValidationTests
         Assert.Null(exception);
     }
 
+    /// <summary>
+    /// Verifies that when <c>Enabled</c> is <c>false</c>, <c>Validate</c> returns an empty error list
+    /// even if a value is invalid (here <c>DeliveryVanIntervalSeconds</c> is 0).
+    /// </summary>
     [Fact]
     public void Validate_WhenDisabled_ReturnsEmptyListEvenIfInvalid()
     {
@@ -82,6 +100,9 @@ public class ThrottleOptionsValidationTests
         Assert.Empty(errors);
     }
 
+    /// <summary>
+    /// Verifies that <c>Validate</c> throws <see cref="ArgumentNullException"/> when passed <c>null</c>.
+    /// </summary>
     [Fact]
     public void Validate_Null_ThrowsArgumentNullException()
     {
@@ -89,6 +110,9 @@ public class ThrottleOptionsValidationTests
         Assert.Throws<ArgumentNullException>(() => ThrottleOptionsValidation.Validate(null!));
     }
 
+    /// <summary>
+    /// Verifies that <c>EnsureValid</c> throws <see cref="ArgumentNullException"/> when passed <c>null</c>.
+    /// </summary>
     [Fact]
     public void EnsureValid_Null_ThrowsArgumentNullException()
     {
@@ -96,6 +120,11 @@ public class ThrottleOptionsValidationTests
         Assert.Throws<ArgumentNullException>(() => ThrottleOptionsValidation.EnsureValid(null!));
     }
 
+    /// <summary>
+    /// Verifies that <c>EnsureValid</c> throws <see cref="ArgumentException"/> for an invalid configuration
+    /// (<c>CourierIntervalSeconds</c> set to 0), and that the message names the property and states
+    /// that the value is less than the minimum allowed value.
+    /// </summary>
     [Fact]
     public void EnsureValid_Invalid_ThrowsArgumentException_WithErrorDetails()
     {
@@ -111,6 +140,9 @@ public class ThrottleOptionsValidationTests
         Assert.Contains("less than the minimum allowed value", ex.Message);
     }
 
+    /// <summary>
+    /// Verifies that <c>IsValid</c> returns <c>false</c> when <c>BicycleIntervalSeconds</c> is 0.
+    /// </summary>
     [Fact]
     public void IsValid_Invalid_ReturnsFalse()
     {
@@ -125,6 +157,11 @@ public class ThrottleOptionsValidationTests
         Assert.False(isValid);
     }
 
+    /// <summary>
+    /// Verifies that the interval bounds are inclusive: when every interval property is set to the
+    /// given value, <c>Validate</c> returns no errors. Tested with 1 (minimum) and 86400 (maximum, 24 hours).
+    /// </summary>
+    /// <param name="boundaryValue">The interval value, in seconds, assigned to every interval property.</param>
     [Theory]
     [InlineData(1)]          // Minimum allowed
     [InlineData(86400)]      // Maximum allowed (24h)
@@ -147,6 +184,10 @@ public class ThrottleOptionsValidationTests
         Assert.Empty(errors);
     }
 
+    /// <summary>
+    /// Verifies that an interval one second above the maximum (86401, for <c>DeliveryVanIntervalSeconds</c>)
+    /// produces exactly one error that names the property and states that it exceeds the maximum allowed value.
+    /// </summary>
     [Fact]
     public void Validate_ValueExceedsMaximum_ProducesError()
     {
