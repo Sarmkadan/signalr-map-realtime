@@ -114,6 +114,22 @@ public static class ValidationExtensions
     }
 
     /// <summary>
+    /// Validates if a string is a hexadecimal color code in CSS short (#RGB) or long (#RRGGBB) form.
+    /// </summary>
+    /// <param name="color">The color string to validate.</param>
+    /// <returns>True if the string is a valid hex color; otherwise, false.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="color"/> is null.</exception>
+    public static bool IsValidHexColor(this string? color)
+    {
+        ArgumentNullException.ThrowIfNull(color);
+
+        if (string.IsNullOrWhiteSpace(color))
+            return false;
+
+        return Regex.IsMatch(color, @"^#(?:[0-9a-fA-F]{3}){1,2}\z");
+    }
+
+    /// <summary>
     /// Validates if a string contains only alphanumeric characters.
     /// </summary>
     /// <param name="value">The string to validate.</param>
