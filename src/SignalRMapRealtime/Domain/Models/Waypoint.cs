@@ -97,4 +97,13 @@ public class Waypoint
     {
         return !string.IsNullOrWhiteSpace(ArrivalTimeStart) && !string.IsNullOrWhiteSpace(ArrivalTimeEnd);
     }
+
+    /// <summary>
+    /// Returns a concise summary of the key identifying fields of this waypoint for logging and debugging.
+    /// </summary>
+    public override string ToString()
+    {
+        return FormattableString.Invariant(
+            $"Waypoint {{ Id: {Id}, Sequence: {Sequence}, Name: {Name}, RouteId: {RouteId}, Latitude: {Latitude}, Longitude: {Longitude} }}");
+    }
 }
