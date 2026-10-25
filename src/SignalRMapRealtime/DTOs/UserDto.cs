@@ -43,6 +43,10 @@ public class UserDto
 
     /// <summary>Creation timestamp.</summary>
     public DateTime CreatedAt { get; set; }
+
+    /// <summary>Returns a short summary of the user's key non-sensitive fields (excludes email, phone and name).</summary>
+    public override string ToString() =>
+        $"UserDto {{ Id = {Id}, JobTitle = {JobTitle ?? "none"}, Department = {Department ?? "none"}, IsOnline = {IsOnline}, IsActive = {IsActive}, LastLoginAt = {LastLoginAt?.ToString("O") ?? "none"}, CreatedAt = {CreatedAt:O} }}";
 }
 
 /// <summary>
