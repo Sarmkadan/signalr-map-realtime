@@ -32,6 +32,16 @@ public static class GeoLocationExtensions
     private const double DegreesInFullCircle = 360.0;
 
     /// <summary>
+    /// Angular width of one of the 16 compass sectors in degrees.
+    /// </summary>
+    private const double CompassSectorDegrees = 22.5;
+
+    /// <summary>
+    /// Half of a compass sector; the N sector is centred on 0° and extends this far on each side.
+    /// </summary>
+    private const double CompassHalfSectorDegrees = CompassSectorDegrees / 2;
+
+    /// <summary>
     /// Calculates the distance between two GPS coordinates using Haversine formula.
     /// Returns distance in kilometers.
     /// </summary>
@@ -161,24 +171,25 @@ public static class GeoLocationExtensions
         // Normalize bearing to 0-360 range
         bearing = ((bearing % DegreesInFullCircle) + DegreesInFullCircle) % DegreesInFullCircle;
 
+        // Sector boundaries sit at half-sector offsets: H + k * S, where H = CompassHalfSectorDegrees and S = CompassSectorDegrees
         return bearing switch
         {
-            >= 348.75 or < 11.25 => "N",
-            >= 11.25 and < 33.75 => "NE",
-            >= 33.75 and < 56.25 => "E",
-            >= 56.25 and < 78.75 => "SE",
-            >= 78.75 and < 101.25 => "S",
-            >= 101.25 and < 123.75 => "SW",
-            >= 123.75 and < 146.25 => "W",
-            >= 146.25 and < 168.75 => "NW",
-            >= 168.75 and < 191.25 => "S",
-            >= 191.25 and < 213.75 => "SW",
-            >= 213.75 and < 236.25 => "W",
-            >= 236.25 and < 258.75 => "NW",
-            >= 258.75 and < 281.25 => "N",
-            >= 281.25 and < 303.75 => "NE",
-            >= 303.75 and < 326.25 => "E",
-            >= 326.25 and < 348.75 => "SE",
+            >= DegreesInFullCircle - CompassHalfSectorDegrees or < CompassHalfSectorDegrees => "N",
+            >= CompassHalfSectorDegrees and < CompassHalfSectorDegrees + CompassSectorDegrees => "NE",
+            >= CompassHalfSectorDegrees + CompassSectorDegrees and < CompassHalfSectorDegrees + 2 * CompassSectorDegrees => "E",
+            >= CompassHalfSectorDegrees + 2 * CompassSectorDegrees and < CompassHalfSectorDegrees + 3 * CompassSectorDegrees => "SE",
+            >= CompassHalfSectorDegrees + 3 * CompassSectorDegrees and < CompassHalfSectorDegrees + 4 * CompassSectorDegrees => "S",
+            >= CompassHalfSectorDegrees + 4 * CompassSectorDegrees and < CompassHalfSectorDegrees + 5 * CompassSectorDegrees => "SW",
+            >= CompassHalfSectorDegrees + 5 * CompassSectorDegrees and < CompassHalfSectorDegrees + 6 * CompassSectorDegrees => "W",
+            >= CompassHalfSectorDegrees + 6 * CompassSectorDegrees and < CompassHalfSectorDegrees + 7 * CompassSectorDegrees => "NW",
+            >= CompassHalfSectorDegrees + 7 * CompassSectorDegrees and < CompassHalfSectorDegrees + 8 * CompassSectorDegrees => "S",
+            >= CompassHalfSectorDegrees + 8 * CompassSectorDegrees and < CompassHalfSectorDegrees + 9 * CompassSectorDegrees => "SW",
+            >= CompassHalfSectorDegrees + 9 * CompassSectorDegrees and < CompassHalfSectorDegrees + 10 * CompassSectorDegrees => "W",
+            >= CompassHalfSectorDegrees + 10 * CompassSectorDegrees and < CompassHalfSectorDegrees + 11 * CompassSectorDegrees => "NW",
+            >= CompassHalfSectorDegrees + 11 * CompassSectorDegrees and < CompassHalfSectorDegrees + 12 * CompassSectorDegrees => "N",
+            >= CompassHalfSectorDegrees + 12 * CompassSectorDegrees and < CompassHalfSectorDegrees + 13 * CompassSectorDegrees => "NE",
+            >= CompassHalfSectorDegrees + 13 * CompassSectorDegrees and < CompassHalfSectorDegrees + 14 * CompassSectorDegrees => "E",
+            >= CompassHalfSectorDegrees + 14 * CompassSectorDegrees and < CompassHalfSectorDegrees + 15 * CompassSectorDegrees => "SE",
             _ => bearing.ToString("F1") + "°"
         };
     }
