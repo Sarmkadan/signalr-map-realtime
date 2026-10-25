@@ -73,6 +73,10 @@ public class VehicleDto
     /// </summary>
     [JsonIgnore]
     public byte[] RowVersion { get; set; } = [];
+
+    /// <summary>Returns a short summary of the vehicle's key fields.</summary>
+    public override string ToString() =>
+        $"VehicleDto {{ Id = {Id}, Name = {Name}, RegistrationNumber = {RegistrationNumber}, Status = {Status}, AssetType = {AssetType}, DriverId = {DriverId?.ToString() ?? "none"}, IsOnline = {IsOnline} }}";
 }
 
 /// <summary>
