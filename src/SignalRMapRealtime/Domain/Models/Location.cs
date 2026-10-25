@@ -100,4 +100,13 @@ public class Location
         ArgumentNullException.ThrowIfNull(other);
         return CalculateDistanceTo(other) >= minDistanceKm;
     }
+
+    /// <summary>
+    /// Returns a concise summary of the key fields of this location for logging and debugging.
+    /// </summary>
+    public override string ToString()
+    {
+        return FormattableString.Invariant(
+            $"Location {{ Id: {Id}, Lat: {Latitude}, Lng: {Longitude}, VehicleId: {VehicleId}, RecordedAt: {RecordedAt:O} }}");
+    }
 }
