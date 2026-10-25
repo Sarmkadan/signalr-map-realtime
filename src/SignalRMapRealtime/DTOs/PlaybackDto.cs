@@ -130,7 +130,12 @@ public record PlaybackSessionDto(
     int CurrentFrame,
     int TotalFrames,
     int CompletionPercentage,
-    bool Loop);
+    bool Loop)
+{
+    /// <summary>Returns a short summary of the playback session's key fields.</summary>
+    public override string ToString() =>
+        $"PlaybackSessionDto {{ PlaybackId = {PlaybackId}, TrackingSessionId = {TrackingSessionId}, Status = {Status}, CurrentFrame = {CurrentFrame}/{TotalFrames}, CompletionPercentage = {CompletionPercentage}, SpeedMultiplier = {SpeedMultiplier}, Loop = {Loop} }}";
+}
 
 /// <summary>
 /// A single annotated entry in a route timeline. Entries correspond directly to recorded location
