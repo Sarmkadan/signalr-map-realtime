@@ -16,6 +16,8 @@ public static class EventBusExtensions
     /// </summary>
     public static IServiceCollection AddEventBus(this IServiceCollection services)
     {
+        ArgumentNullException.ThrowIfNull(services);
+
         services.AddSingleton<IEventBus, InMemoryEventBus>();
         return services;
     }
@@ -25,6 +27,8 @@ public static class EventBusExtensions
     /// </summary>
     public static IServiceCollection AddDomainEventDispatcher(this IServiceCollection services)
     {
+        ArgumentNullException.ThrowIfNull(services);
+
         services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
         return services;
     }
@@ -34,6 +38,8 @@ public static class EventBusExtensions
     /// </summary>
     public static IServiceCollection AddEventHandler<TEvent, THandler>(this IServiceCollection services) where TEvent : DomainEvent where THandler : class
     {
+        ArgumentNullException.ThrowIfNull(services);
+
         services.AddScoped<THandler>();
         return services;
     }
