@@ -161,6 +161,44 @@ public static class GeoLocationExtensions
     }
 
     /// <summary>
+    /// Calculates the destination reached by travelling a distance along a bearing from a starting location.
+    /// This is the inverse of <see cref="BearingTo"/> and <see cref="DistanceTo"/> on a spherical Earth model.
+    /// </summary>
+    /// <param name="from">Starting location.</param>
+    /// <param name="bearingDegrees">Initial bearing in degrees clockwise from North (any value; normalized internally).</param>
+    /// <param name="distanceKm">Distance to travel in kilometers.</param>
+    /// <returns>Latitude and longitude of the destination in decimal degrees.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when from is null.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when distanceKm is negative.</exception>
+    public static (double Latitude, double Longitude) DestinationPoint(
+        this Location from, double bearingDegrees, double distanceKm)
+    {
+        ArgumentNullException.ThrowIfNull(from);
+        ArgumentOutOfRangeException.ThrowIfNegative(distanceKm);
+
+        var angularDistance = distanceKm / EarthRadiusKm;
+        var bearing = DegreesToRadians(bearingDegrees);
+        var lat1 = DegreesToRadians(from.Latitude);
+        var lon1 = DegreesToRadians(from.Longitude);
+
+        var sinLat2 = Math.Sin(lat1) * Math.Cos(angularDistance) +
+                      Math.Cos(lat1) * Math.Sin(angularDistance) * Math.Cos(bearing);
+        var lat2 = Math.Asin(Math.Clamp(sinLat2, -1.0, 1.0));
+        var lon2 = lon1 + Math.Atan2(
+            Math.Sin(bearing) * Math.Sin(angularDistance) * Math.Cos(lat1),
+            Math.Cos(angularDistance) - Math.Sin(lat1) * Math.Sin(lat2));
+
+        var latitude = RadiansToDegrees(lat2);
+        var longitude = RadiansToDegrees(lon2);
+
+        // Normalize longitude to -180 to 180
+        longitude = ((longitude + DegreesInHalfCircle) % DegreesInFullCircle + DegreesInFullCircle)
+                    % DegreesInFullCircle - DegreesInHalfCircle;
+
+        return (latitude, longitude);
+    }
+
+    /// <summary>
     /// Determines cardinal direction from bearing angle.
     /// Returns: N, NE, E, SE, S, SW, W, NW, or the exact bearing if it doesn't fit.
     /// </summary>
