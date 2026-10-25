@@ -57,6 +57,10 @@ public class LocationDto
 
     /// <summary>Direction heading in degrees (alternate naming for <see cref="Bearing"/>).</summary>
     public double? Heading { get; set; }
+
+    /// <summary>Returns a short summary of the location's key fields.</summary>
+    public override string ToString() =>
+        $"LocationDto {{ Id = {Id}, VehicleId = {VehicleId}, Latitude = {Latitude}, Longitude = {Longitude}, LocationType = {LocationType}, Speed = {Speed?.ToString() ?? "none"}, RecordedAt = {RecordedAt:O} }}";
 }
 
 /// <summary>
