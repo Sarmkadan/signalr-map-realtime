@@ -12,6 +12,10 @@ using Xunit;
 
 namespace SignalRMapRealtime.Tests;
 
+/// <summary>
+/// Unit tests for the parameter and instance validation helpers of <c>RouteRepository</c>
+/// and <c>RouteRepositoryValidation</c>.
+/// </summary>
 public class RouteRepositoryValidationTests
 {
     private static RouteRepository CreateRepository()
@@ -26,6 +30,9 @@ public class RouteRepositoryValidationTests
         return new RouteRepository(dbContext);
     }
 
+    /// <summary>
+    /// Verifies that calling <c>Validate</c> on a null repository reference throws <see cref="ArgumentNullException"/>.
+    /// </summary>
     [Fact]
     public void Validate_Null_ThrowsArgumentNullException()
     {
@@ -33,6 +40,9 @@ public class RouteRepositoryValidationTests
         Assert.Throws<ArgumentNullException>(() => repo.Validate());
     }
 
+    /// <summary>
+    /// Verifies that <c>Validate</c> on a repository built over an in-memory context returns no error messages.
+    /// </summary>
     [Fact]
     public void Validate_ValidInstance_ReturnsEmpty()
     {
@@ -41,6 +51,9 @@ public class RouteRepositoryValidationTests
         Assert.Empty(result);
     }
 
+    /// <summary>
+    /// Verifies that <c>IsValid</c> returns <see langword="true"/> for a repository built over an in-memory context.
+    /// </summary>
     [Fact]
     public void IsValid_ValidInstance_ReturnsTrue()
     {
@@ -49,6 +62,10 @@ public class RouteRepositoryValidationTests
         Assert.True(isValid);
     }
 
+    /// <summary>
+    /// Verifies that a positive vehicle ID passes <c>ValidateParametersForGetActiveRoutesByVehicleAsync</c>,
+    /// while zero or a negative ID yields a single "Vehicle ID must be positive" error.
+    /// </summary>
     [Theory]
     [InlineData(5, true)]
     [InlineData(0, false)]
@@ -67,6 +84,10 @@ public class RouteRepositoryValidationTests
         }
     }
 
+    /// <summary>
+    /// Verifies that a start date later than the end date makes <c>ValidateParametersForGetRoutesByDateRangeAsync</c>
+    /// return a single "Start date must be before or equal to end date" error.
+    /// </summary>
     [Fact]
     public void ValidateParametersForGetRoutesByDateRangeAsync_InvalidRange_ReturnsError()
     {
@@ -77,6 +98,10 @@ public class RouteRepositoryValidationTests
         Assert.Contains("Start date must be before or equal to end date", result[0]);
     }
 
+    /// <summary>
+    /// Verifies the top-count bounds of <c>ValidateParametersForGetLongestRoutesAsync</c>: 10 is accepted,
+    /// 0 fails with a "must be positive" error, and 1500 fails with a "too large" error.
+    /// </summary>
     [Theory]
     [InlineData(10, true)]
     [InlineData(0, false)]
@@ -98,6 +123,10 @@ public class RouteRepositoryValidationTests
         }
     }
 
+    /// <summary>
+    /// Verifies that a positive vehicle ID passes <c>ValidateParametersForGetAverageCompletionTimeAsync</c>,
+    /// while zero yields a single "Vehicle ID must be positive" error.
+    /// </summary>
     [Theory]
     [InlineData(7, true)]
     [InlineData(0, false)]
@@ -115,6 +144,10 @@ public class RouteRepositoryValidationTests
         }
     }
 
+    /// <summary>
+    /// Verifies that <c>RouteRepositoryValidation.ValidateParametersForGetPendingRoutesAsync</c> takes no parameters
+    /// and always returns an empty error list.
+    /// </summary>
     [Fact]
     public void ValidateParametersForGetPendingRoutesAsync_AlwaysEmpty()
     {
