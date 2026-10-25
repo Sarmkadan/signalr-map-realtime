@@ -36,6 +36,8 @@ public class WebhookOptions
     /// <returns>Tolerance in minutes, or 0 if not configured.</returns>
     public int GetTimestampToleranceMinutes(string provider)
     {
+        ArgumentNullException.ThrowIfNull(provider);
+
         if (string.IsNullOrWhiteSpace(provider))
         {
             return 0;
