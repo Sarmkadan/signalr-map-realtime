@@ -20,6 +20,8 @@ public static class VehicleStaleDetectionServiceExtensions
     /// <returns>The service collection for method chaining.</returns>
     public static IServiceCollection AddVehicleStaleDetectionService(this IServiceCollection services)
     {
+        ArgumentNullException.ThrowIfNull(services);
+
         services.AddHostedService<VehicleStaleDetectionService>();
         services.AddScoped<VehicleStaleDetectionService>(provider =>
             provider.GetRequiredService<IHostedService>() as VehicleStaleDetectionService ??
