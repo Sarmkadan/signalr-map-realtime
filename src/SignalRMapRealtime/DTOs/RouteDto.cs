@@ -58,6 +58,10 @@ public class RouteDto
 
     /// <summary>Last update timestamp.</summary>
     public DateTime UpdatedAt { get; set; }
+
+    /// <summary>Returns a short summary of the route's key fields.</summary>
+    public override string ToString() =>
+        $"RouteDto {{ Id = {Id}, Name = {Name}, VehicleId = {VehicleId}, AssignedUserId = {AssignedUserId?.ToString() ?? "none"}, PlannedDepartureTime = {PlannedDepartureTime:O}, EstimatedArrivalTime = {EstimatedArrivalTime:O}, IsActive = {IsActive}, IsCompleted = {IsCompleted} }}";
 }
 
 /// <summary>
