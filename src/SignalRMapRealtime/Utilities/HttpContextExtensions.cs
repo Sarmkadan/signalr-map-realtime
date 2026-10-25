@@ -174,6 +174,19 @@ public static class HttpContextExtensions
     }
 
     /// <summary>
+    /// Checks if the request is a CORS preflight request.
+    /// </summary>
+    /// <param name="context">The <see cref="HttpContext"/> instance.</param>
+    /// <returns><see langword="true"/> if the request is an OPTIONS request carrying an <c>Access-Control-Request-Method</c> header; otherwise, <see langword="false"/>.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="context"/> is <see langword="null"/>.</exception>
+    public static bool IsCorsPreflightRequest(this HttpContext context)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        return string.Equals(context.Request.Method, "OPTIONS", StringComparison.OrdinalIgnoreCase) &&
+               context.Request.Headers.ContainsKey("Access-Control-Request-Method");
+    }
+
+    /// <summary>
     /// Gets the content type of the request.
     /// </summary>
     /// <param name="context">The <see cref="HttpContext"/> instance.</param>
