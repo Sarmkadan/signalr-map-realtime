@@ -29,6 +29,11 @@ using SignalRMapRealtime.Hubs;
 /// </summary>
 public class LocationUpdateThrottler : IDisposable
 {
+    /// <summary>
+    /// Maximum number of buffered location updates held per vehicle before the oldest is dropped.
+    /// </summary>
+    private const int BufferCapacityPerVehicle = 100;
+
     private readonly ConcurrentDictionary<int, DateTime> _lastUpdateTimes = new();
     private readonly ConcurrentDictionary<int, Channel<LocationDto>> _pendingUpdates = new();
     private readonly ConcurrentDictionary<int, Task> _flushTasks = new();
@@ -130,7 +135,7 @@ public class LocationUpdateThrottler : IDisposable
         {
             var channel = _pendingUpdates.GetOrAdd(
                 locationDto.VehicleId,
-                _ => Channel.CreateBounded<LocationDto>(new BoundedChannelOptions(100)
+                _ => Channel.CreateBounded<LocationDto>(new BoundedChannelOptions(BufferCapacityPerVehicle)
                 {
                     FullMode = BoundedChannelFullMode.DropOldest,
                     SingleReader = true,
