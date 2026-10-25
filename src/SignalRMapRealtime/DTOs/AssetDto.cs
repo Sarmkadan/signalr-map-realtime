@@ -60,6 +60,10 @@ public class AssetDto
 
     /// <summary>Status label (alternate naming for <see cref="Condition"/>).</summary>
     public string? Status { get; set; }
+
+    /// <summary>Returns a short summary of the asset's key fields.</summary>
+    public override string ToString() =>
+        $"AssetDto {{ Id = {Id}, Name = {Name}, SerialNumber = {SerialNumber}, AssetType = {AssetType}, VehicleId = {VehicleId?.ToString() ?? "none"}, Value = {Value?.ToString() ?? "none"} }}";
 }
 
 /// <summary>
