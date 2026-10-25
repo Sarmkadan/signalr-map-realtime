@@ -21,6 +21,17 @@ using SignalRMapRealtime.Events;
 /// </summary>
 public class VehicleStaleDetectionService : BackgroundService
 {
+    /// <summary>
+    /// Number of location update intervals that may elapse before a vehicle is considered stale.
+    /// The stale window is derived as <c>LocationUpdateIntervalSeconds / 60 * StaleWindowIntervalMultiplier</c> minutes.
+    /// </summary>
+    private const int StaleWindowIntervalMultiplier = 2;
+
+    /// <summary>
+    /// Age in minutes of the most recent location below which a previously stale vehicle is considered recovered.
+    /// </summary>
+    private const int RecoveryWindowMinutes = 5;
+
     private readonly ILogger<VehicleStaleDetectionService> _logger;
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly SignalrMapRealtimeOptions _options;
@@ -51,7 +62,7 @@ public class VehicleStaleDetectionService : BackgroundService
     /// <summary>
     /// Gets the stale detection window in minutes from configuration.
     /// </summary>
-    private int StaleWindowMinutes => _options.AppInfo.LocationUpdateIntervalSeconds / 60 * 2;
+    private int StaleWindowMinutes => _options.AppInfo.LocationUpdateIntervalSeconds / 60 * StaleWindowIntervalMultiplier;
 
     /// <summary>
     /// Background service execution that periodically checks for stale vehicles.
@@ -195,7 +206,7 @@ public class VehicleStaleDetectionService : BackgroundService
                         var timeInStaleState = now - _lastActiveTimes[vehicleId];
 
                         // Check if vehicle has sent a new location update (recovered)
-                        if (now - lastUpdateTime < TimeSpan.FromMinutes(5)) // Recent update means recovered
+                        if (now - lastUpdateTime < TimeSpan.FromMinutes(RecoveryWindowMinutes)) // Recent update means recovered
                         {
                             var vehicle = await vehicleRepository.GetByIdAsync(vehicleId, cancellationToken).ConfigureAwait(false);
                             if (vehicle != null)
