@@ -42,6 +42,24 @@ public interface IClusteringService
 /// </summary>
 public sealed class ClusteringService : IClusteringService
 {
+    /// <summary>Smallest grid cell size in kilometres; smaller requested values are clamped to this.</summary>
+    private const double MinGridCellKm = 0.1;
+
+    /// <summary>Default look-back window in hours when a query omits <c>From</c> or <c>To</c>.</summary>
+    private const int DefaultLookbackHours = 24;
+
+    /// <summary>Maximum number of recent locations sampled when no vehicle filter is applied.</summary>
+    private const int MaxSampledLocations = 10_000;
+
+    /// <summary>Approximate kilometres per degree of latitude, used to convert grid cell size to degrees.</summary>
+    private const double KmPerDegreeLatitude = 110.574;
+
+    /// <summary>Approximate kilometres per degree of longitude at the equator, scaled by cos(latitude) per point.</summary>
+    private const double KmPerDegreeLongitudeAtEquator = 111.32;
+
+    /// <summary>Lower bound on the cosine of latitude, preventing division blow-up near the poles.</summary>
+    private const double MinLatitudeCosine = 0.001;
+
     private readonly ILocationService _locationService;
     private readonly ILogger<ClusteringService> _logger;
 
@@ -66,7 +84,7 @@ public sealed class ClusteringService : IClusteringService
         var stopwatch = Stopwatch.StartNew();
 
         var points = await LoadPointsAsync(request, cancellationToken).ConfigureAwait(false);
-        var cellKm = Math.Max(0.1, request.GridCellKm);
+        var cellKm = Math.Max(MinGridCellKm, request.GridCellKm);
         var cells = BucketIntoGrid(points, cellKm);
 
         var clusters = cells.Values.Select(cell =>
@@ -107,7 +125,7 @@ public sealed class ClusteringService : IClusteringService
         var stopwatch = Stopwatch.StartNew();
 
         var points = await LoadPointsAsync(request, cancellationToken).ConfigureAwait(false);
-        var cellKm = Math.Max(0.1, request.GridCellKm);
+        var cellKm = Math.Max(MinGridCellKm, request.GridCellKm);
         var cells = BucketIntoGrid(points, cellKm);
 
         int maxCount = cells.Values.Select(c => c.Count).DefaultIfEmpty(0).Max();
@@ -136,8 +154,8 @@ public sealed class ClusteringService : IClusteringService
 
     /// <summary>
     /// Loads raw coordinates for the query. When <see cref="ClusterQueryRequest.VehicleId"/> is set,
-    /// uses that vehicle's history; otherwise takes up to 10,000 recent locations and filters them by time window.
-    /// Defaults to the last 24 hours when <c>From</c> or <c>To</c> is not supplied.
+    /// uses that vehicle's history; otherwise takes up to <see cref="MaxSampledLocations"/> recent locations and filters them by time window.
+    /// Defaults to the last <see cref="DefaultLookbackHours"/> hours when <c>From</c> or <c>To</c> is not supplied.
     /// </summary>
     /// <param name="request">Query parameters including time window, optional vehicle filter, and bounding box.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
@@ -145,7 +163,7 @@ public sealed class ClusteringService : IClusteringService
     private async Task<List<(double Lat, double Lon)>> LoadPointsAsync(
         ClusterQueryRequest request, CancellationToken cancellationToken)
     {
-        var from = request.From ?? DateTime.UtcNow.AddHours(-24);
+        var from = request.From ?? DateTime.UtcNow.AddHours(-DefaultLookbackHours);
         var to = request.To ?? DateTime.UtcNow;
 
         IEnumerable<LocationDto> locations;
@@ -159,7 +177,7 @@ public sealed class ClusteringService : IClusteringService
         else
         {
             var paged = await _locationService
-                .GetLocationsAsync(1, 10_000, cancellationToken)
+                .GetLocationsAsync(1, MaxSampledLocations, cancellationToken)
                 .ConfigureAwait(false);
             locations = paged.Items.Where(l => l.RecordedAt >= from && l.RecordedAt <= to);
         }
@@ -195,13 +213,13 @@ public sealed class ClusteringService : IClusteringService
     private static Dictionary<(int Row, int Col), List<(double Lat, double Lon)>> BucketIntoGrid(
         List<(double Lat, double Lon)> points, double cellKm)
     {
-        const double LatDegPerKm = 1.0 / 110.574;
+        const double LatDegPerKm = 1.0 / KmPerDegreeLatitude;
 
         var cells = new Dictionary<(int, int), List<(double Lat, double Lon)>>();
 
         foreach (var (lat, lon) in points)
         {
-            double lonDegPerKm = 1.0 / (111.32 * Math.Max(0.001, Math.Cos(lat * Math.PI / 180.0)));
+            double lonDegPerKm = 1.0 / (KmPerDegreeLongitudeAtEquator * Math.Max(MinLatitudeCosine, Math.Cos(lat * Math.PI / 180.0)));
             int row = (int)Math.Floor(lat / (cellKm * LatDegPerKm));
             int col = (int)Math.Floor(lon / (cellKm * lonDegPerKm));
 
