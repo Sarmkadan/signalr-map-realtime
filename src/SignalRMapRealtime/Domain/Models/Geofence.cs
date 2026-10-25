@@ -104,6 +104,15 @@ public int MaxDwellMinutes { get; set; } = 60;
         return points;
     }
 
+    /// <summary>
+    /// Returns a concise summary of the key identifying fields of this geofence for logging and debugging.
+    /// </summary>
+    public override string ToString()
+    {
+        return FormattableString.Invariant(
+            $"Geofence {{ Id: {Id}, Name: {Name}, Type: {Type}, IsActive: {IsActive} }}");
+    }
+
     private bool ContainsCircle(double latitude, double longitude)
     {
         if (CenterLatitude is null || CenterLongitude is null || RadiusKm is null)
