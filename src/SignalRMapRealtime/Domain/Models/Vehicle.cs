@@ -136,4 +136,13 @@ public class Vehicle
         IsOnline = isOnline;
         UpdatedAt = DateTime.UtcNow;
     }
+
+    /// <summary>
+    /// Returns a concise summary of the key fields of this vehicle for logging and debugging.
+    /// </summary>
+    public override string ToString()
+    {
+        return FormattableString.Invariant(
+            $"Vehicle {{ Id: {Id}, RegistrationNumber: {RegistrationNumber}, Status: {Status} }}");
+    }
 }
