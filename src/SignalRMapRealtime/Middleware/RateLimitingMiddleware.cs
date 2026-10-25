@@ -25,8 +25,9 @@ public class RateLimitingMiddleware
     private static readonly Dictionary<string, List<DateTime>> RequestTracker = new();
     private static readonly object LockObject = new();
     private static int _requestCount = 0;
-    private static readonly int PruneEveryNRequests = 1000;
-    private static readonly int PruneWhenSizeExceeds = 10000;
+    private const int PruneEveryNRequests = 1000;
+    private const int PruneWhenSizeExceeds = 10000;
+    private const int MaxTimestampsPerClient = 1000;
     private static int _windowSizeSeconds;
 
     /// <summary>
@@ -217,7 +218,7 @@ public class RateLimitingMiddleware
             }
 
             // Clean up old requests for this client to prevent memory bloat
-            if (timestamps.Count > 1000)
+            if (timestamps.Count > MaxTimestampsPerClient)
             {
                 var cutoffTime = DateTime.UtcNow.AddSeconds(-_windowSizeSeconds);
                 timestamps.RemoveAll(t => t < cutoffTime);
