@@ -2516,3 +2516,72 @@ Both hubs require API key authentication. Methods that broadcast to other client
 
 - `SignalRHubs:MaxConnectionsPerHub` limits concurrent connections per hub (see *Configuration* in *Real-Time Map Hub*).
 - `SetPlaybackSpeed` always clamps the multiplier to 0.25x-8x in the hub; `StartPlayback` and `SetSpeed` rely on the playback engine's own range.
+
+## ClusteringController
+
+`ClusteringController` is an API controller that computes location clusters and density heatmaps from the stored location history. Results are calculated on demand, not cached, so each request reads the history for the requested window. Points are bucketed into a geographic grid whose cell edge is set by `gridCellKm` (default 0.5 km, clamped to a minimum of 0.1 km). Clusters are intended for marker clustering at lower zoom levels, and heatmap tiles carry a normalised `Intensity` between 0.0 and 1.0 relative to the busiest tile in the response.
+
+Both endpoints accept the same query parameters. Every parameter is optional:
+
+| Parameter | Type | Behaviour |
+|-----------|------|-----------|
+| `vehicleId` | `int?` | Restricts results to one vehicle's location history |
+| `from` | `DateTime?` (UTC) | Start of the time window. Defaults to 24 hours ago |
+| `to` | `DateTime?` (UTC) | End of the time window. Defaults to now |
+| `gridCellKm` | `double` | Grid cell edge length in km. Defaults to 0.5, minimum 0.1 |
+| `minLatitude`, `maxLatitude` | `double?` | Optional southern and northern bounding-box limits |
+| `minLongitude`, `maxLongitude` | `double?` | Optional western and eastern bounding-box limits |
+
+| Method | Route | Response payload | Behaviour |
+|--------|-------|------------------|-----------|
+| `GET` | `api/Clustering/clusters` | `ApiResponse<ClusterResponseDto>` | Groups points into clusters, each with a centroid, a point count and a bounding box |
+| `GET` | `api/Clustering/heatmap` | `ApiResponse<HeatmapResponseDto>` | Returns density tiles ordered by descending intensity, plus `TotalSamples` and `MaxCount` |
+
+If the computation fails, both endpoints return `400 Bad Request` with an `ErrorResponse` that carries the request's trace identifier. The error is logged on the server.
+
+### Usage Example
+
+```csharp
+using System;
+using System.Linq;
+using System.Net.Http.Json;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc.Testing;
+using SignalRMapRealtime.DTOs;
+
+class Program
+{
+    static async Task Main()
+    {
+        var factory = new WebApplicationFactory<Program>();
+        var client = factory.CreateClient();
+
+        // Clusters for the last 24 hours across the whole fleet (default window and grid)
+        var clustersResponse = await client.GetAsync("api/Clustering/clusters");
+        var clusters = await clustersResponse.Content.ReadFromJsonAsync<ApiResponse<ClusterResponseDto>>();
+        Console.WriteLine($"Clusters: {clusters?.Data?.Clusters.Count} from {clusters?.Data?.TotalPoints} points");
+
+        // Clusters for one vehicle over an explicit window, using a 1 km grid
+        var from = DateTime.UtcNow.AddDays(-7).ToString("O");
+        var to = DateTime.UtcNow.ToString("O");
+        var vehicleClustersResponse = await client.GetAsync(
+            $"api/Clustering/clusters?vehicleId=42&from={Uri.EscapeDataString(from)}&to={Uri.EscapeDataString(to)}&gridCellKm=1.0");
+        var vehicleClusters = await vehicleClustersResponse.Content.ReadFromJsonAsync<ApiResponse<ClusterResponseDto>>();
+        foreach (var cluster in vehicleClusters?.Data?.Clusters ?? Array.Empty<LocationClusterDto>())
+        {
+            Console.WriteLine($"Cluster at {cluster.CenterLatitude:F4}, {cluster.CenterLongitude:F4}: {cluster.Count} points");
+        }
+
+        // Heatmap limited to a bounding box, with the hottest tiles listed first
+        var heatmapResponse = await client.GetAsync(
+            "api/Clustering/heatmap?minLatitude=50.3&maxLatitude=50.6&minLongitude=30.3&maxLongitude=30.7&gridCellKm=0.25");
+        var heatmap = await heatmapResponse.Content.ReadFromJsonAsync<ApiResponse<HeatmapResponseDto>>();
+        Console.WriteLine($"Heatmap samples: {heatmap?.Data?.TotalSamples}, peak tile count: {heatmap?.Data?.MaxCount}");
+
+        foreach (var point in heatmap?.Data?.Points.Take(5) ?? Array.Empty<HeatmapPointDto>())
+        {
+            Console.WriteLine($"Tile {point.Latitude:F4}, {point.Longitude:F4}: intensity {point.Intensity:F2} ({point.Count} samples)");
+        }
+    }
+}
+```
