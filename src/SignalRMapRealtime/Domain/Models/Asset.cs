@@ -131,4 +131,13 @@ public class Asset
         Condition = newCondition;
         UpdatedAt = DateTime.UtcNow;
     }
+
+    /// <summary>
+    /// Returns a concise summary of the key fields of this asset for logging and debugging.
+    /// </summary>
+    public override string ToString()
+    {
+        return FormattableString.Invariant(
+            $"Asset {{ Id: {Id}, Name: {Name}, SerialNumber: {SerialNumber}, AssetType: {AssetType}, VehicleId: {VehicleId}, Condition: {Condition}, RequiresSpecialHandling: {RequiresSpecialHandling} }}");
+    }
 }
