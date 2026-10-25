@@ -114,4 +114,14 @@ public class User
         IsActive = true;
         UpdatedAt = DateTime.UtcNow;
     }
+
+    /// <summary>
+    /// Returns a concise summary of the key non-sensitive fields of this user for logging and debugging.
+    /// Email and phone number are intentionally omitted.
+    /// </summary>
+    public override string ToString()
+    {
+        return FormattableString.Invariant(
+            $"User {{ Id: {Id}, FullName: {FullName}, EmployeeId: {EmployeeId}, JobTitle: {JobTitle}, Department: {Department}, IsActive: {IsActive}, IsOnline: {IsOnline} }}");
+    }
 }
