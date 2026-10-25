@@ -177,4 +177,13 @@ public class TrackingSession
         DateTime end = EndTime ?? DateTime.UtcNow;
         return end - StartTime;
     }
+
+    /// <summary>
+    /// Returns a concise summary of the key fields of this tracking session for logging and debugging.
+    /// </summary>
+    public override string ToString()
+    {
+        return FormattableString.Invariant(
+            $"TrackingSession {{ Id: {Id}, SessionName: {SessionName}, VehicleId: {VehicleId}, RouteId: {RouteId}, Status: {Status}, StartTime: {StartTime:O}, EndTime: {EndTime:O}, TotalDistance: {TotalDistance}, AverageSpeed: {AverageSpeed}, MaxSpeed: {MaxSpeed} }}");
+    }
 }
